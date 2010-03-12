@@ -8,18 +8,27 @@
 #ifndef RAWSEED_H_
 #define RAWSEED_H_
 
+#include <fstream>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <string.h>
+#include <string>
+
 class RawSeed {
+private:
+	struct stat tp;
+	DIR* path;
+	struct dirent *dir_object;
+	char* percorso;
+	int n_calib, n_sensor_position, n_draws, n_fileformat;
 public:
 	RawSeed();
 	virtual ~RawSeed();
 	bool creaRawSeed(); //crea la struttura del dataset
 	bool impostaPercorso(char*);
-private:
-	struct stat tp;
-	DIR *path;
-	struct dirent *dir_object;
-	char* percorso = "~/RawSeedDataSet";
-	int n_calib = 0, n_sensor_position = 0, n_draws = 0, n_fileformat = 0;
 };
 
 #endif /* RAWSEED_H_ */
