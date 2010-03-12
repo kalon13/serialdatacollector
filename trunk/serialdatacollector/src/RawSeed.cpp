@@ -15,18 +15,29 @@
 #include <unistd.h>
 #include <string.h>
 #include <string>
+
+#define MY_MASK 0777
 using namespace std;
 
 RawSeed::RawSeed() {
 	// TODO Auto-generated constructor stub
-	percorso = "~/RawSeedDataSet";
+	percorso = "/home/kain/RawSeedDataSet";
+	char* directory;
+	cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory :" << percorso << " )" << endl;
+	cin >> directory;
+	cout << endl;
+	percorso = strcat(directory, "/RawSeedDataSet");
 	bool ishere;
 	if((path = opendir(percorso)) == NULL)
-	        ishere = creaRawSeed();
-	if (ishere == false)
-		cout << "C'è stato un errore nella creazione del Data Set";
+	{
+		ishere = creaRawSeed();
+		if (ishere == false)
+			cout << "C'è stato un errore nella creazione del Data Set";
+		else
+			cout << "Data Set creato con successo!";
+	}
 	else
-		cout << "Data Set creato con successo!";
+		cout << "Struttura Raw Seed già esistente nel file system";
 }
 
 RawSeed::~RawSeed() {
@@ -38,14 +49,17 @@ bool RawSeed::creaRawSeed()
     //inizia a creare tutte le directory che serviranno per mettere su il dataset
 	try
 	{
-		//crea la directory ~/RawSeedDataSet
-		int err = mkdir(percorso,0777);
+		//crea la directory /var/RawSeedDataSet
+		umask(0);
+		int err = mkdir(percorso,MY_MASK);
 
+		if (err==-1)
+			perror(percorso);
 		//se mkdir è riuscito, allora err è = a zero
 		if(err == 0)
 		{
 			//crea le sotto directory nell'array di stringhe percorsi_prova
-			char* percorsi_prova[] = {"~/RawSeedDataSet/Utils","~/RawSeedDataSet/Calibration","~/RawSeedDataSet/DataSet", "~/RawSeedDataSet/Docs", "~/RawSeedDataSet/Drawings", "~/RawSeedDataSet/FileFormat", "~/RawSeedDataSet/SensorPosition"};
+			char* percorsi_prova[] = {"/home/kain/RawSeedDataSet/Utils","/home/kain/RawSeedDataSet/Calibration","/home/kain/RawSeedDataSet/DataSet", "/home/kain/RawSeedDataSet/Docs", "/home/kain/RawSeedDataSet/Drawings", "/home/kain/RawSeedDataSet/FileFormat", "/home/kain/RawSeedDataSet/SensorPosition"};
 
 			//sperando che fosse così semplice....
 			for(int i=0; i<7; i++){
