@@ -19,7 +19,7 @@ protected:
     bool DEBUG;					/* Per far vedere o no le scritte di debug*/
     int TIMEOUT;				/* time to wait for port to respond, in microseconds */
     int MAXATTEMPTS;    		/* maximum number of attempts to read characters */
-    int WAITCHARTIM;  			/* time to wait for a char to arrive. */
+    int WAITCHARTIME;  			/* time to wait for a char to arrive. */
 public:
     void getError(char* error);
     int readData(char* data, int lengthExpected);
@@ -30,7 +30,7 @@ public:
     void setDebug(bool);
     void setTimeout(int);
     void setMaxAttempts(int);
-    void setWaitCharTim(int);
+    void setWaitCharTime(int);
 
 	SerialDevice();
 	virtual ~SerialDevice();

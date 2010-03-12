@@ -6,11 +6,12 @@
  */
 
 #include "SerialDevice.h"
-#include <termios.h>
+#include <termios.h>	//Comunicazione seriale
 #include <fcntl.h>
+#include <unistd.h>		//Per la sleep
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream>
+#include <iostream>		//Per la read
 
 SerialDevice::SerialDevice() {
     DEBUG = false;			/* Per far vedere o no le scritte di debug*/
@@ -27,7 +28,7 @@ void SerialDevice::getError(char* error) {
     error = errorExplained;
 }
 
-int SerialDevice::readData(char* data)
+int SerialDevice::readData(char* data, int lengthExpected)
 {
 		int n, bytesRead, attempts;
 	    char inchar;
@@ -60,7 +61,7 @@ int SerialDevice::readData(char* data)
 	        if (n == 1)
 	            data[bytesRead++] = inchar;
 	        else
-	            usleep(WAITCHARTIME);  /* sleep a while for next byte. */
+	            sleep(WAITCHARTIME);  /* sleep a while for next byte. */
 	    }
 	    if (DEBUG) printf("\nattempts %d", attempts);
 	    if (DEBUG) printf("\nreceiveData: bytes read: %d   expected: %d\n", bytesRead, lengthExpected);
@@ -182,6 +183,6 @@ void SerialDevice::setTimeout(int val){
 void SerialDevice::setMaxAttempts(int val){
 	MAXATTEMPTS = val;
 }
-void SerialDevice::setWaitCharTim(int val){
-	WAITCHARTIM = val;
+void SerialDevice::setWaitCharTime(int val){
+	WAITCHARTIME = val;
 }
