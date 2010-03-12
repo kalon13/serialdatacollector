@@ -20,10 +20,11 @@ protected:
     int TIMEOUT;				/* time to wait for port to respond, in microseconds */
     int MAXATTEMPTS;    		/* maximum number of attempts to read characters */
     int WAITCHARTIME;  			/* time to wait for a char to arrive. */
+
 public:
     void getError(char* error);
-    int readData(char* data, int lengthExpected);
-    int sendData(char*);
+    int readData(unsigned char* data, int lengthExpected);
+    int sendData(unsigned char* data, int dataLength);
     bool openCommunication(char* port, int bauRate, int dataBits, int parity, int stopBits);
 
     //Metodi che impostano i parametri
