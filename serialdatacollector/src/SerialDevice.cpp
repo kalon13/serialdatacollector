@@ -18,17 +18,23 @@ SerialDevice::SerialDevice() {
     TIMEOUT = 50000;		/* time to wait for port to respond, in microseconds */
     MAXATTEMPTS = 200;    	/* maximum number of attempts to read characters */
     WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
+    portNum = 0;
 }
 
 SerialDevice::~SerialDevice() {
-	// TODO Auto-generated destructor stub
+	//Cancella i puntatori
+	delete(port);
+    delete(errorExplained);
+    //Chiude la comunicazione
+    if(portNum)
+    	close(portNum);
 }
 
 void SerialDevice::getError(char* error) {
     error = errorExplained;
 }
 
-int SerialDevice::readData(char* data, int lengthExpected)
+int SerialDevice::readData(unsigned char* data, int lengthExpected)
 {
 		int n, bytesRead, attempts;
 	    char inchar;
@@ -72,6 +78,20 @@ int SerialDevice::readData(char* data, int lengthExpected)
 	    }
 	    else
 	        return bytesRead;
+}
+
+int SerialDevice::sendData(unsigned char* data, int dataLength)
+{
+    int bytesWritten;
+    int status;
+    int portHandle;
+
+    /* write data to the serial port */
+    bytesWritten = write(portHandle, &data[0], dataLength);
+    if (status >=0)
+        return bytesWritten;
+    else
+        return -1;
 }
 
 bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits){
