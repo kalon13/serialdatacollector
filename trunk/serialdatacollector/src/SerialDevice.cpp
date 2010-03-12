@@ -91,7 +91,10 @@ int SerialDevice::sendData(unsigned char* data, int dataLength)
     if (status >=0)
         return bytesWritten;
     else
+    {
+    	errorExplained = "Errore nell'invio di dati al dispositivo";
         return -1;
+    }
 }
 
 bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits){
