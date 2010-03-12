@@ -7,9 +7,14 @@
 //============================================================================
 
 #include <iostream>
+#include "RawSeed.h"
+
 using namespace std;
 
 int main() {
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+
+	RawSeed *dataset = new RawSeed();
+
 	return 0;
 }
