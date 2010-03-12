@@ -28,7 +28,6 @@ public:
 	RawSeed();
 	virtual ~RawSeed();
 	bool creaRawSeed(); //crea la struttura del dataset
-	bool impostaPercorso(char*);
 };
 
 #endif /* RAWSEED_H_ */
