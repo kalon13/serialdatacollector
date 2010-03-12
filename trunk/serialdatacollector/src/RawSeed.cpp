@@ -23,10 +23,18 @@ RawSeed::RawSeed() {
 	// TODO Auto-generated constructor stub
 	percorso = "/home/kain/RawSeedDataSet";
 	char* directory;
-	cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory :" << percorso << " )" << endl;
-	cin >> directory;
-	cout << endl;
-	percorso = strcat(directory, "/RawSeedDataSet");
+	while(true)
+	{
+		cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory : " << percorso << ")" << endl;
+		cin >> directory;
+		cout << endl;
+		if(directory[0] == '/'){
+			percorso = strcat(directory, "/RawSeedDataSet");
+			break;
+		}
+		else
+			cout << "Errore!! Reinserisci il percorso assoluto,che sia una directory Linux" << endl;
+	}
 	bool ishere;
 	if((path = opendir(percorso)) == NULL)
 	{
@@ -53,15 +61,17 @@ bool RawSeed::creaRawSeed()
 		umask(0);
 		int err = mkdir(percorso,MY_MASK);
 
+		//Stampa a video il tipo di errore che ha incontrato, nel caso di -1
 		if (err==-1)
 			perror(percorso);
+
 		//se mkdir è riuscito, allora err è = a zero
 		if(err == 0)
 		{
 			//crea le sotto directory nell'array di stringhe percorsi_prova
 			char* percorsi_prova[] = {"/home/kain/RawSeedDataSet/Utils","/home/kain/RawSeedDataSet/Calibration","/home/kain/RawSeedDataSet/DataSet", "/home/kain/RawSeedDataSet/Docs", "/home/kain/RawSeedDataSet/Drawings", "/home/kain/RawSeedDataSet/FileFormat", "/home/kain/RawSeedDataSet/SensorPosition"};
 
-			//sperando che fosse così semplice....
+			//Crea ciclicamente le directory principali del dataset
 			for(int i=0; i<7; i++){
 				char* percorsoAttuale = percorsi_prova[i];
 				if ((err = mkdir(percorsoAttuale, 0777))!=0)
@@ -74,13 +84,8 @@ bool RawSeed::creaRawSeed()
 	}
 	catch(int a)
 	{
-		cout<< "La directory non è stata creata. Errore: " << a << endl;
+		cout<< "La directory non è stata creata. Codice Errore: " << a << endl;
 		return false;
 	}
 }
 
-// Servirà se faremo impostare dall'utente il percorso iniziale del dataset
-bool RawSeed::impostaPercorso(char*)
-{
-	return false;
-}

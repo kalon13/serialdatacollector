@@ -12,7 +12,8 @@
 using namespace std;
 
 int main() {
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+
+	cout << "!!!Hello World!!!" << endl << "Welcom to the best program of Data Collector in the World!!!" << endl;
 
 	RawSeed *dataset = new RawSeed();
 

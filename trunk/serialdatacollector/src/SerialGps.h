@@ -8,7 +8,9 @@
 #ifndef SERIALGPS_H_
 #define SERIALGPS_H_
 
-class SerialGps: SerialDevice {
+#include "SerialDevice.h"
+
+class SerialGps:SerialDevice {
 protected:
 	typedef struct NMEA_GPRMC{
 	         double utc;
