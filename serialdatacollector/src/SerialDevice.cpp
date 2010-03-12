@@ -9,10 +9,14 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
 
 SerialDevice::SerialDevice() {
-	// TODO Auto-generated constructor stub
-
+    DEBUG = false;			/* Per far vedere o no le scritte di debug*/
+    TIMEOUT = 50000;		/* time to wait for port to respond, in microseconds */
+    MAXATTEMPTS = 200;    	/* maximum number of attempts to read characters */
+    WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
 }
 
 SerialDevice::~SerialDevice() {
@@ -21,6 +25,52 @@ SerialDevice::~SerialDevice() {
 
 void SerialDevice::getError(char* error) {
     error = errorExplained;
+}
+
+int SerialDevice::readData(char* data)
+{
+		int n, bytesRead, attempts;
+	    char inchar;
+	    int maxPorts;
+	    struct timeval timeout;
+	    fd_set readfs;    /* file descriptor set */
+
+	    /* select will wait for port to respond or timeout */
+	    timeout.tv_usec = TIMEOUT;  /* microseconds */
+	    timeout.tv_sec  = 0;        /* seconds */
+	    FD_ZERO(&readfs);
+	    FD_SET(portNum, &readfs);  /* set testing for portHandle */
+	    if (DEBUG) printf("waiting for port to respond\n");
+	    //portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
+	    if (!FD_ISSET(portNum, &readfs)) {
+	        if (DEBUG) printf(" - timeout expired!\n");
+	        return -1;
+	    }
+	    if (DEBUG) printf("time remaining %ld ms.\n", timeout.tv_usec/1000);
+
+	    /* Read data into the response buffer.
+	     * until we get enough data or exceed the maximum
+	     * number of attempts
+	     */
+	    bytesRead = 0;
+	    attempts = 0;
+	    while (bytesRead < lengthExpected && attempts++ < MAXATTEMPTS) {
+	        n = read(portNum, &inchar, 1);
+	        if (DEBUG) printf(".", n, inchar);
+	        if (n == 1)
+	            data[bytesRead++] = inchar;
+	        else
+	            usleep(WAITCHARTIME);  /* sleep a while for next byte. */
+	    }
+	    if (DEBUG) printf("\nattempts %d", attempts);
+	    if (DEBUG) printf("\nreceiveData: bytes read: %d   expected: %d\n", bytesRead, lengthExpected);
+
+	    if (bytesRead != lengthExpected) {
+	    	errorExplained = "Risposta di lunghezza non aspettata";
+	        return -1;
+	    }
+	    else
+	        return bytesRead;
 }
 
 bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits){
@@ -37,6 +87,7 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int
         errorExplained = "Errore nell'apertura del dispositivo";
         return false;
     }
+    this->portNum = portHandle;
 
     /*  get port options for speed, etc. */
     tcgetattr(portHandle, &portOptions);
@@ -119,4 +170,18 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int
         return false;  //FALLITO
     }
     return true;  //OK
+}
+
+void SerialDevice::setDebug(bool val){
+	DEBUG = val;
+}
+
+void SerialDevice::setTimeout(int val){
+	TIMEOUT = val;
+}
+void SerialDevice::setMaxAttempts(int val){
+	MAXATTEMPTS = val;
+}
+void SerialDevice::setWaitCharTim(int val){
+	WAITCHARTIM = val;
 }
