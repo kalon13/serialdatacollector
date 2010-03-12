@@ -12,13 +12,26 @@
 
 class SerialDevice {
 protected:
-	char* port;      		//Nome della porta(es /dev/ttyS0)
-    char* errorExplained;	//Stringa che conterrà l'ultimo errore dato
+	char* port;      			/* Nome della porta(es /dev/ttyS0)*/
+    char* errorExplained;		/* Stringa che conterrà l'ultimo errore dato*/
+    int portNum;				/* Valore intero che verrà associtato alla porta aperta*/
+
+    bool DEBUG;					/* Per far vedere o no le scritte di debug*/
+    int TIMEOUT;				/* time to wait for port to respond, in microseconds */
+    int MAXATTEMPTS;    		/* maximum number of attempts to read characters */
+    int WAITCHARTIM;  			/* time to wait for a char to arrive. */
 public:
     void getError(char* error);
-    int readData(char*);
+    int readData(char* data, int lengthExpected);
     int sendData(char*);
-    bool openComunication(char* port, int bauRate, int dataBits, int parity, int stopBits);
+    bool openCommunication(char* port, int bauRate, int dataBits, int parity, int stopBits);
+
+    //Metodi che impostano i parametri
+    void setDebug(bool);
+    void setTimeout(int);
+    void setMaxAttempts(int);
+    void setWaitCharTim(int);
+
 	SerialDevice();
 	virtual ~SerialDevice();
 };
