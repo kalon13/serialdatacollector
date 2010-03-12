@@ -23,18 +23,19 @@ void SerialDevice::getError(char* error) {
     error = errorExplained;
 }
 
-int SerialDevice::openPort(char* port, int baudRate, int dataBits, int parity, int stopBits){
+bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits){
 
     struct termios portOptions;
     int portHandle;
     int status;
     int BAUD, DATABITS, PARITY, PARITYON, STOPBITS;
 
+    this->port = port;
     portHandle = open(port, O_RDWR);
 
     if(portHandle<0) {
         errorExplained = "Errore nell'apertura del dispositivo";
-        return -1;
+        return false;
     }
 
     /*  get port options for speed, etc. */
@@ -115,7 +116,7 @@ int SerialDevice::openPort(char* port, int baudRate, int dataBits, int parity, i
     if (status != 0)
     {
         errorExplained = "Errore nell'impostazioni dei parametri della porta";
-        return -1;  //FALLITO
+        return false;  //FALLITO
     }
-    return status;  //OK
+    return true;  //OK
 }
