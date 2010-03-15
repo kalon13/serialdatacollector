@@ -30,7 +30,7 @@ SerialDevice::~SerialDevice() {
     	close(portNum);
 }
 
-void SerialDevice::getError(char* error) {
+void SerialDevice::getError(char* &error) {
     error = errorExplained;
 }
 
@@ -83,12 +83,10 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 int SerialDevice::sendData(unsigned char* data, int dataLength)
 {
     int bytesWritten;
-    int status;
-    int portHandle;
 
     /* write data to the serial port */
-    bytesWritten = write(portHandle, &data[0], dataLength);
-    if (status >=0)
+    bytesWritten = write(portNum, &data[0], dataLength);
+    if (bytesWritten >=0)
         return bytesWritten;
     else
     {
