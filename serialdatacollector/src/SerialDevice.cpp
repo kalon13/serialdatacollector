@@ -23,8 +23,8 @@ SerialDevice::SerialDevice() {
 
 SerialDevice::~SerialDevice() {
 	//Cancella i puntatori
-	delete(port);
-    delete(errorExplained);
+	/*delete(port);
+    delete(errorExplained);*/
     //Chiude la comunicazione
     if(portNum)
     	close(portNum);
