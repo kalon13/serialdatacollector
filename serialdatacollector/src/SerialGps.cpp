@@ -15,6 +15,10 @@
 #include <sys/types.h>
 #include <time.h>
 #include <termios.h>
+#include <stdio.h>
+
+
+
 
   unsigned int byte_read,i,j,count,type_sentence;
   unsigned char sentence[2048];
@@ -31,7 +35,7 @@ SerialGps::~SerialGps() {
 // NMEA è stata letta
 unsigned short int SerialGps::decode(unsigned char *sentence)
 {
-	 if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
+		     if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
 	         {
 	         return 1;
 	         }
@@ -72,6 +76,9 @@ void decode_GPGGA(unsigned char *sentence,NMEA_GPRMC *gpgga)
 
 void SerialGps::store_data(unsigned char *data,int byte)
 {
+FILE *gprmc;
+FILE *gpgga;
+
 
 
 i=0;
@@ -95,7 +102,7 @@ count=0;
 		           {
 		              j = 1;
 		              sentence[0] = '$';
-		              //clock_gettime( CLOCK_REALTIME, &start_decode);
+
 		           }
 
 		           if(j > 0 && data[i]!='$')
@@ -108,19 +115,29 @@ count=0;
 		           {
 		              sentence[j] = '\0';
 		              j = -1;
-	//              printf("\nDecode Sentence %s",sentence);
-	              type_sentence = decode(sentence);
-	           }
+		           }
 	  }
+	  type_sentence = decode(sentence);
+
 	  switch(type_sentence)
 	  {
 	  case 1:
+		  gprmc = fopen ("gprmc.cvs", "a");
 		  //stampo sul file gprmc.csv i dati GPRMC
+		  printf("%d\n",type_sentence);
 		  printf("%s",sentence);
+		  fprintf(gprmc,(const char*)sentence);
+		  fclose(gprmc);
 	  break;
 	  case 2:
+		  gpgga = fopen ("gpgga.cvs", "a");
 		  //stampo sul file gpgga.csv i dati GPGGA
+		  printf("%d\n",type_sentence);
 		  printf("%s",sentence);
+		  fprintf(gpgga,(const char*)sentence);
+		  fclose(gpgga);
+		  break;
+	  default:
 		  break;
 	  }
 
@@ -130,3 +147,5 @@ count=0;
 		//return error
 	}
 }
+
+
