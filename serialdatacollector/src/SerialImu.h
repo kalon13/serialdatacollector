@@ -49,6 +49,7 @@ public:
 	int calcChecksum(unsigned char* buffer, int length);
 
 	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stable);
+	int getQuaternions(float q[], int stable);
 
 	SerialImu();
 	virtual ~SerialImu();
