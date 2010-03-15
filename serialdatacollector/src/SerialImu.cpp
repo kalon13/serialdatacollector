@@ -26,16 +26,14 @@ int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable
     int responseLength = 11;
 
     if (stable==M3D_INSTANT)
-        cmd = CMD_INSTANT_EULER;
+        cmd = (unsigned char) CMD_INSTANT_EULER;
     else
-        cmd = CMD_GYRO_EULER;
+        cmd = (unsigned char) CMD_GYRO_EULER;
 
-    byteSent = SerialDevice::sendData((unsigned char*)cmd, 1);
+    byteSent = SerialDevice::sendData((unsigned char*)&cmd, 1);
 
-    if (byteSent<0) {
-    	errorExplained = "Errore di lettura dati";
+    if (byteSent<0)
     	return -1;
-    }
 
 	/* receive data if expected, evaluate checksum. */
 	byteRead = SerialDevice::readData(&response[0], responseLength);
@@ -50,8 +48,10 @@ int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable
         *roll  = convert2short(&response[1]) * convertFactor;
         *pitch = convert2short(&response[3]) * convertFactor;
         *yaw   = convert2short(&response[5]) * convertFactor;
-        return 0;
+        return byteRead;
     }
+    else
+    	return -1;
 }
 
 
