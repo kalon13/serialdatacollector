@@ -7,10 +7,10 @@
 
 #ifndef SERIALGPS_H_
 #define SERIALGPS_H_
-
 #include "SerialDevice.h"
 
-class SerialGps:SerialDevice {
+
+class SerialGps:public SerialDevice {
 protected:
 	typedef struct NMEA_GPRMC{
 	         double utc;
@@ -48,9 +48,16 @@ protected:
 	         //DGPS2;
 	         short unsigned int CHECKSUM;
 	         }NMEA_GPGGA;
-
 public:
-	SerialGps();
+	unsigned short int decode(unsigned char* sentence);
+    void decode_GPRMC(unsigned char* sentence,NMEA_GPRMC* gprmc);
+    void decode_GPGGA(unsigned char* sentence,NMEA_GPRMC* gpgga);
+    void store_data(unsigned char* sentence,int byte);
+    void print_SatNum(unsigned char* sentence, unsigned short int byte);
+    void print_Long(unsigned char* sentence, unsigned short int byte);
+    void print_Lang(unsigned char* sentence, unsigned short int byte);
+
+    SerialGps();
 	virtual ~SerialGps();
 };
 
