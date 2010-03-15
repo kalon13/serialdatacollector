@@ -35,7 +35,6 @@ int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable
     if (byteSent<0)
     	return -1;
 
-	/* receive data if expected, evaluate checksum. */
 	byteRead = SerialDevice::readData(&response[0], responseLength);
 	if (byteRead==responseLength) {
 		int checkSum = convert2int(&response[responseLength-2]);
@@ -49,6 +48,39 @@ int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable
         *pitch = convert2short(&response[3]) * convertFactor;
         *yaw   = convert2short(&response[5]) * convertFactor;
         return byteRead;
+    }
+    else
+    	return -1;
+}
+
+int SerialImu::getQuaternions(float q[], int stable) {
+    unsigned char cmd;
+    unsigned char  response[128];
+    int convertFactor = 8192;
+    int byteSent, byteRead;
+    int i;
+    int responseLength = 13;
+
+    if (stable==M3D_INSTANT)
+        cmd = (unsigned char) CMD_INSTANT_QUAT;
+    else
+        cmd = (unsigned char) CMD_GYRO_QUAT;
+
+    byteSent = SerialDevice::sendData((unsigned char*) &cmd,1);
+
+    if (byteSent < 0) {
+        return -1;
+    }
+
+    byteRead = SerialDevice::readData(&response[0],responseLength);
+
+    /*Manca il controllo del checksum ma sul programma originale non c'era*/
+
+    /*Restituisce i dati*/
+    if(byteRead>0) {
+		for (i=0; i<4; ++i)
+				q[i] = (float) convert2short(&response[1 + i*2])/convertFactor;
+		return byteRead;
     }
     else
     	return -1;
