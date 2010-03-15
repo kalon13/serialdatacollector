@@ -17,9 +17,6 @@
 #include <termios.h>
 #include <stdio.h>
 
-
-
-
   unsigned int byte_read,i,j,count,type_sentence;
   unsigned char sentence[2048];
 
