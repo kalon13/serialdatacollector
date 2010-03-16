@@ -21,21 +21,24 @@ using namespace std;
 
 RawSeed::RawSeed() {
 	// TODO Auto-generated constructor stub
-	percorso = "/home/kain/RawSeedDataSet";
-	char* directory;
+	//percorso = "/home/kain/RawSeedDataSet";
+	string directory("/home/kain/RawSeedDataSet");
 	while(true)
 	{
-		cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory : " << percorso << ")" << endl;
+		cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory : " << directory << ")" << endl;
 		cin >> directory;
 		cout << endl;
-		if(directory[0] == '/'){
-			percorso = strcat(directory, "/RawSeedDataSet");
+		if(directory[0] == '/' && directory[1] != '/'){
+			//percorso = strcat(directory, "/RawSeedDataSet");
+			directory += "/RawSeedDataSet";
 			break;
 		}
 		else
 			cout << "Errore!! Reinserisci il percorso assoluto,che sia una directory Linux" << endl;
 	}
 	bool ishere;
+	percorso = new char[directory.length()+1];
+	strcpy(percorso,directory.c_str());
 	if((path = opendir(percorso)) == NULL)
 	{
 		ishere = creaRawSeed();
@@ -50,6 +53,7 @@ RawSeed::RawSeed() {
 
 RawSeed::~RawSeed() {
 	// TODO Auto-generated destructor stub
+
 }
 
 bool RawSeed::creaRawSeed()
@@ -57,7 +61,6 @@ bool RawSeed::creaRawSeed()
     //inizia a creare tutte le directory che serviranno per mettere su il dataset
 	try
 	{
-		//crea la directory /var/RawSeedDataSet
 		umask(0);
 		int err = mkdir(percorso,MY_MASK);
 
@@ -65,18 +68,27 @@ bool RawSeed::creaRawSeed()
 		if (err==-1)
 			perror(percorso);
 
+		string directory(percorso);
+		int lunghezza_iniziale = directory.length();
+
 		//se mkdir è riuscito, allora err è = a zero
 		if(err == 0)
 		{
 			//crea le sotto directory nell'array di stringhe percorsi_prova
-			char* percorsi_prova[] = {"/home/kain/RawSeedDataSet/Utils","/home/kain/RawSeedDataSet/Calibration","/home/kain/RawSeedDataSet/DataSet", "/home/kain/RawSeedDataSet/Docs", "/home/kain/RawSeedDataSet/Drawings", "/home/kain/RawSeedDataSet/FileFormat", "/home/kain/RawSeedDataSet/SensorPosition"};
+			//char* percorsi_prova[] = {"/home/kain/RawSeedDataSet/Utils","/home/kain/RawSeedDataSet/Calibration","/home/kain/RawSeedDataSet/DataSet", "/home/kain/RawSeedDataSet/Docs", "/home/kain/RawSeedDataSet/Drawings", "/home/kain/RawSeedDataSet/FileFormat", "/home/kain/RawSeedDataSet/SensorPosition", "/home/kain/RawSeedDataSet/DataSet/Indoor", "/home/kain/RawSeedDataSet/DataSet/Mixed", "/home/kain/RawSeedDataSet/DataSet/Outdoor"};
+
+			string percorsi_prova[] = {(directory + "/Utils"),(directory + "/Calibration"),(directory + "/DataSet"), (directory + "/Docs"), (directory + "/Drawings"), (directory + "/FileFormat"), (directory + "/SensorPosition"), (directory + "/DataSet/Indoor"), (directory + "/DataSet/Mixed"), (directory + "/DataSet/Outdoor")};
 
 			//Crea ciclicamente le directory principali del dataset
-			for(int i=0; i<7; i++){
-				char* percorsoAttuale = percorsi_prova[i];
-				if ((err = mkdir(percorsoAttuale, 0777))!=0)
+			for(int i=0; i<10; i++){
+				char* percorsoAttuale; //= percorsi_prova[i];
+				percorsoAttuale = new char[percorsi_prova[i].length()+1];
+				strcpy(percorsoAttuale, percorsi_prova[i].c_str());
+				if ((err = mkdir(percorsoAttuale, 0777))!=0){
 					throw err;
+				}
 			}
+
 			return true;
 		}
 		else
@@ -84,6 +96,7 @@ bool RawSeed::creaRawSeed()
 	}
 	catch(int a)
 	{
+
 		cout<< "La directory non è stata creata. Codice Errore: " << a << endl;
 		return false;
 	}
