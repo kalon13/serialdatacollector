@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <string>
+#include <stdlib.h>
 
 class RawSeed {
 private:
@@ -24,11 +25,14 @@ private:
 	struct dirent *dir_object;
 	char* percorso;
 	int contatori[4];
+	bool isCalib;
 public:
 	RawSeed();
 	virtual ~RawSeed();
 	bool creaRawSeed(); //crea la struttura del dataset
 	void inizializzaContatori();
+	bool nuovaCalibrazione(int indice);
+	bool nuovoDataset();
 };
 
 #endif /* RAWSEED_H_ */
