@@ -21,7 +21,6 @@ using namespace std;
 
 RawSeed::RawSeed() {
 	// TODO Auto-generated constructor stub
-	//percorso = "/home/kain/RawSeedDataSet";
 	string directory("/home/kain/RawSeedDataSet");
 	while(true)
 	{
@@ -45,10 +44,21 @@ RawSeed::RawSeed() {
 		if (ishere == false)
 			cout << "C'è stato un errore nella creazione del Data Set";
 		else
+		{
 			cout << "Data Set creato con successo!";
+			for(int i=0; i<4; i++)
+				contatori[i] = 0;
+		}
 	}
 	else
-		cout << "Struttura Raw Seed già esistente nel file system";
+	{
+		cout << "Struttura Raw Seed già esistente nel file system" << endl;
+		inizializzaContatori();
+		/*
+		for(int i=0; i<4; i++)
+			cout << contatori[i] << endl;
+		*/
+	}
 }
 
 RawSeed::~RawSeed() {
@@ -69,7 +79,6 @@ bool RawSeed::creaRawSeed()
 			perror(percorso);
 
 		string directory(percorso);
-		int lunghezza_iniziale = directory.length();
 
 		//se mkdir è riuscito, allora err è = a zero
 		if(err == 0)
@@ -101,4 +110,34 @@ bool RawSeed::creaRawSeed()
 		return false;
 	}
 }
+
+void RawSeed::inizializzaContatori()
+{
+	string esaminata(percorso);
+	string percorsi_esaminati[] = {(esaminata + "/Calibration"),(esaminata + "/Drawings"), (esaminata + "/FileFormat"), (esaminata + "/SensorPosition")};
+	//int n_calib = 0, n_sensor_position = 0, n_draws = 0, n_fileformat = 0;
+	int k = 0;
+	for(int i = 0; i < 4; ++i)
+	{
+		percorso = new char[percorsi_esaminati[i].length()+1];
+		strcpy(percorso, percorsi_esaminati[i].c_str());
+		if((path = opendir(percorso)) != NULL)
+		{
+			dir_object = readdir(path);
+			while(dir_object != NULL)
+			{
+				stat(dir_object->d_name, &tp);
+				if (S_ISDIR(tp.st_mode))
+				{
+					//l'oggetto dir_object é una directory
+					++k;
+				}
+				dir_object = readdir(path);
+			}
+		}
+		contatori[i] = (k - 2); //serve il meno 2 perchè conta anche le directory . e ..
+		k = 0;
+	}
+}
+
 
