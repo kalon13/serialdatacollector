@@ -19,6 +19,7 @@ SerialDevice::SerialDevice() {
     MAXATTEMPTS = 200;    	/* maximum number of attempts to read characters */
     WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
     portNum = 0;
+    communicationOpened = false;
 }
 
 SerialDevice::~SerialDevice() {
@@ -36,52 +37,62 @@ char* SerialDevice::getError() {
 
 int SerialDevice::readData(unsigned char* data, int lengthExpected)
 {
-		int n, bytesRead, attempts;
-	    char inchar;
-	    int maxPorts;
-	    struct timeval timeout;
-	    fd_set readfs;    /* file descriptor set */
+	if(!communicationOpened){
+    	errorExplained = "La comunicazione con il dispositivo non e' aperta\n";
+        return -1;
+	}
 
-	    /* select will wait for port to respond or timeout */
-	    timeout.tv_usec = TIMEOUT;  /* microseconds */
-	    timeout.tv_sec  = 0;        /* seconds */
-	    FD_ZERO(&readfs);
-	    FD_SET(portNum, &readfs);  /* set testing for portHandle */
-	    if (DEBUG) printf("Waiting for port to respond\n");
-	    //portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
-	    if (!FD_ISSET(portNum, &readfs)) {
-	        if (DEBUG) printf(" - timeout expired!\n");
-	        return -1;
-	    }
-	    if (DEBUG) printf("Time remaining %ld ms.\n", timeout.tv_usec/1000);
+	int n, bytesRead, attempts;
+	char inchar;
+	int maxPorts;
+	struct timeval timeout;
+	fd_set readfs;    /* file descriptor set */
 
-	    /* Read data into the response buffer.
-	     * until we get enough data or exceed the maximum
-	     * number of attempts
-	     */
-	    bytesRead = 0;
-	    attempts = 0;
-	    while (bytesRead < lengthExpected && attempts++ < MAXATTEMPTS) {
-	        n = read(portNum, &inchar, 1);
-	        if (DEBUG) printf(".", n, inchar);
-	        if (n == 1)
-	            data[bytesRead++] = inchar;
-	        else
-	            sleep(WAITCHARTIME);  /* sleep a while for next byte. */
-	    }
-	    if (DEBUG) printf("\nattempts %d", attempts);
-	    if (DEBUG) printf("\nreceiveData: bytes read: %d   expected: %d\n", bytesRead, lengthExpected);
+	/* select will wait for port to respond or timeout */
+	timeout.tv_usec = TIMEOUT;  /* microseconds */
+	timeout.tv_sec  = 0;        /* seconds */
+	FD_ZERO(&readfs);
+	FD_SET(portNum, &readfs);  /* set testing for portHandle */
+	if (DEBUG) printf("Waiting for port to respond\n");
+	//portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
+	if (!FD_ISSET(portNum, &readfs)) {
+		if (DEBUG) printf(" - timeout expired!\n");
+		return -1;
+	}
+	if (DEBUG) printf("Time remaining %ld ms.\n", timeout.tv_usec/1000);
 
-	    if (bytesRead != lengthExpected) {
-	    	errorExplained = "Risposta di lunghezza non aspettata\n";
-	        return -1;
-	    }
-	    else
-	        return bytesRead;
+	/* Read data into the response buffer.
+	 * until we get enough data or exceed the maximum
+	 * number of attempts
+	 */
+	bytesRead = 0;
+	attempts = 0;
+	while (bytesRead < lengthExpected && attempts++ < MAXATTEMPTS) {
+		n = read(portNum, &inchar, 1);
+		if (DEBUG) printf(".", n, inchar);
+		if (n == 1)
+			data[bytesRead++] = inchar;
+		else
+			sleep(WAITCHARTIME);  /* sleep a while for next byte. */
+	}
+	if (DEBUG) printf("\nattempts %d", attempts);
+	if (DEBUG) printf("\nreceiveData: bytes read: %d   expected: %d\n", bytesRead, lengthExpected);
+
+	if (bytesRead != lengthExpected) {
+		errorExplained = "Risposta di lunghezza non aspettata\n";
+		return -1;
+	}
+	else
+		return bytesRead;
 }
 
 int SerialDevice::sendData(unsigned char* data, int dataLength)
 {
+	if(!communicationOpened){
+    	errorExplained = "La comunicazione con il dispositivo non e' aperta\n";
+        return -1;
+	}
+
     int bytesWritten;
 
     /* write data to the serial port */
@@ -191,7 +202,18 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int
         errorExplained = "Errore nell'impostazioni dei parametri della porta\n";
         return false;  //FALLITO
     }
+
+    communicationOpened = true;
     return true;  //OK
+}
+
+void SerialDevice::closeCommunication() {
+    //Chiude la comunicazione
+    if(portNum)
+    	close(portNum);
+}
+bool SerialDevice::communicationStatus() {
+	return communicationOpened;
 }
 
 void SerialDevice::setDebug(bool val){
