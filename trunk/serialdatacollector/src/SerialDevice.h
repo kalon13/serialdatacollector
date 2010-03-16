@@ -22,7 +22,7 @@ protected:
     int WAITCHARTIME;  			/* time to wait for a char to arrive. */
 
 public:
-    void getError(char* &error);
+    char* getError();
     int readData(unsigned char* data, int lengthExpected);
     int sendData(unsigned char* data, int dataLength);
     bool openCommunication(char* port, int bauRate, int dataBits, int parity, int stopBits);
