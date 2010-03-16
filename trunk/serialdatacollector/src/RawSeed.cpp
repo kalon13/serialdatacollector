@@ -199,10 +199,7 @@ bool RawSeed::nuovaCalibrazione(int indice)
 			strcpy(percorso_calib, dentro_calibration[i].c_str());
 			int err = mkdir(percorso_calib, MY_MASK);
 			if (err==-1)
-			{
-				//perror(percorso);
 				return false;
-			}
 		}
 	}
 	// rimetto il percorso al valore di partenza e aggiorno i contatori
@@ -215,5 +212,15 @@ bool RawSeed::nuovaCalibrazione(int indice)
 
 bool RawSeed::nuovoDataset()
 {
-
+	/*
+	 * per creare un nuovo dataset, abbiamo bisogno di:
+	 * 1. Prendere la locazione della raccolta dati, la data dal sistema e il tipo di raccolta(se statica o dinamica)
+	 * 2. Link simbolici alle 4 directory con _NN (calibration, drawings, fileformat, sensorposition)
+	 * 3. File contenenti i dati raccolti dai sensori, che sono il data set vero e proprio
+	 *
+	 * NOTA: il punti numero 2, porta a directory facenti parte del raw seed che NON
+	 * contengono Dati raccolti, quelle 4 directory contengono file accessori per
+	 * la corretta interpretazione dei dati che vanno fatti con appositi programmi
+	 *
+	 */
 }
