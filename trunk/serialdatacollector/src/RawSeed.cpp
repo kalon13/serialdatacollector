@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <string>
+#include <stdlib.h>
+#include <sstream>
 
 #define MY_MASK 0777
 using namespace std;
@@ -28,7 +30,6 @@ RawSeed::RawSeed() {
 		cin >> directory;
 		cout << endl;
 		if(directory[0] == '/' && directory[1] != '/'){
-			//percorso = strcat(directory, "/RawSeedDataSet");
 			directory += "/RawSeedDataSet";
 			break;
 		}
@@ -54,6 +55,7 @@ RawSeed::RawSeed() {
 	{
 		cout << "Struttura Raw Seed già esistente nel file system" << endl;
 		inizializzaContatori();
+		cout << "Percorso Raw Seed letto, pronto per salvare i file..." << endl;
 		/*
 		for(int i=0; i<4; i++)
 			cout << contatori[i] << endl;
@@ -83,14 +85,10 @@ bool RawSeed::creaRawSeed()
 		//se mkdir è riuscito, allora err è = a zero
 		if(err == 0)
 		{
-			//crea le sotto directory nell'array di stringhe percorsi_prova
-			//char* percorsi_prova[] = {"/home/kain/RawSeedDataSet/Utils","/home/kain/RawSeedDataSet/Calibration","/home/kain/RawSeedDataSet/DataSet", "/home/kain/RawSeedDataSet/Docs", "/home/kain/RawSeedDataSet/Drawings", "/home/kain/RawSeedDataSet/FileFormat", "/home/kain/RawSeedDataSet/SensorPosition", "/home/kain/RawSeedDataSet/DataSet/Indoor", "/home/kain/RawSeedDataSet/DataSet/Mixed", "/home/kain/RawSeedDataSet/DataSet/Outdoor"};
-
 			string percorsi_prova[] = {(directory + "/Utils"),(directory + "/Calibration"),(directory + "/DataSet"), (directory + "/Docs"), (directory + "/Drawings"), (directory + "/FileFormat"), (directory + "/SensorPosition"), (directory + "/DataSet/Indoor"), (directory + "/DataSet/Mixed"), (directory + "/DataSet/Outdoor")};
-
+			char* percorsoAttuale;
 			//Crea ciclicamente le directory principali del dataset
 			for(int i=0; i<10; i++){
-				char* percorsoAttuale; //= percorsi_prova[i];
 				percorsoAttuale = new char[percorsi_prova[i].length()+1];
 				strcpy(percorsoAttuale, percorsi_prova[i].c_str());
 				if ((err = mkdir(percorsoAttuale, 0777))!=0){
@@ -119,25 +117,103 @@ void RawSeed::inizializzaContatori()
 	int k = 0;
 	for(int i = 0; i < 4; ++i)
 	{
+		//queste due variabili prendono le directory da esaminare per ogni iterazione del for
 		percorso = new char[percorsi_esaminati[i].length()+1];
 		strcpy(percorso, percorsi_esaminati[i].c_str());
+
+		//apre la directory con gli oggetti da contare
 		if((path = opendir(percorso)) != NULL)
 		{
 			dir_object = readdir(path);
+
+			//ciclo che scorre tutto il contenuto delle directory
 			while(dir_object != NULL)
 			{
-				stat(dir_object->d_name, &tp);
-				if (S_ISDIR(tp.st_mode))
-				{
-					//l'oggetto dir_object é una directory
-					++k;
-				}
+				++k;
 				dir_object = readdir(path);
 			}
 		}
 		contatori[i] = (k - 2); //serve il meno 2 perchè conta anche le directory . e ..
 		k = 0;
 	}
+
+	/*
+	 * queste due righe sono state aggiunte per reimpostare la variabile percorso
+	 * al valore iniziale, cioè "percorso scelto dall'utente" + "/RawSeedDataSet"
+	 * dato che alla fine del ciclo for valeva lo stesso percorso + "/SensorPosition"
+	 */
+	percorso = new char [esaminata.length()+1];
+	strcpy(percorso, esaminata.c_str());
 }
 
+bool RawSeed::nuovaCalibrazione(int indice)
+{
+	//il contatore delle calibrazioni è il primo dell'array
+	//int NN = contatori[0];
+	int NN = contatori[indice];
 
+	// Salvo il valore iniziale del percorso del dataset in una stringa
+	string salvo(percorso);
+
+	//codice di lavoro
+	string dir(percorso);
+	string num; // numero
+	stringstream out;
+	out << NN;
+	num = out.str();
+
+	switch(indice)
+	{
+		case 0:
+			dir = dir + "/Calibration/Calibration_" + num;
+		break;
+		case 1:
+			dir = dir + "/Drawings/Drawings_" + num;
+		break;
+		case 2:
+			dir = dir + "/FileFormat/FileFormat_" + num;
+		break;
+		case 3:
+			dir = dir + "/SensorPosition/SensorPosition_" + num;
+		break;
+	}
+
+	percorso = new char[dir.length()+1];
+	strcpy(percorso,dir.c_str());
+	int err = mkdir(percorso, MY_MASK);
+
+	if (err==-1)
+	{
+		perror(percorso);
+		return false;
+	}
+
+	if(indice==0)
+	{
+		string dentro_calibration[] = {(dir + "/Images"),(dir + "/Images/All_images"),(dir + "/Images/Used_for_calibration"),(dir + "/Results"), (dir + "/Results/FRONTAL"), (dir + "/Results/OMNI"), (dir + "/Results/CVS")};
+		char* percorso_calib;
+		for(int i=0; i<7; i++)
+		{
+			/*percorso_calib*/
+			percorso_calib = new char[dentro_calibration[i].length()+1];
+			strcpy(percorso_calib, dentro_calibration[i].c_str());
+			int err = mkdir(percorso_calib, MY_MASK);
+			if (err==-1)
+			{
+				//perror(percorso);
+				return false;
+			}
+		}
+	}
+	// rimetto il percorso al valore di partenza e aggiorno i contatori
+	percorso = new char[salvo.length()+1];
+	strcpy(percorso,salvo.c_str());
+	++NN;
+	contatori[indice] = NN;
+	return true;
+}
+
+bool RawSeed::nuovoDataset()
+{
+
+}
