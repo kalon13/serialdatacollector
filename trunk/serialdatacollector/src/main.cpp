@@ -10,14 +10,18 @@
 #include "SerialGps.h"
 #include "SerialDevice.h"
 #include <stdio.h>
+#include "RawSeed.h"
 #define DIM 2048
 
 using namespace std;
 unsigned char data[DIM];
 
-
 int main() {
 
+	cout << "!!!Hello World!!!" << endl << "Welcom to the best program of Data Collector in the World!!!" << endl;
+
+	//RawSeed *dataset = new RawSeed();
+	//delete(dataset);
 
 	int byte_read;
 	unsigned short int d;

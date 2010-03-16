@@ -23,11 +23,12 @@ private:
 	DIR* path;
 	struct dirent *dir_object;
 	char* percorso;
-	int n_calib, n_sensor_position, n_draws, n_fileformat;
+	int contatori[4];
 public:
 	RawSeed();
 	virtual ~RawSeed();
 	bool creaRawSeed(); //crea la struttura del dataset
+	void inizializzaContatori();
 };
 
 #endif /* RAWSEED_H_ */
