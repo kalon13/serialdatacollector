@@ -30,8 +30,8 @@ SerialDevice::~SerialDevice() {
     	close(portNum);
 }
 
-void SerialDevice::getError(char* &error) {
-    error = errorExplained;
+char* SerialDevice::getError() {
+    return errorExplained;
 }
 
 int SerialDevice::readData(unsigned char* data, int lengthExpected)
@@ -47,13 +47,13 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	    timeout.tv_sec  = 0;        /* seconds */
 	    FD_ZERO(&readfs);
 	    FD_SET(portNum, &readfs);  /* set testing for portHandle */
-	    if (DEBUG) printf("waiting for port to respond\n");
+	    if (DEBUG) printf("Waiting for port to respond\n");
 	    //portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
 	    if (!FD_ISSET(portNum, &readfs)) {
 	        if (DEBUG) printf(" - timeout expired!\n");
 	        return -1;
 	    }
-	    if (DEBUG) printf("time remaining %ld ms.\n", timeout.tv_usec/1000);
+	    if (DEBUG) printf("Time remaining %ld ms.\n", timeout.tv_usec/1000);
 
 	    /* Read data into the response buffer.
 	     * until we get enough data or exceed the maximum
@@ -73,7 +73,7 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	    if (DEBUG) printf("\nreceiveData: bytes read: %d   expected: %d\n", bytesRead, lengthExpected);
 
 	    if (bytesRead != lengthExpected) {
-	    	errorExplained = "Risposta di lunghezza non aspettata";
+	    	errorExplained = "Risposta di lunghezza non aspettata\n";
 	        return -1;
 	    }
 	    else
@@ -90,7 +90,7 @@ int SerialDevice::sendData(unsigned char* data, int dataLength)
         return bytesWritten;
     else
     {
-    	errorExplained = "Errore nell'invio di dati al dispositivo";
+    	errorExplained = "Errore nell'invio di dati al dispositivo\n";
         return -1;
     }
 }
@@ -106,7 +106,7 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int
     portHandle = open(port, O_RDWR);
 
     if(portHandle<0) {
-        errorExplained = "Errore nell'apertura del dispositivo";
+        errorExplained = "Errore nell'apertura del dispositivo\n";
         return false;
     }
     this->portNum = portHandle;
@@ -188,7 +188,7 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int
 
     if (status != 0)
     {
-        errorExplained = "Errore nell'impostazioni dei parametri della porta";
+        errorExplained = "Errore nell'impostazioni dei parametri della porta\n";
         return false;  //FALLITO
     }
     return true;  //OK
