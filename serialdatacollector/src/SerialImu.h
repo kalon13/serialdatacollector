@@ -43,13 +43,15 @@ struct EulerAngles
 };
 
 class SerialImu:public SerialDevice {
-public:
+private:
 	short convert2short(unsigned char* buffer);
 	int convert2int(unsigned char* buffer);
 	int calcChecksum(unsigned char* buffer, int length);
 
-	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stable);
-	int getQuaternions(float q[], int stable);
+	float getTimerSeconds(unsigned char* timestamp);
+public:
+	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stable, float* timestamp);
+	int getQuaternions(float q[], int stable, float* timestamp);
 
 	SerialImu();
 	virtual ~SerialImu();

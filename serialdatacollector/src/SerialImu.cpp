@@ -18,7 +18,7 @@ SerialImu::~SerialImu() {
 }
 
 
-int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable) {
+int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable, float* timestamp) {
     unsigned char cmd;
     unsigned char response[11];
     float convertFactor = (360.0/65536.0f);
@@ -47,15 +47,16 @@ int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable
         *roll  = convert2short(&response[1]) * convertFactor;
         *pitch = convert2short(&response[3]) * convertFactor;
         *yaw   = convert2short(&response[5]) * convertFactor;
+        *timestamp = getTimerSeconds(&response[7]);
         return byteRead;
     }
     else
     	return -1;
 }
 
-int SerialImu::getQuaternions(float q[], int stable) {
+int SerialImu::getQuaternions(float q[], int stable, float* timestamp) {
     unsigned char cmd;
-    unsigned char  response[128];
+    unsigned char  response[13];
     int convertFactor = 8192;
     int byteSent, byteRead;
     int i;
@@ -80,10 +81,16 @@ int SerialImu::getQuaternions(float q[], int stable) {
     if(byteRead>0) {
 		for (i=0; i<4; ++i)
 				q[i] = (float) convert2short(&response[1 + i*2])/convertFactor;
+        *timestamp = getTimerSeconds(&response[9]);
 		return byteRead;
     }
     else
     	return -1;
+}
+
+float SerialImu::getTimerSeconds(unsigned char* timestamp) {
+	float convertFactor = 0.0065536f;
+	return convert2int(timestamp)*convertFactor;
 }
 
 
