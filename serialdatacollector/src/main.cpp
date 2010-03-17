@@ -11,6 +11,9 @@
 #include "SerialDevice.h"
 #include <stdio.h>
 #include "RawSeed.h"
+#include <time.h>
+#include <stdlib.h>
+
 #define DIM 2048
 
 using namespace std;
@@ -22,6 +25,10 @@ int main() {
 
 	RawSeed *dataset = new RawSeed();
 	char scelta;
+	char luogo[64];
+	unsigned short tipo;
+	bool flag;
+
 	while(true)
 	{
 		bool riuscita;
@@ -46,6 +53,34 @@ int main() {
 		if(scelta == 'N')
 			break;
 	}
+
+	do
+	{
+		cout << "Specificare il luogo in cui si intende raccogliere i dati: " << endl;
+		//cin.getline(luogo,60);
+		fflush(stdin);
+		//gets(luogo);
+		fgets(luogo, 64, stdin);
+
+		fflush(stdin);
+		flag = dataset->setLocation(luogo);
+	}
+	while(!flag);
+
+	do
+	{
+		cout << "Specificare il tipo di raccolta dati compiuta dal Robot" << endl << "(1 --> Raccolta dati Statica, 2 --> Raccolta dati Dinamica)" << endl;
+		cin >> tipo;
+		flag = dataset->setType(tipo);
+	}
+	while(!flag);
+
+	flag = dataset->nuovoDataset();
+	if(flag)
+		cout << endl << "Directory per la raccolta dati creata con successo!!" << endl;
+	else
+		cout << endl << "C'è stato un errore nella creazione della directory!! " << endl;
+
 	delete(dataset);
 
 /*

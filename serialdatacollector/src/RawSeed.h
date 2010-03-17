@@ -17,15 +17,28 @@
 #include <string.h>
 #include <string>
 #include <stdlib.h>
+#include <time.h>
 
 class RawSeed {
 private:
+
+	// Variabili che servono per compiere le operazioni sulle directory
 	struct stat tp;
 	DIR* path;
 	struct dirent *dir_object;
+
+	// Variabili di lavoro per il Dataset
 	char* percorso;
+	char* location;
+	char* data;
+	unsigned short type;
 	int contatori[4];
 	bool isCalib;
+
+	// Variabili che servono per prendere la data di sistema
+	time_t rawtime;
+	struct tm* leggibile;
+
 public:
 	RawSeed();
 	virtual ~RawSeed();
@@ -33,6 +46,9 @@ public:
 	void inizializzaContatori();
 	bool nuovaCalibrazione(int indice);
 	bool nuovoDataset();
+	bool setLocation(char* loc);
+	bool setType(unsigned short t);
+	void scriviData(char* date);
 };
 
 #endif /* RAWSEED_H_ */

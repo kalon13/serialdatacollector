@@ -17,6 +17,7 @@
 #include <string>
 #include <stdlib.h>
 #include <sstream>
+#include <time.h>
 
 #define MY_MASK 0777
 using namespace std;
@@ -133,6 +134,7 @@ void RawSeed::inizializzaContatori()
 				dir_object = readdir(path);
 			}
 		}
+		closedir(path);
 		contatori[i] = (k - 2); //serve il meno 2 perchè conta anche le directory . e ..
 		k = 0;
 	}
@@ -223,4 +225,56 @@ bool RawSeed::nuovoDataset()
 	 * la corretta interpretazione dei dati che vanno fatti con appositi programmi
 	 *
 	 */
+	scriviData(data);
+	string date(data);
+	string salva(percorso);
+	string dataset(percorso);
+	dataset = dataset + "/DataSet/Outdoor" + date;
+	percorso = new char[dataset.length()+1];
+	strcpy(percorso,dataset.c_str());
+	int err = mkdir(percorso, MY_MASK);
+	if (err != 0)
+	{
+		perror(percorso);
+		return false;
+	}
+	else
+	{
+		percorso = new char[salva.length()+1];
+		strcpy(percorso, salva.c_str());
+		return true;
+	}
+}
+
+bool RawSeed::setLocation(char* loc)
+{
+	location = loc;
+	string verifica(location);
+	for(int i=0; i < verifica.length(); ++i)
+		if(verifica[i] == '/')
+			return false;
+	return true;
+}
+
+bool RawSeed::setType(unsigned short t)
+{
+	try
+	{
+		type = t;
+		return true;
+	}
+	catch(exception &e)
+	{
+		return false;
+	}
+}
+
+void RawSeed::scriviData(char* date)
+{
+	time (&rawtime);
+	leggibile = localtime(&rawtime);
+	int gg = leggibile->tm_mday;
+	int mm = leggibile->tm_mon;
+	int yyyy = (leggibile->tm_year) + 1900;
+	sprintf(date, "%d-%d-%d", yyyy, mm, gg);
 }
