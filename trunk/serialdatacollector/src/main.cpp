@@ -25,7 +25,7 @@ int main() {
 
 	RawSeed *dataset = new RawSeed();
 	char scelta;
-	char luogo[64];
+	char* luogo = new char[64];
 	unsigned short tipo;
 	bool flag;
 
@@ -57,12 +57,8 @@ int main() {
 	do
 	{
 		cout << "Specificare il luogo in cui si intende raccogliere i dati: " << endl;
-		//cin.getline(luogo,60);
-		fflush(stdin);
-		//gets(luogo);
-		fgets(luogo, 64, stdin);
-
-		fflush(stdin);
+		cin.ignore();
+		cin.getline(luogo,64);
 		flag = dataset->setLocation(luogo);
 	}
 	while(!flag);

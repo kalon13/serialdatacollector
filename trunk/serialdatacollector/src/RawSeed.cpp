@@ -225,11 +225,17 @@ bool RawSeed::nuovoDataset()
 	 * la corretta interpretazione dei dati che vanno fatti con appositi programmi
 	 *
 	 */
+	data = new char[10];
 	scriviData(data);
 	string date(data);
 	string salva(percorso);
+	string locazione(location);
 	string dataset(percorso);
-	dataset = dataset + "/DataSet/Outdoor" + date;
+	dataset = dataset + "/DataSet/Outdoor/" + locazione + "_" + date;
+	if(type == 1)
+		dataset += "_Static";
+	else
+		dataset += "_Dynamic";
 	percorso = new char[dataset.length()+1];
 	strcpy(percorso,dataset.c_str());
 	int err = mkdir(percorso, MY_MASK);
@@ -274,7 +280,7 @@ void RawSeed::scriviData(char* date)
 	time (&rawtime);
 	leggibile = localtime(&rawtime);
 	int gg = leggibile->tm_mday;
-	int mm = leggibile->tm_mon;
+	int mm = (leggibile->tm_mon) + 1;
 	int yyyy = (leggibile->tm_year) + 1900;
 	sprintf(date, "%d-%d-%d", yyyy, mm, gg);
 }
