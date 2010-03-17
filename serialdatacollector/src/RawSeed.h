@@ -14,8 +14,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <string.h>
 #include <string>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -49,6 +49,7 @@ public:
 	bool setLocation(char* loc);
 	bool setType(unsigned short t);
 	void scriviData(char* date);
+
 };
 
 #endif /* RAWSEED_H_ */
