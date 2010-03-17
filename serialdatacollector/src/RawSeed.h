@@ -49,7 +49,7 @@ public:
 	bool setLocation(char* loc);
 	bool setType(unsigned short t);
 	void scriviData(char* date);
-
+	bool salvaFile(char** buffer, );
 };
 
 #endif /* RAWSEED_H_ */
