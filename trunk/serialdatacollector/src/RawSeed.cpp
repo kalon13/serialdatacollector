@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <time.h>
+#include <fstream>
 
 #define MY_MASK 0777
 using namespace std;
@@ -252,6 +253,8 @@ bool RawSeed::nuovoDataset()
 	}
 	else
 	{
+		datasetAttuale = new char[dataset.length()+1];
+		strcpy(datasetAttuale, dataset.c_str());
 		delete(percorso);
 		percorso = new char[salva.length()+1];
 		strcpy(percorso, salva.c_str());
@@ -291,4 +294,34 @@ void RawSeed::scriviData(char* date)
 	int mm = (leggibile->tm_mon) + 1;
 	int yyyy = (leggibile->tm_year) + 1900;
 	sprintf(date, "%d-%d-%d", yyyy, mm, gg);
+}
+
+bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
+{
+	fstream file;
+	string salvataggio(datasetAttuale);
+	string nome_file;
+	bool letturaRiuscita = true;
+	//string stringa_da_salvare[BUFFER_LENGTH];
+	switch(identifier)
+	{
+		// E' il GPS
+		case 0:
+			nome_file = salvataggio + "/GPS.csv";
+		break;
+		// E' la IMU
+		case 1:
+			nome_file = salvataggio + "/IMU_STRETCHED.csv";
+		break;
+		// E' la web_cam
+		case 2:
+
+		break;
+	}
+	file.open(nome_file.c_str(), ios::app);
+	for(int i=0; i < BUFFER_LENGTH; ++i)
+		if((file << buffer[i]) < 0)
+			letturaRiuscita = false;
+	file.close();
+	return letturaRiuscita;
 }

@@ -14,10 +14,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define DIM 2048
-
 using namespace std;
-unsigned char data[DIM];
 
 int main() {
 
@@ -60,6 +57,8 @@ int main() {
 		cin.ignore();
 		cin.getline(luogo,64);
 		flag = dataset->setLocation(luogo);
+		if(flag == false)
+			cout << "Errore nell'inserimento del luogo, NON puoi mettere il carattere speciale /!!" << endl;
 	}
 	while(!flag);
 
