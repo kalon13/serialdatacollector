@@ -186,24 +186,7 @@ bool SerialGps::CheckChecksum(unsigned char* packet)
 	  return false;
 }
 
-
-char* SerialGps::getGPRMCString(){
-	bool find = false;
-	unsigned char* data;
-	int length;
-
-	do {
-		length = SerialDevice::readData(&data[0],84);
-		if(decode(data)==1){
-			if(CheckChecksum(data))
-				find = true;
-		}
-	}
-	while(!find && length>0);
-
-	return (char*) data;
-}
-char* SerialGps::getGPGGAString(){
+bool SerialGps::getGPGGAString(char* str){
 	bool find = false;
 	unsigned char* data;
 	int length;
@@ -217,7 +200,8 @@ char* SerialGps::getGPGGAString(){
 	}
 	while(!find && length>0);
 
-	return (char*)data;
+	str = (char*)data;
+	return true;
 }
 
 

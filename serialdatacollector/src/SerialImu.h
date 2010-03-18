@@ -57,7 +57,7 @@ public:
 	int getQuaternions(float q[], int stableOption, float* timestamp);
 	int getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp);
 	int getOrientMatrix(float mx[][3], int stableOption, float* timestamp);
-	char* getRawSeedString();
+	bool getRawSeedString(char* str);
 	void setGyroScale();	//Buona norma eseguirlo dopo l'impostazione della connessione
 
 	SerialImu();
