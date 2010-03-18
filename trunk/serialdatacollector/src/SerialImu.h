@@ -51,12 +51,14 @@ private:
 
 	float getTimerSeconds(unsigned char* timestamp);
 	int getEEPROMValue(short address, short *value);
+	int getGyroScale();
 public:
 	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stableOption, float* timestamp);
 	int getQuaternions(float q[], int stableOption, float* timestamp);
 	int getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp);
 	int getOrientMatrix(float mx[][3], int stableOption, float* timestamp);
 	char* getRawSeedString();
+	void setGyroScale();	//Buona norma eseguirlo dopo l'impostazione della connessione
 
 	SerialImu();
 	virtual ~SerialImu();

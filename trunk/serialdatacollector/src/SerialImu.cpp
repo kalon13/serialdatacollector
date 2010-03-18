@@ -11,6 +11,7 @@
 SerialImu::SerialImu() {
 	// TODO Auto-generated constructor stub
 	SerialDevice::SerialDevice();
+	gyroGainScale = M3D_GYROGAINSCALE;
 }
 
 SerialImu::~SerialImu() {
@@ -83,7 +84,7 @@ int SerialImu::getQuaternions(float q[], int stableOption, float* timestamp) {
 }
 
 /*--------------------------------------------------------------------------
- * m3dmg_getVectors
+ * getVectors
  *
  * parameters   mag       : array which will contain mag data (3 elements)
  *              accel     : array which will contain accleration data (3 elements)
@@ -198,13 +199,79 @@ char* SerialImu::getRawSeedString() {
     float ts1, ts2;
     char* final;
 
-    getVectors(mag, accel, angRate, M3D_INSTANT, &ts1);
-    getOrientMatrix(&xform[0], M3D_INSTANT, &ts2);
-    sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
-    		1,(ts1+ts2)/2,accel[0],accel[1],accel[2],angRate[0],angRate[1],angRate[2],mag[0],mag[1],mag[2],
-    		xform[0][0],xform[0][1],xform[0][2],xform[1][0],xform[1][1],xform[1][2],xform[2][0],xform[2][1],
-    		xform[1][2],76.29);
-    return final;
+    if(getVectors(mag, accel, angRate, M3D_INSTANT, &ts1)>0 && getOrientMatrix(&xform[0], M3D_INSTANT, &ts2)>0)
+    {
+		sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+				1,(ts1+ts2)/2,accel[0],accel[1],accel[2],angRate[0],angRate[1],angRate[2],mag[0],mag[1],mag[2],
+				xform[0][0],xform[0][1],xform[0][2],xform[1][0],xform[1][1],xform[1][2],xform[2][0],xform[2][1],
+				xform[1][2],76.29);
+		return final;
+    }
+    else
+    	return NULL;
+}
+
+/*--------------------------------------------------------------------------
+ * m3dmg_getGyroScale
+ *
+ * parameters
+ * returns:     gyroScale value(read or default)
+ *--------------------------------------------------------------------------*/
+
+int SerialImu::getGyroScale() {
+    int status;
+    short address, value;
+    address = M3D_GYROSCALE_ADDRESS;
+
+    status = getEEPROMValue(address, &value);
+    if (status>0)
+        return value;
+    return M3D_GYROGAINSCALE;
+}
+
+/*--------------------------------------------------------------------------
+ * m3dmg_getEEPROMValue
+ *
+ * parameters   deviceNum    : the number of the sensor device (1..n)
+ *              address      : the EEPROM address location
+ *              value        : the value to get at the address specified
+ *
+ * This function differs enough so that we don't use the m3dmg_sendCommand
+ * as with other functions. The command in this case is multiple bytes
+ * and the response has no checksum.
+ *
+ * returns:     errorCode : M3D_OK if succeeded, otherwise returns an
+ *                          error code.
+ *--------------------------------------------------------------------------*/
+
+int SerialImu::getEEPROMValue(short address, short *value) {
+    unsigned char cmdBuffer[5];
+    unsigned char dataBuffer[2];
+    int byteRead, byteSent;
+
+    /* check the address range - only 256 locations permitted. */
+    if (address <0 || address > 255) {
+    	errorExplained = "Locazione di memoria non ammessa.";
+        return -1;
+    }
+
+    /* command requires an address */
+    cmdBuffer[0] = CMD_SEND_EEPROM;
+    cmdBuffer[1] = (char) address;
+
+    byteSent = SerialDevice::sendData(&cmdBuffer[0], 2);
+    if (byteSent>0) {
+    	/* receive data if expected */
+        byteRead = SerialDevice::readData(&dataBuffer[0], 2);
+        if (byteRead>0)
+            *value = convert2short(&dataBuffer[0]);
+        return byteRead;
+    }
+    return byteSent;	//Errore di invio dati
+}
+
+void SerialImu::setGyroScale(){
+	gyroGainScale = getGyroScale();
 }
 
 /*--------------------------------------------------------------------------
