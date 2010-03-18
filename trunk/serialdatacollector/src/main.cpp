@@ -124,25 +124,19 @@ int main() {
 
 	delete(dataset);
 
-/*
-	int byte_read;
-	unsigned short int d;
-	SerialGps gps1;
-	char *port = "/dev/ttyUSB0";
-	if(!gps1.openCommunication(port,4800,8,0,1))
-	{
-		//char *er;
-		cout << gps1.getError();
-		//cout << er;
-	}
-	gps1.setDebug(true);
-	int i=0;
-	while(i<10)
-	{
-		byte_read=gps1.readData(&data[0],200);
-		gps1.store_data(&data[0],byte_read);
-		++i;
-	}
-	return 0;
-*/
+	SerialGps *gp = new SerialGps();
+	char* x;
+	gp->openCommunication("/dev/ttyUSB0",4800,8,0,1);
+	if(gp->getGPGGAString(&x))
+		cout << x;
+	else
+		cout << gp->getError();
+
+	char* c;
+	SerialImu *imu = new SerialImu();
+	imu->openCommunication("/dev/ttyS0",38400,8,0,1);
+	if(imu->getRawSeedString(&c))
+		cout << c;
+	else
+		cout << imu->getError();
 }

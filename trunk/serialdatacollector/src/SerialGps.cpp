@@ -26,10 +26,7 @@ SerialGps::SerialGps() {
 SerialGps::~SerialGps() {
 	// TODO Auto-generated destructor stub
 }
-/*
-bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits) {
-	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
-}*/
+
 
 bool SerialGps::openCommunication(char* port) {
 	int baudRate=4800, dataBits = 8, parity = 0, stopBits = 1;
@@ -38,18 +35,37 @@ bool SerialGps::openCommunication(char* port) {
 
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa
 // NMEA è stata letta
-unsigned short int SerialGps::decode(unsigned char *sentence)
+unsigned short int SerialGps::decode(unsigned char *data, unsigned char* sentence)
 {
-	 if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
-		 return 1;
-	 if(strncmp((const char *)sentence,"$GPGGA",6) == 0)
-		 return 2;
-	 if(strncmp((const char *)sentence,"$GPGSA",6) == 0)
-		 return 3;
-	 if(strncmp((const char *)sentence,"$GPGSV",6) == 0)
-		 return 4;
-	 else
-		 return 0;
+	int i=0, j=0;
+	bool start=false, ok=false;
+	int len = strlen((const char*)sentence);
+	for(i=0; i<len; ++i) {
+		if(sentence[i] == (unsigned char)'$') {
+			start=true;
+			j = 0;
+		}
+		if(start) {
+			if(sentence[i]!= '\n') {
+				data[j]=sentence[i];
+				j++;
+			}
+			else
+				ok = true;
+		}
+	}
+	if(ok==true) {
+		if(strncmp((const char *)data,"$GPRMC",6) == 0)
+			return 1;
+		if(strncmp((const char *)data,"$GPGGA",6) == 0)
+			return 2;
+		if(strncmp((const char *)data,"$GPGSA",6) == 0)
+			return 3;
+		if(strncmp((const char *)data,"$GPGSV",6) == 0)
+			return 4;
+		else
+			return 0;
+	}
 
 }
 /*
@@ -195,21 +211,22 @@ bool SerialGps::CheckChecksum(unsigned char* packet)
 	  return false;
 }
 
-bool SerialGps::getGPGGAString(char* str){
+bool SerialGps::getGPGGAString(char** str){
 	bool find = false;
-	unsigned char* data;
+	char* data = new char[128];
 	int length;
+	char* sentence = new char[84];
 
 	do {
-		length = SerialDevice::readData(&data[0],84);
-		if(decode(data)==2){
-			if(CheckChecksum(data))
+		length = SerialDevice::readData((unsigned char*)&data[0],84);
+		if(decode((unsigned char*)data,(unsigned char*)sentence)==2){
+			//if(CheckChecksum((unsigned char*)data))
 				find = true;
 		}
 	}
-	while(!find && length>0);
+	while(!find);
 
-	str = (char*)data;
+	*str = sentence;
 	return true;
 }
 
