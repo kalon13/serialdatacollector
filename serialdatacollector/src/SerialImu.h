@@ -44,14 +44,19 @@ struct EulerAngles
 
 class SerialImu:public SerialDevice {
 private:
+	int gyroGainScale;
 	short convert2short(unsigned char* buffer);
 	int convert2int(unsigned char* buffer);
-	int calcChecksum(unsigned char* buffer, int length);
+	bool calcChecksum(unsigned char* buffer, int length);
 
 	float getTimerSeconds(unsigned char* timestamp);
+	int getEEPROMValue(short address, short *value);
 public:
-	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stable, float* timestamp);
-	int getQuaternions(float q[], int stable, float* timestamp);
+	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stableOption, float* timestamp);
+	int getQuaternions(float q[], int stableOption, float* timestamp);
+	int getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp);
+	int getOrientMatrix(float mx[][3], int stableOption, float* timestamp);
+	char* getRawSeedString();
 
 	SerialImu();
 	virtual ~SerialImu();

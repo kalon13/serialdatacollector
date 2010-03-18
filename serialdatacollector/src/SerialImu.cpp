@@ -6,6 +6,7 @@
  */
 
 #include "SerialImu.h"
+#include <stdio.h>
 
 SerialImu::SerialImu() {
 	// TODO Auto-generated constructor stub
@@ -18,43 +19,39 @@ SerialImu::~SerialImu() {
 }
 
 
-int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stable, float* timestamp) {
+int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stableOption, float* timestamp) {
     unsigned char cmd;
     unsigned char response[11];
     float convertFactor = (360.0/65536.0f);
     int byteSent, byteRead;
     int responseLength = 11;
 
-    if (stable==M3D_INSTANT)
+    if (stableOption==M3D_INSTANT)
         cmd = (unsigned char) CMD_INSTANT_EULER;
     else
         cmd = (unsigned char) CMD_GYRO_EULER;
 
     byteSent = SerialDevice::sendData((unsigned char*)&cmd, 1);
 
-    if (byteSent<0)
-    	return -1;
-
-	byteRead = SerialDevice::readData(&response[0], responseLength);
-	if (byteRead==responseLength) {
-		int checkSum = convert2int(&response[responseLength-2]);
-		if (checkSum != calcChecksum(&response[0], responseLength)) {
-			errorExplained = "Errore nel checksum";
-			return -1;
+    if (byteSent>0){
+		byteRead = SerialDevice::readData(&response[0], responseLength);
+		if (byteRead==responseLength) {
+			int checkSum = convert2int(&response[responseLength-2]);
+			if (checkSum == calcChecksum(&response[0], responseLength)) {
+		        *roll  = convert2short(&response[1]) * convertFactor;
+		        *pitch = convert2short(&response[3]) * convertFactor;
+		        *yaw   = convert2short(&response[5]) * convertFactor;
+		        *timestamp = getTimerSeconds(&response[7]);
+			}
+			else
+				return -1;	//Checksum Error
 		}
-	}
-    if(byteRead>0){
-        *roll  = convert2short(&response[1]) * convertFactor;
-        *pitch = convert2short(&response[3]) * convertFactor;
-        *yaw   = convert2short(&response[5]) * convertFactor;
-        *timestamp = getTimerSeconds(&response[7]);
-        return byteRead;
+		return byteRead;
     }
-    else
-    	return -1;
+    return byteSent;	//Errore di invio dati
 }
 
-int SerialImu::getQuaternions(float q[], int stable, float* timestamp) {
+int SerialImu::getQuaternions(float q[], int stableOption, float* timestamp) {
     unsigned char cmd;
     unsigned char  response[13];
     int convertFactor = 8192;
@@ -62,32 +59,161 @@ int SerialImu::getQuaternions(float q[], int stable, float* timestamp) {
     int i;
     int responseLength = 13;
 
-    if (stable==M3D_INSTANT)
+    if (stableOption==M3D_INSTANT)
         cmd = (unsigned char) CMD_INSTANT_QUAT;
     else
         cmd = (unsigned char) CMD_GYRO_QUAT;
 
     byteSent = SerialDevice::sendData((unsigned char*) &cmd,1);
 
-    if (byteSent < 0) {
-        return -1;
-    }
-
-    byteRead = SerialDevice::readData(&response[0],responseLength);
-
-    /*Manca il controllo del checksum ma sul programma originale non c'era*/
-
-    /*Restituisce i dati*/
-    if(byteRead>0) {
-		for (i=0; i<4; ++i)
-				q[i] = (float) convert2short(&response[1 + i*2])/convertFactor;
-        *timestamp = getTimerSeconds(&response[9]);
+	if (byteSent > 0) {
+		byteRead = SerialDevice::readData(&response[0],responseLength);
+		if (byteRead==responseLength) {
+			if (calcChecksum(&response[0], responseLength)) {
+				for (i=0; i<4; ++i)
+						q[i] = (float) convert2short(&response[1 + i*2])/convertFactor;
+				*timestamp = getTimerSeconds(&response[9]);
+			}
+			else
+				return -1;	//Checksum Error
+		}
 		return byteRead;
-    }
-    else
-    	return -1;
+	}
+	return byteSent;	//Errore di invio dati
 }
 
+/*--------------------------------------------------------------------------
+ * m3dmg_getVectors
+ *
+ * parameters   mag       : array which will contain mag data (3 elements)
+ *              accel     : array which will contain accleration data (3 elements)
+ *              angRate   : array which will contain angular rate data (3 elements)
+ *              stableOption : a flag indicating whether data retrieved should
+ *                             be instantaneous or gyro-stabilized.
+ *
+ * returns:     byte read or sent:	se sono negativo indica un errore di
+ * 									lettura/scrittura.
+ *--------------------------------------------------------------------------*/
+int SerialImu::getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp) {
+    char cmd = CMD_RAW_SENSOR;
+    int responseLength = 23;
+    unsigned char  response[23];
+    float convertFactor = 8192.0f;
+    float angularFactor = gyroGainScale*8192.0f*0.0065536f;
+
+    int byteRead, byteSent;
+    int i;
+
+    if (stableOption==M3D_INSTANT)
+        cmd = (char) CMD_INSTANT_VECTOR;
+    else
+        cmd = (char) CMD_GYRO_VECTOR;
+
+
+    byteSent = SerialDevice::sendData((unsigned char*) &cmd, 1);
+
+    if (byteSent > 0) {
+    	byteRead = SerialDevice::readData(&response[0],responseLength);
+    	if(byteRead==responseLength){
+    		if (calcChecksum(&response[0], responseLength)) {
+				for (i=0; i<3; i++) {
+					mag[i]     = (float) convert2short(&response[1 + i*2])/convertFactor;
+					accel[i]   = (float) convert2short(&response[7 + i*2])/convertFactor;
+					angRate[i] = (float) convert2short(&response[13+ i*2])/angularFactor;
+				}
+		        *timestamp = getTimerSeconds(&response[responseLength-4]);
+    		}
+    		else
+    			return -1;	//Checksum Error
+    	}
+        return byteRead;
+    }
+    return byteSent;	//errore di invio dati
+}
+
+/*--------------------------------------------------------------------------
+ * m3dmg_getOrientMatrix
+ *
+ * parameters   mx           : pointer to a 3x3 float matrix
+ *                             which will contain the transform data
+ *                             upon return.
+ *              stableOption : a flag indicating whether data retrieved should
+ *                             be instantaneous or gyro-stabilized.
+ *
+ * returns:     byte read or sent:	se sono negativo indica un errore di
+ * 									lettura/scrittura.
+ *--------------------------------------------------------------------------*/
+
+int SerialImu::getOrientMatrix(float mx[][3], int stableOption, float* timestamp) {
+	char cmd;
+	int responseLength = 23;
+	unsigned char  response[23];
+	float convertFactor = 8192.0f;
+
+    int byteRead, byteSent;
+    int i,j;
+
+	if (stableOption==M3D_INSTANT)
+		cmd = (char) CMD_INSTANT_OR_MATRIX;
+	else
+		cmd = (char) CMD_GYRO_OR_MATRIX;
+
+	byteSent = SerialDevice::sendData((unsigned char*) &cmd, 1);
+
+	if (byteSent > 0) {
+	byteRead = SerialDevice::readData(&response[0],responseLength);
+		if(byteRead==responseLength){
+			if (calcChecksum(&response[0], responseLength)) {
+				for (i=0; i<3; i++)
+					mx[i][j] = (float) convert2short(&response[1+2*(j*3+i)])/convertFactor;
+		        *timestamp = getTimerSeconds(&response[responseLength-4]);
+			}
+			else
+				return -1;	//Checksum Error
+		}
+	   return byteRead;
+	}
+	return byteSent;	//errore di invio dati
+}
+
+/*--------------------------------------------------------------------------
+ * getRawSeedString
+ *
+ * parameters
+ *
+ * returns:		A csv string formatted in this way:
+ * 					# Unit Range
+ * 					Sample counter
+ * 					Acceleration along X, Y, Z
+ * 					Angular velocity along X, Y, Z
+ * 					Earth magnetic field along X, Y, Z
+ * 					Orient matrix row by row
+ * 					Nominal scan frequency
+ *--------------------------------------------------------------------------*/
+char* SerialImu::getRawSeedString() {
+    float xform[3][3];
+    float mag[3];
+    float accel[3];
+    float angRate[3];
+    float ts1, ts2;
+    char* final;
+
+    getVectors(mag, accel, angRate, M3D_INSTANT, &ts1);
+    getOrientMatrix(&xform[0], M3D_INSTANT, &ts2);
+    sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+    		1,(ts1+ts2)/2,accel[0],accel[1],accel[2],angRate[0],angRate[1],angRate[2],mag[0],mag[1],mag[2],
+    		xform[0][0],xform[0][1],xform[0][2],xform[1][0],xform[1][1],xform[1][2],xform[2][0],xform[2][1],
+    		xform[1][2],76.29);
+    return final;
+}
+
+/*--------------------------------------------------------------------------
+ * getTimerSeconds
+ * Restituisce il valore del tick in secondi.
+ *
+ * parameters:  timestamp : primo byte del tick.
+ * returns:     il valore in secondi.
+ *--------------------------------------------------------------------------*/
 float SerialImu::getTimerSeconds(unsigned char* timestamp) {
 	float convertFactor = 0.0065536f;
 	return convert2int(timestamp)*convertFactor;
@@ -133,16 +259,19 @@ short SerialImu::convert2short(unsigned char* buffer) {
  * returns:     the calculated checksum.
  *--------------------------------------------------------------------------*/
 
-int SerialImu::calcChecksum(unsigned char* buffer, int length) {
+bool SerialImu::calcChecksum(unsigned char* buffer, int length) {
 	int CHECKSUM_MASK = 0xFFFF;
 	int checkSum, i;
 
-	if (length<4)
-		return -1;
-
-	checkSum = buffer[0] & LSB_MASK;
-	for (i=1; i<length-2; i = i+2) {
-		checkSum += convert2int(&buffer[i]);
+	if (length>4){
+		checkSum = buffer[0] & LSB_MASK;
+		for (i=1; i<length-2; i = i+2) {
+			checkSum += convert2int(&buffer[i]);
+		}
+		if((checkSum & CHECKSUM_MASK)==convert2int(&buffer[length-2]))
+			return true;
+		else
+			errorExplained = "Checksum Error";
 	}
-	return(checkSum & CHECKSUM_MASK);
+	return false;
 }
