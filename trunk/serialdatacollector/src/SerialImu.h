@@ -53,6 +53,8 @@ private:
 	int getEEPROMValue(short address, short *value);
 	int getGyroScale();
 public:
+   // bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
+    bool openCommunication(char* port);
 	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stableOption, float* timestamp);
 	int getQuaternions(float q[], int stableOption, float* timestamp);
 	int getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp);

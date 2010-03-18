@@ -7,14 +7,16 @@
 #include "RawSeed.h"
 #include "SerialDevice.h"
 
+#define MAX_SENSOR 8
+
 #ifndef MAIN_H_
 #define MAIN_H_
 
-typedef struct
+typedef struct Device
 {
 	int identifier;
 	SerialDevice dev;
 	char* buffer[BUFFER_LENGTH];
-} Device;
+}Device;
 
 #endif /* MAIN_H_ */

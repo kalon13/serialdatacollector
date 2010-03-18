@@ -38,8 +38,8 @@ bool Sensor::setSensor(int identifier){
 	return true;
 }
 
-void Sensor::getDev(SerialDevice* d){
-	d = dev;
+void Sensor::getDev(SerialDevice** d){
+	*d = dev;
 }
 
 bool Sensor::getBuffer(char* buf[MAX_BUFFER_LENGTH]) {

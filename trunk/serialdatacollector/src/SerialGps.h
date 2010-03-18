@@ -54,7 +54,8 @@ public:
     void print_SatNum(unsigned char* sentence, unsigned short int byte);
     void print_Long(unsigned char* sentence, unsigned short int byte);
     void print_Lang(unsigned char* sentence, unsigned short int byte);*/
-
+    //bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
+    bool openCommunication(char* port);
     bool getGPGGAString(char* str);	//Se ci sono errori restituisce NULL altrimenti la stringa completa
 
     void getGPRMC(NMEA_GPRMC&);
