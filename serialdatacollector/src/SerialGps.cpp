@@ -6,22 +6,21 @@
  */
 
 #include "SerialGps.h"
+#include <iostream>
+//#include <stdlib.h>
 #include <cstring>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <time.h>
-#include <termios.h>
-#include <stdio.h>
+//#include <unistd.h>
+//#include <fcntl.h>
+//#include <sys/types.h>
+//#include <time.h>
+//#include <termios.h>
+#include "SerialDevice.h"
 
-  unsigned int byte_read,i,j,count,type_sentence;
-  unsigned char sentence[2048];
+using namespace std;
 
 SerialGps::SerialGps() {
 	// TODO Auto-generated constructor stub
+	SerialDevice::SerialDevice();
 }
 
 SerialGps::~SerialGps() {
@@ -32,25 +31,16 @@ SerialGps::~SerialGps() {
 // NMEA è stata letta
 unsigned short int SerialGps::decode(unsigned char *sentence)
 {
-		     if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
-	         {
-	         return 1;
-	         }
-	         if(strncmp((const char *)sentence,"$GPGGA",6) == 0)
-	         {
-	         return 2;
-	         }
-	         if(strncmp((const char *)sentence,"$GPGSA",6) == 0)
-	         {
-	         return 3;
-	         }
-	         if(strncmp((const char *)sentence,"$GPGSV",6) == 0)
-	         {
-	         return 4;
-	         }
-	         else
-
-	         return 0;
+	 if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
+		 return 1;
+	 if(strncmp((const char *)sentence,"$GPGGA",6) == 0)
+		 return 2;
+	 if(strncmp((const char *)sentence,"$GPGSA",6) == 0)
+		 return 3;
+	 if(strncmp((const char *)sentence,"$GPGSV",6) == 0)
+		 return 4;
+	 else
+		 return 0;
 
 }
 /*
@@ -69,24 +59,26 @@ void decode_GPGGA(unsigned char *sentence,NMEA_GPRMC *gpgga)
 	&gpgga->position_fix,&gpgga->number_of_satellites,&gpgga->horizontal_dilution_precision,&gpgga->antenna_height,
 	&gpgga->units_height,&gpgga->geoidal_height,&gpgga->units_separation,&gpgga->time_last_update,&gpgga->dgps_id);
 
-}*/
+}
 
 void SerialGps::store_data(unsigned char *data,int byte)
 {
 FILE *gprmc;
 FILE *gpgga;
-
+unsigned int byte_read,i,j,count,type_sentence,checksum;
+unsigned char sentence[2048];
 
 
 i=0;
 j=0;
 count=0;
+
 	if(byte> 0)
 	{
 	  //lunghezza
 		 for(i=0; i<byte; i++)
 		  {
-		      if(data[i] == '$')
+		      if(data[i] == (unsigned char)'$')
 		           {
 		              count++;
 		           }
@@ -102,7 +94,7 @@ count=0;
 
 		           }
 
-		           if(j > 0 && data[i]!='$')
+		           if(j > 0 && data[i]!=(unsigned char)'$')
 		           {
 		              sentence[j] = data[i];
 		              j++;
@@ -119,17 +111,23 @@ count=0;
 	  switch(type_sentence)
 	  {
 	  case 1:
-		  gprmc = fopen ("gprmc.cvs", "a");
+		 gprmc = fopen ("gprmc.cvs", "a");
 		  //stampo sul file gprmc.csv i dati GPRMC
-		  printf("%d\n",type_sentence);
-		  printf("%s",sentence);
+		  if(CheckChecksum(sentence))
+			  printf("CHECKSUM CORRETTO");
+		  else
+			  printf("CHECKSUM SBAGLIATO");
+		 printf("%s",sentence);
 		  fprintf(gprmc,(const char*)sentence);
 		  fclose(gprmc);
 	  break;
 	  case 2:
+		  if(CheckChecksum(sentence))
+			  printf("CHECKSUM CORRETTO");
+		  else
+			  printf("CHECKSUM SBAGLIATO");
 		  gpgga = fopen ("gpgga.cvs", "a");
 		  //stampo sul file gpgga.csv i dati GPGGA
-		  printf("%d\n",type_sentence);
 		  printf("%s",sentence);
 		  fprintf(gpgga,(const char*)sentence);
 		  fclose(gpgga);
@@ -143,6 +141,83 @@ count=0;
 	{
 		//return error
 	}
+}*/
+
+bool SerialGps::CheckChecksum(unsigned char* packet)
+{
+  unsigned char Character;
+  unsigned short Checksum = 0, ChecksumArrivato=0;
+  int i=0 ,length ;
+
+  length = strlen((const char*)packet);
+  for(i=0;i<length;++i)
+  {
+    Character = packet[i];
+
+    if (Character != (unsigned char)'$')
+    {
+    	if(Character != (unsigned char)'*'){
+    		if(Checksum==0)
+    			Checksum=Character;
+    		else
+    			Checksum ^= (char)Character;
+			//printf("%c ",Character);
+    	}
+    	else
+    	{
+    		ChecksumArrivato = (char)packet[i+1]-48;
+    		if(ChecksumArrivato>10)
+    			ChecksumArrivato -= 7;
+    		ChecksumArrivato *= 16;
+    		int bit = (char)packet[i+2]-48;
+    		if(bit>10)
+    			bit -= 7;
+    		ChecksumArrivato += bit;
+
+    		i = length;
+    	}
+    }
+
+  }
+  if(DEBUG) cout << "\nCHECKSUM: " << Checksum << "\nCHECKSUM ASPETTATO: " << ChecksumArrivato;
+  if(ChecksumArrivato==Checksum)
+	  return true;
+  else
+	  return false;
+}
+
+
+char* SerialGps::getGPRMCString(){
+	bool find = false;
+	unsigned char* data;
+	int length;
+
+	do {
+		length = SerialDevice::readData(&data[0],84);
+		if(decode(data)==1){
+			if(CheckChecksum(data))
+				find = true;
+		}
+	}
+	while(!find && length>0);
+
+	return (char*) data;
+}
+char* SerialGps::getGPGGAString(){
+	bool find = false;
+	unsigned char* data;
+	int length;
+
+	do {
+		length = SerialDevice::readData(&data[0],84);
+		if(decode(data)==2){
+			if(CheckChecksum(data))
+				find = true;
+		}
+	}
+	while(!find && length>0);
+
+	return (char*)data;
 }
 
 
