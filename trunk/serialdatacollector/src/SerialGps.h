@@ -55,8 +55,7 @@ public:
     void print_Long(unsigned char* sentence, unsigned short int byte);
     void print_Lang(unsigned char* sentence, unsigned short int byte);*/
 
-    char* getGPRMCString();	//Se ci sono errori restituisce NULL altrimenti la stringa completa
-    char* getGPGGAString();	//Se ci sono errori restituisce NULL altrimenti la stringa completa
+    bool getGPGGAString(char* str);	//Se ci sono errori restituisce NULL altrimenti la stringa completa
 
     void getGPRMC(NMEA_GPRMC&);
     void getGPGGA(NMEA_GPGGA&);
