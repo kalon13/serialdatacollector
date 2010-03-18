@@ -23,6 +23,7 @@ bool SerialImu::openCommunication(char* port, int baudRate, int dataBits, int pa
 	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
 }*/
 
+
 bool SerialImu::openCommunication(char* port) {
 	int baudRate=38400, dataBits=8, parity=0, stopBits=1;
 	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
@@ -199,13 +200,13 @@ int SerialImu::getOrientMatrix(float mx[][3], int stableOption, float* timestamp
  * 					Orient matrix row by row
  * 					Nominal scan frequency
  *--------------------------------------------------------------------------*/
-bool SerialImu::getRawSeedString(char* str) {
+bool SerialImu::getRawSeedString(char** str) {
     float xform[3][3];
     float mag[3];
     float accel[3];
     float angRate[3];
     float ts1, ts2;
-    char* final;
+    char* final = new char[128];
 
     if(getVectors(mag, accel, angRate, M3D_INSTANT, &ts1)>0 && getOrientMatrix(&xform[0], M3D_INSTANT, &ts2)>0)
     {
@@ -213,7 +214,7 @@ bool SerialImu::getRawSeedString(char* str) {
 				1,(ts1+ts2)/2,accel[0],accel[1],accel[2],angRate[0],angRate[1],angRate[2],mag[0],mag[1],mag[2],
 				xform[0][0],xform[0][1],xform[0][2],xform[1][0],xform[1][1],xform[1][2],xform[2][0],xform[2][1],
 				xform[1][2],76.29);
-		str = final;
+		*str = final;
 		return true;
     }
     else
