@@ -18,6 +18,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <fstream>
+#define BUFFER_LENGTH 32
 
 class RawSeed {
 private:
@@ -28,9 +30,10 @@ private:
 	struct dirent *dir_object;
 
 	// Variabili di lavoro per il Dataset
-	char* percorso;
+	char* percorso; // Contiene il percorso del RawSeedDataSet
 	char* location;
 	char* data;
+	char* datasetAttuale; // Contiene il percorso della directory LOCATION_DATE_TYPE dell'attuale raccolta dati
 	unsigned short type;
 	int contatori[4];
 	bool isCalib;
@@ -49,7 +52,7 @@ public:
 	bool setLocation(char* loc);
 	bool setType(unsigned short t);
 	void scriviData(char* date);
-	bool salvaFile(char** buffer, );
+	bool salvaFile(int identifier, char* buffer[BUFFER_LENGTH]);
 };
 
 #endif /* RAWSEED_H_ */
