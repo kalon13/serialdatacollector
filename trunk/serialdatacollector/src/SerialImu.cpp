@@ -19,6 +19,9 @@ SerialImu::~SerialImu() {
 
 }
 
+bool SerialImu::openCommunication(char* port, int baudRate=38400, int dataBits=8, int parity=0, int stopBits=1) {
+	SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
+}
 
 int SerialImu::getEulerAngles(float *pitch, float *roll, float *yaw, bool stableOption, float* timestamp) {
     unsigned char cmd;

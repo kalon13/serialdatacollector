@@ -27,6 +27,10 @@ SerialGps::~SerialGps() {
 	// TODO Auto-generated destructor stub
 }
 
+bool SerialGps::openCommunication(char* port, int baudRate=4800, int dataBits=8, int parity=0, int stopBits=1) {
+	SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
+}
+
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa
 // NMEA è stata letta
 unsigned short int SerialGps::decode(unsigned char *sentence)
