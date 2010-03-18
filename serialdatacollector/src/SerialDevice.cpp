@@ -8,10 +8,9 @@
 #include "SerialDevice.h"
 #include <termios.h>	//Comunicazione seriale
 #include <fcntl.h>
-#include <unistd.h>		//Per la sleep
-#include <stdlib.h>
-#include <stdio.h>
 #include <iostream>		//Per la read
+
+using namespace std;
 
 SerialDevice::SerialDevice() {
     DEBUG = false;			/* Per far vedere o no le scritte di debug*/
@@ -53,13 +52,13 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	timeout.tv_sec  = 0;        /* seconds */
 	FD_ZERO(&readfs);
 	FD_SET(portNum, &readfs);  /* set testing for portHandle */
-	if (DEBUG) printf("Waiting for port to respond\n");
+	if (DEBUG) cout << "Waiting for port to respond\n";
 	//portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
 	if (!FD_ISSET(portNum, &readfs)) {
-		if (DEBUG) printf(" - timeout expired!\n");
+		if (DEBUG) cout << " - timeout expired!\n" ;
 		return -1;
 	}
-	if (DEBUG) printf("Time remaining %ld ms.\n", timeout.tv_usec/1000);
+	if (DEBUG) cout << "Time remaining " << timeout.tv_usec/1000 << "ms.\n";
 
 	/* Read data into the response buffer.
 	 * until we get enough data or exceed the maximum
@@ -69,14 +68,14 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	attempts = 0;
 	while (bytesRead < lengthExpected && attempts++ < MAXATTEMPTS) {
 		n = read(portNum, &inchar, 1);
-		if (DEBUG) printf(".", n, inchar);
+		if (DEBUG) cout << n << inchar;
 		if (n == 1)
 			data[bytesRead++] = inchar;
 		else
 			sleep(WAITCHARTIME);  /* sleep a while for next byte. */
 	}
-	if (DEBUG) printf("\nattempts %d", attempts);
-	if (DEBUG) printf("\nreceiveData: bytes read: %d   expected: %d\n", bytesRead, lengthExpected);
+	if (DEBUG) cout << "\nattempts" << attempts;
+	if (DEBUG) cout << "\nreceiveData: bytes read: " << bytesRead << "\texpected: " << lengthExpected << endl;
 
 	if (bytesRead != lengthExpected) {
 		errorExplained = "Risposta di lunghezza non aspettata\n";
