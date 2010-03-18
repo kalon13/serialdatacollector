@@ -9,10 +9,13 @@
 #include <iostream>
 #include "SerialGps.h"
 #include "SerialDevice.h"
+#include "SerialImu.h"
 #include <stdio.h>
 #include "RawSeed.h"
 #include <time.h>
 #include <stdlib.h>
+#include "main.h"
+#include "Sensor.h"
 
 using namespace std;
 
@@ -24,7 +27,12 @@ int main() {
 	char scelta;
 	char* luogo = new char[64];
 	unsigned short tipo;
-	bool flag;
+	bool flag = false, flag_comunication = false;
+	int i=0;
+	char* risp;
+
+	// Array di Sensor, che contiene le stringhe che escono dai dispositivi
+	Sensor *s[MAX_SENSOR];
 
 	while(true)
 	{
@@ -75,6 +83,44 @@ int main() {
 		cout << endl << "Directory per la raccolta dati creata con successo!!" << endl;
 	else
 		cout << endl << "C'è stato un errore nella creazione della directory!! " << endl;
+
+	do
+	{
+		string porta;
+		char* percorso_porta;
+		SerialDevice* dummy;
+		int id;
+		cout << "Specifica l'identificatore del dispositivo che intendi utilizzare nella raccolta dati " << endl << "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la web cam)" << endl;
+		cin >> id;
+		cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
+		cout << "Nome Porta : " << endl;
+		cin >> porta;
+		percorso_porta = new char[porta.length()+1];
+		strcpy(percorso_porta,porta.c_str());
+		s[i] = new Sensor();
+		flag = s[i]->setSensor(id);
+		if(flag == false)
+			cout << "Errore nella creazione degli elementi dei sensori. " << endl;
+		s[i]->getDev(&dummy);
+		switch (id)
+		{
+			case 0:{
+				SerialGps* gps;
+				gps = (SerialGps *)dummy;
+				flag_comunication = gps->openCommunication(percorso_porta);
+			break;
+			}
+			case 1:{
+				SerialImu* imu;
+				imu = (SerialImu *)dummy;
+				flag_comunication = imu->openCommunication(percorso_porta);
+			break;
+			}
+		}
+		if(flag_comunication == false)
+			cout << "Errore nell'apertura della porta! " << endl;
+	}
+	while(!(flag && flag_comunication));
 
 	delete(dataset);
 

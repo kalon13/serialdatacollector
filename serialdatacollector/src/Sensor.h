@@ -20,7 +20,7 @@ private:
 	bool setted;
 public:
 	int getIdentifier();
-	void getDev(SerialDevice* d);
+	void getDev(SerialDevice** d);
 	bool getBuffer(char* buf[MAX_BUFFER_LENGTH]);
 
 	bool setSensor(int identifier);
