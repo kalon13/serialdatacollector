@@ -18,14 +18,8 @@ SerialImu::~SerialImu() {
 	// TODO Auto-generated destructor stub
 
 }
-/*
-bool SerialImu::openCommunication(char* port, int baudRate, int dataBits, int parity=0, int stopBits=1) {
-	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
-}*/
 
-
-bool SerialImu::openCommunication(char* port) {
-	int baudRate=38400, dataBits=8, parity=0, stopBits=1;
+bool SerialImu::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits) {
 	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
 }
 
@@ -161,7 +155,7 @@ int SerialImu::getOrientMatrix(float mx[][3], int stableOption, float* timestamp
 	float convertFactor = 8192.0f;
 
     int byteRead, byteSent;
-    int i,j;
+    int i,j=0;
 
 	if (stableOption==M3D_INSTANT)
 		cmd = (char) CMD_INSTANT_OR_MATRIX;

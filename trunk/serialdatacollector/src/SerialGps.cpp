@@ -28,45 +28,24 @@ SerialGps::~SerialGps() {
 }
 
 
-bool SerialGps::openCommunication(char* port) {
-	int baudRate=4800, dataBits = 8, parity = 0, stopBits = 1;
+bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits) {
 	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
 }
 
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa
 // NMEA è stata letta
-unsigned short int SerialGps::decode(unsigned char *data, unsigned char* sentence)
+unsigned short int SerialGps::decode(unsigned char* sentence)
 {
-	int i=0, j=0;
-	bool start=false, ok=false;
-	int len = strlen((const char*)sentence);
-	for(i=0; i<len; ++i) {
-		if(sentence[i] == (unsigned char)'$') {
-			start=true;
-			j = 0;
-		}
-		if(start) {
-			if(sentence[i]!= '\n') {
-				data[j]=sentence[i];
-				j++;
-			}
-			else
-				ok = true;
-		}
-	}
-	if(ok==true) {
-		if(strncmp((const char *)data,"$GPRMC",6) == 0)
+		if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
 			return 1;
-		if(strncmp((const char *)data,"$GPGGA",6) == 0)
+		if(strncmp((const char *)sentence,"$GPGGA",6) == 0)
 			return 2;
-		if(strncmp((const char *)data,"$GPGSA",6) == 0)
+		if(strncmp((const char *)sentence,"$GPGSA",6) == 0)
 			return 3;
-		if(strncmp((const char *)data,"$GPGSV",6) == 0)
+		if(strncmp((const char *)sentence,"$GPGSV",6) == 0)
 			return 4;
 		else
 			return 0;
-	}
-
 }
 /*
 void decode_GPRMC(unsigned char *sentence,this.NMEA_GPRMC *gprmc)
@@ -213,21 +192,43 @@ bool SerialGps::CheckChecksum(unsigned char* packet)
 
 bool SerialGps::getGPGGAString(char** str){
 	bool find = false;
-	char* data = new char[128];
+	unsigned char data[200];
 	int length;
-	char* sentence = new char[84];
+	int i=0,j=0, count=0;
 
 	do {
-		length = SerialDevice::readData((unsigned char*)&data[0],84);
-		if(decode((unsigned char*)data,(unsigned char*)sentence)==2){
-			//if(CheckChecksum((unsigned char*)data))
-				find = true;
+		char* sentence = new char[84];
+		length = SerialDevice::readData(&data[0],200);
+
+		for(i=0; i<length; i++){
+			if(data[i] == (unsigned char)'$')
+				count++;
+			else
+				count = 0;
+
+			if(count == 1) {
+				j = 1;
+				sentence[0] = '$';
+			}
+
+			if(j > 0 && data[i]!=(unsigned char)'$'){
+				sentence[j] = data[i];
+				j++;
+			}
+
+			if(data[i] == '\n' && j > 0) {
+				sentence[j-1] = '\0';
+				j = -1;
+			}
 		}
+
+		if(decode((unsigned char*)sentence)==2) {
+			find = true;
+			*str = sentence;
+		}
+		else
+			delete(sentence);
 	}
 	while(!find);
-
-	*str = sentence;
 	return true;
 }
-
-
