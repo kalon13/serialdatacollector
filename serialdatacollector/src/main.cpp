@@ -127,16 +127,17 @@ int main() {
 	SerialGps *gp = new SerialGps();
 	char* x;
 	gp->openCommunication("/dev/ttyUSB0",4800,8,0,1);
+	char* er;
 	if(gp->getGPGGAString(&x))
 		cout << x;
-	else
-		cout << gp->getError();
+	else {
+		gp->getError(&er);
+		cout << er;
+	}
 
 	char* c;
 	SerialImu *imu = new SerialImu();
 	imu->openCommunication("/dev/ttyS0",38400,8,0,1);
 	if(imu->getRawSeedString(&c))
 		cout << c;
-	else
-		cout << imu->getError();
 }

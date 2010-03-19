@@ -23,10 +23,10 @@ protected:
     bool communicationOpened;
 
 public:
-    char* getError();
+    void getError(char** er);
     int readData(unsigned char* data, int lengthExpected);
     int sendData(unsigned char* data, int dataLength);
-    bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
+    virtual bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     void closeCommunication();
     bool communicationStatus();			/*Ritorna vero se la comunicazione è aperta altrimento falso*/
 

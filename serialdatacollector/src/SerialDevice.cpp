@@ -19,6 +19,7 @@ SerialDevice::SerialDevice() {
     WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
     portNum = 0;
     communicationOpened = false;
+    errorExplained = "";
 }
 
 SerialDevice::~SerialDevice() {
@@ -30,8 +31,8 @@ SerialDevice::~SerialDevice() {
     	close(portNum);
 }
 
-char* SerialDevice::getError() {
-    return errorExplained;
+void SerialDevice::getError(char** er) {
+    *er = errorExplained;
 }
 
 int SerialDevice::readData(unsigned char* data, int lengthExpected)
