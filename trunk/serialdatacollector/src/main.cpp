@@ -7,13 +7,14 @@
 //============================================================================
 
 #include <iostream>
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include "RawSeed.h"
 #include "SerialGps.h"
 #include "SerialDevice.h"
 #include "SerialImu.h"
-#include <stdio.h>
-#include "RawSeed.h"
-#include <time.h>
-#include <stdlib.h>
 #include "main.h"
 #include "Sensor.h"
 
@@ -102,6 +103,7 @@ int main() {
 		if(flag == false)
 			cout << "Errore nella creazione degli elementi dei sensori. " << endl;
 		s[i]->getDev(&dummy);
+		flag_comunication = dummy->openCommunication(percorso_porta,4800,8,0,1);
 		switch (id)
 		{
 			case 0:{
@@ -124,9 +126,9 @@ int main() {
 
 	delete(dataset);
 
-	SerialGps *gp = new SerialGps();
+	/*SerialGps *gp = new SerialGps();
 	char* x;
-	gp->openCommunication("/dev/ttyUSB0",4800,8,0,1);
+	gp->openCommunication("/dev/ttyUSB0");
 	char* er;
 	if(gp->getGPGGAString(&x))
 		cout << x;
@@ -137,7 +139,7 @@ int main() {
 
 	char* c;
 	SerialImu *imu = new SerialImu();
-	imu->openCommunication("/dev/ttyS0",38400,8,0,1);
+	imu->openCommunication("/dev/ttyS0");
 	if(imu->getRawSeedString(&c))
-		cout << c;
+		cout << c;*/
 }

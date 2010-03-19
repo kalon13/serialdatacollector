@@ -194,7 +194,7 @@ int SerialImu::getOrientMatrix(float mx[][3], int stableOption, float* timestamp
  * 					Orient matrix row by row
  * 					Nominal scan frequency
  *--------------------------------------------------------------------------*/
-bool SerialImu::getRawSeedString(char** str) {
+bool SerialImu::getRawSeedData(char** str) {
     float xform[3][3];
     float mag[3];
     float accel[3];
