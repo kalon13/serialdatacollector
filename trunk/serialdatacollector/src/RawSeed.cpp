@@ -24,7 +24,6 @@
 using namespace std;
 
 RawSeed::RawSeed() {
-	// TODO Auto-generated constructor stub
 	string directory("/home/kain/RawSeedDataSet");
 	while(true)
 	{
@@ -66,7 +65,6 @@ RawSeed::RawSeed() {
 }
 
 RawSeed::~RawSeed() {
-	// TODO Auto-generated destructor stub
 
 }
 
@@ -324,4 +322,12 @@ bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
 			letturaRiuscita = false;
 	file.close();
 	return letturaRiuscita;
+}
+
+bool RawSeed::getDataSet(char** dsa) {
+	/*TODO	Inserimento Controlli
+	 * C'è da inserire dei controlli
+	 */
+	*dsa = datasetAttuale;
+	return true;
 }

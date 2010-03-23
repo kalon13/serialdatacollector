@@ -10,12 +10,10 @@
 #include "SerialImu.h"
 
 Sensor::Sensor() {
-	// TODO Auto-generated constructor stub
 	setted=false;
 }
 
 Sensor::~Sensor() {
-	// TODO Auto-generated destructor stub
 }
 
 bool Sensor::setSensor(int identifier){

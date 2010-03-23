@@ -6,17 +6,22 @@
  */
 #include "RawSeed.h"
 #include "SerialDevice.h"
+#include <pthread.h>
 
 #define MAX_SENSOR 8
 
 #ifndef MAIN_H_
 #define MAIN_H_
 
-typedef struct Device
+typedef struct
 {
 	int identifier;
-	SerialDevice dev;
-	char* buffer[BUFFER_LENGTH];
-}Device;
+	SerialDevice* dev;
+	char* pathtofile;
+	char* buffer[32];
+} Device;
+
+void* gpsAcquisition(void* gpsx);
+void* imuAcquisition(void* imux);
 
 #endif /* MAIN_H_ */
