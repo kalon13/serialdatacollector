@@ -9,13 +9,11 @@
 #include <stdio.h>
 
 SerialImu::SerialImu() {
-	// TODO Auto-generated constructor stub
 	SerialDevice::SerialDevice();
 	gyroGainScale = M3D_GYROGAINSCALE;
 }
 
 SerialImu::~SerialImu() {
-	// TODO Auto-generated destructor stub
 
 }
 

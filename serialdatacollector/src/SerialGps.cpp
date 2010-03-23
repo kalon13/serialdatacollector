@@ -19,12 +19,10 @@
 using namespace std;
 
 SerialGps::SerialGps() {
-	// TODO Auto-generated constructor stub
 	SerialDevice::SerialDevice();
 }
 
 SerialGps::~SerialGps() {
-	// TODO Auto-generated destructor stub
 }
 
 
