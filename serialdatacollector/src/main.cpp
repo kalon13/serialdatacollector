@@ -11,38 +11,30 @@
 #include <time.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>  // per ora ce lo metto...da verificare se serve!
 #include "RawSeed.h"
 #include "SerialGps.h"
 #include "SerialDevice.h"
 #include "SerialImu.h"
 #include "main.h"
 #include "Sensor.h"
-//#include "cv.h"
-//#include "highgui.h"
+#include "cv.h"
+#include "highgui.h"
+#include <fcntl.h>
+#include "Camera.h"
 
 using namespace std;
-//using namespace cv;
+using namespace cv;
+using namespace boost;
 
-int main() {
+int main(int argc, char** argv) {
 
 	cout << "!!!Hello World!!!" << endl << "Welcome to the best program of Data Collector in the World!!!" << endl;
 
-		/*VideoCapture cap(0); // open the default camera
-	    if(!cap.isOpened())  // check if we succeeded
-	        return -1;
 
-	    Mat edges;
-	    namedWindow("edges",1);
-	    for(;;)
-	    {
-	        Mat frame;
-	        cap >> frame; // get a new frame from camera
-	        cvtColor(frame, edges, CV_XYZ2RGB);
-	        GaussianBlur(edges, edges, Size(7,7), 1.5, 1.5);
-	        //Canny(edges, edges, 0, 30, 3);
-	        imshow("edges", edges);
-	        if(waitKey(30) >= 0) break;
-	    }*/
+	Camera cam1;
+	bool cam = false;
 
 	RawSeed *dataset = new RawSeed();
 	char scelta;
@@ -55,20 +47,7 @@ int main() {
 	Device d[8];
 
 	int threadHandle[8];
-	pthread_t thread[8];
-	pthread_attr_t attr;
-	size_t stacksize;
 	int nt = 0;
-
-	/*
-	pthread_attr_init(&attr);
-	pthread_attr_getstacksize (&attr, &stacksize);
-	cout << "Default Stacksize: " << stacksize << endl;
-	stacksize = sizeof(char) * 128 + sizeof(Device);
-	cout << "Quantità di memoria richiesta: " << stacksize << endl;
-	pthread_attr_setstacksize (&attr, stacksize);
-	cout << "Operazione eseguita...." << endl;
-	 */
 
 	while(true)
 	{
@@ -120,6 +99,32 @@ int main() {
 	else
 		cout << endl << "C'è stato un errore nella creazione della directory!! " << endl;
 
+	do {
+		int c, wait;
+		cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
+		cin >> c;
+		cout << "Inserisci i millisecondi di attesa tra lo scatto di una foto e la successiva. " << endl;
+		cin >> wait;
+		cam = cam1.open_camera(c, wait);
+		if(cam == false)
+			cout << "Errore nell'apertura della camera! " << endl;
+	} while(!cam);
+
+	// Ottengo il percorso della directory del dataset nel quale salverò le foto
+	char* percorso_photo;
+	dataset->getDataSet(&percorso_photo);
+
+	cout << "Camera aperta e pronta per la raccolta visiva. Inizio a salvare le foto..." << endl;
+
+	// Faccio partire il thread della Camera
+	thread thPhoto(&startGetPhoto, &cam1, percorso_photo);
+	cout << "Processo della camera partito! " << endl;
+
+	// Istruzioni di prova per vedere se ero in grado di fermare l'acquisizione video.
+	//sleep(20);
+	//cam1.stop_camera();
+
+	// Ciclo di inserimento dei dispositivi seriali collegati al pc. Immetto e istanzio i vari sensori
 	do
 	{
 		string porta;
@@ -142,8 +147,8 @@ int main() {
 				d[nt].pathtofile = strcat(path, "/GPS.csv");
 				d[nt].dev = gps;
 				flag=gps->openCommunication(percorso_porta);
-				//threadHandle[nt] = pthread_create(&thread[nt], NULL, gpsAcquisition, (void*)&d[nt]);
-				gpsAcquistion((void*)&d[nt]);
+				//boost::thread thrGps(&gpsAcquisition, &d[nt]);
+				//gpsAcquisition((void*)&d[nt]);
 			break;
 			}
 			case 1:{
@@ -152,8 +157,8 @@ int main() {
 				d[nt].pathtofile = strcat(path, "/IMU_STRETCHED.csv");
 				d[nt].dev = imu;
 				flag=imu->openCommunication(percorso_porta);
-				//threadHandle[nt] = pthread_create(&thread[nt], NULL, imuAcquisition, (void*)&d[nt]);
-				imuAcquisition((void*)&d[nt]);
+				//boost::thread thrImu(&imuAcquisition, &d[nt]);
+				//imuAcquisition((void*)&d[nt]);
 			break;
 			}
 		}
@@ -167,19 +172,17 @@ int main() {
 
 		cout << "Vuoi inserire un altro dispositivo? (s/n) " << endl;
 		cin >> risp;
-		//fflush(stdin);
 	}
 	while(risp!='n');
 
 	cout << "Sono stati inizializzati correttamente " << nt-1 << " dispositivi." << endl;
 	cout << "Avvio dei thread di lettura dai dispositivi" << endl;
-	for(int i=0; i<nt; ++i) {
-		pthread_detach(thread[i]);
-	}
+
 
 	cout << "Attendiamo..." << endl;
 	cin >> risp;
 
+	cam1.stop_camera();
 	delete(dataset);
 
 	/*SerialGps *gp = new SerialGps();
@@ -200,30 +203,30 @@ int main() {
 		cout << c;*/
 }
 
-void* gpsAcquisition(void* gpsx) {
-	Device* gps = (Device*)gpsx;
+void gpsAcquisition(Device* gpsx) {
+	//Device* gps = (Device*)gpsx;
 	fstream file;
 	bool letturaRiuscita;
 	for(int i=0; i<10; ++i) {
 		letturaRiuscita = true;
 		for(int j=0; j<32; ++j) {
 			char* x;
-			((SerialGps*)gps->dev)->getGPGGAString(&x);
-			gps->buffer[j] = x;
+			((SerialGps*)gpsx->dev)->getGPGGAString(&x);
+			gpsx->buffer[j] = x;
 		}
-		file.open(gps->pathtofile, ios::app);
+		file.open(gpsx->pathtofile, ios::app);
 		for(int k=0; k< 32; ++k)
-			if((file >> gps->buffer[k]) < 0)
+			if((file >> gpsx->buffer[k]) < 0)
 				letturaRiuscita = false;
 		file.close();
-		delete(gps->buffer);
+		delete(gpsx->buffer);
 	}
 	cout << "Il gps ha fatto" << endl;
-	return (void *)1;
+	//return (void *)1;
 }
-void* imuAcquisition(void* imux) {
 
-	Device* imu = (Device*)imux;
+void imuAcquisition(Device* imux) {
+	//Device* imu = (Device*)imux;
 	ofstream file;
 	bool letturaRiuscita;
 	for(int i=0; i<10; ++i) {
@@ -231,30 +234,22 @@ void* imuAcquisition(void* imux) {
 		char* x;
 		for(int j=0; j<32; ++j) {
 
-			((SerialImu*)imu->dev)->getRawSeedData(&x);
-			imu->buffer[j] = x;
+			((SerialImu*)imux->dev)->getRawSeedData(&x);
+			imux->buffer[j] = x;
 		}
-		file.open(imu->pathtofile, ios::app);
+		file.open(imux->pathtofile, ios::app);
 		for(int k=0; k< 32; ++k)
-			if((file << imu->buffer[k]) < 0)
+			if((file << imux->buffer[k]) < 0)
 				letturaRiuscita = false;
 		file.close();
-		delete(imu->buffer);
+		delete(imux->buffer);
 	}
-	/*char* paths = imu->pathtofile;
-	char* x;
-	file.open(imu->pathtofile, ios_base::app); // QUI
-	for(int i=0; i<32; ++i) {
-		//file.open(imu->pathtofile, ios::app);
-		x = new char[128];
-		((SerialImu*)imu->dev)->getRawSeedData(&x);
-		cout << x;
-		if((file << x) < 0)
-			letturaRiuscita = false;
-		//file.close();
-	}*/
 	file.close();
 	cout << "L'imu ha fatto" << endl;
 	//return (void*)1;
-	pthread_exit(NULL);
+	//pthread_exit(NULL);
+}
+
+void startGetPhoto(Camera* cam, char* photo){
+	cam->get_photo((void*) photo);
 }
