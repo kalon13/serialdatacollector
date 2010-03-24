@@ -7,6 +7,7 @@
 #include "RawSeed.h"
 #include "SerialDevice.h"
 #include <pthread.h>
+#include "Camera.h"
 
 #define MAX_SENSOR 8
 
@@ -21,7 +22,7 @@ typedef struct
 	char* buffer[32];
 } Device;
 
-void* gpsAcquisition(void* gpsx);
-void* imuAcquisition(void* imux);
-
+void gpsAcquisition(Device* gpsx);
+void imuAcquisition(Device* imux);
+void startGetPhoto(Camera* cam,char* photo);
 #endif /* MAIN_H_ */

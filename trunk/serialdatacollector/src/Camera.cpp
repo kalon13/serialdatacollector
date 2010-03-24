@@ -18,6 +18,8 @@ Camera::Camera() {
 
 Camera::~Camera() {
 	// TODO Auto-generated destructor stub
+	cap->release();
+	delete(cap);
 }
 
 void* Camera::get_photo(void* path) {
@@ -46,11 +48,12 @@ void* Camera::get_photo(void* path) {
 		//usleep(wait_time);
 		waitKey(wait_time);
 	}
+	//cap->release();
 	return (void*) 1;
 }
 
 bool Camera::open_camera(int cam, int wait) {
-	cap = new VideoCapture(0); // Open the selected Camera 0 for Default
+	cap = new VideoCapture(cam); // Open the selected Camera 0 for Default
 		if(!cap->isOpened())  // check if we succeeded
 			return false;
 	wait_time = wait;
@@ -58,5 +61,17 @@ bool Camera::open_camera(int cam, int wait) {
 }
 
 void Camera::stop_camera(){
+	camera_flag = true;
+}
+
+bool Camera::is_Active(){
+	return camera_flag;
+}
+
+bool Camera::is_Open(){
+	return cap->isOpened();
+}
+
+void Camera::active_Camera(){
 	camera_flag = true;
 }
