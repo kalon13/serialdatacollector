@@ -6,11 +6,19 @@
  */
 
 #include "SerialImu.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <boost/thread.hpp>
+
+using namespace std;
 
 SerialImu::SerialImu() {
 	SerialDevice::SerialDevice();
 	gyroGainScale = M3D_GYROGAINSCALE;
+	exec = false;
+
 }
 
 SerialImu::~SerialImu() {
@@ -198,8 +206,7 @@ bool SerialImu::getRawSeedData(char** str) {
     float accel[3];
     float angRate[3];
     float ts1, ts2;
-    char* final = new char[128];
-
+    char* final = new char[200];
     if(getVectors(mag, accel, angRate, M3D_INSTANT, &ts1)>0 && getOrientMatrix(&xform[0], M3D_INSTANT, &ts2)>0)
     {
 		sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
@@ -209,8 +216,7 @@ bool SerialImu::getRawSeedData(char** str) {
 		*str = final;
 		return true;
     }
-    else
-    	return false;
+    return false;
 }
 
 /*--------------------------------------------------------------------------
@@ -343,4 +349,53 @@ bool SerialImu::calcChecksum(unsigned char* buffer, int length) {
 			errorExplained = "Checksum Error";
 	}
 	return false;
+}
+
+
+bool SerialImu::startThread(char* path) {
+	exec=true;
+	//boost::thread y(&SerialImu::imuAcquisition, this, path);
+	pathtofile = path;
+	th = boost::thread(&SerialImu::imuAcquisition, this);
+	return true;
+}
+
+
+bool SerialImu::stopThread() {
+	if(!exec) {
+		exec = false;
+		cout << "waiting that thread do last cicle" << endl;
+	}
+	return true;
+}
+
+bool SerialImu::imuAcquisition() {
+	boost::mutex::scoped_lock lk(mt, boost::defer_lock);
+	while(exec) {
+		for(int i=0; i<32; ++i) {
+			char* x;
+			lk.lock();
+			getRawSeedData(&x);
+			lk.unlock();
+			buffer[i] = strcat(x,"\n");
+		}
+		lk.lock();
+		file.open(pathtofile, ios::app);
+		lk.unlock();
+		if(!file.is_open()) {
+			strcat(errorExplained,"Impossibile accedere al file");
+			return false;
+		}
+		for(int i=0; i<32; ++i) {
+			lk.lock();
+			file << buffer[i];
+			lk.unlock();
+		}
+		lk.lock();
+		file.close();
+		lk.unlock();
+	}
+	th.interrupt();
+	cout << "thread ended" << endl;
+	return true;
 }

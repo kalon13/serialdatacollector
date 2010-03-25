@@ -89,7 +89,7 @@ bool RawSeed::creaRawSeed()
 			char* percorsoAttuale;
 			//Crea ciclicamente le directory principali del dataset
 			for(int i=0; i<10; i++){
-				delete(percorsoAttuale);
+				//delete(percorsoAttuale);
 				percorsoAttuale = new char[percorsi_prova[i].length()+1];
 				strcpy(percorsoAttuale, percorsi_prova[i].c_str());
 				if ((err = mkdir(percorsoAttuale, 0777))!=0){
@@ -114,11 +114,12 @@ void RawSeed::inizializzaContatori()
 	string esaminata(percorso);
 	string percorsi_esaminati[] = {(esaminata + "/Calibration"),(esaminata + "/Drawings"), (esaminata + "/FileFormat"), (esaminata + "/SensorPosition")};
 	//int n_calib = 0, n_sensor_position = 0, n_draws = 0, n_fileformat = 0;
+	//(percorso);
 	int k = 0;
 	for(int i = 0; i < 4; ++i)
 	{
 		//queste due variabili prendono le directory da esaminare per ogni iterazione del for
-		delete(percorso);
+
 		percorso = new char[percorsi_esaminati[i].length()+1];
 		strcpy(percorso, percorsi_esaminati[i].c_str());
 
@@ -137,6 +138,7 @@ void RawSeed::inizializzaContatori()
 		closedir(path);
 		contatori[i] = (k - 2); //serve il meno 2 perchè conta anche le directory . e ..
 		k = 0;
+		//delete(percorso);
 	}
 
 	/*
@@ -144,7 +146,7 @@ void RawSeed::inizializzaContatori()
 	 * al valore iniziale, cioè "percorso scelto dall'utente" + "/RawSeedDataSet"
 	 * dato che alla fine del ciclo for valeva lo stesso percorso + "/SensorPosition"
 	 */
-	delete(percorso);
+//	delete(percorso);
 	percorso = new char [esaminata.length()+1];
 	strcpy(percorso, esaminata.c_str());
 }
@@ -181,7 +183,7 @@ bool RawSeed::nuovaCalibrazione(int indice)
 		break;
 	}
 
-	delete(percorso);
+	//delete(percorso);
 	percorso = new char[dir.length()+1];
 	strcpy(percorso,dir.c_str());
 	int err = mkdir(percorso, MY_MASK);
@@ -207,7 +209,7 @@ bool RawSeed::nuovaCalibrazione(int indice)
 		}
 	}
 	// rimetto il percorso al valore di partenza e aggiorno i contatori
-	delete(percorso);
+	//delete(percorso);
 	percorso = new char[salvo.length()+1];
 	strcpy(percorso,salvo.c_str());
 	++NN;
@@ -240,7 +242,7 @@ bool RawSeed::nuovoDataset()
 		dataset += "_Static";
 	else
 		dataset += "_Dynamic";
-	delete(percorso);
+	//delete(percorso);
 	percorso = new char[dataset.length()+1];
 	strcpy(percorso,dataset.c_str());
 	int err = mkdir(percorso, MY_MASK);
@@ -253,7 +255,7 @@ bool RawSeed::nuovoDataset()
 	{
 		datasetAttuale = new char[dataset.length()+1];
 		strcpy(datasetAttuale, dataset.c_str());
-		delete(percorso);
+		//delete(percorso);
 		percorso = new char[salva.length()+1];
 		strcpy(percorso, salva.c_str());
 		return true;

@@ -15,11 +15,14 @@
 //#include <time.h>
 //#include <termios.h>
 #include "SerialDevice.h"
+#include <fstream>
+#include <boost/thread.hpp>
 
 using namespace std;
 
 SerialGps::SerialGps() {
 	SerialDevice::SerialDevice();
+	exec = false;
 }
 
 SerialGps::~SerialGps() {
@@ -224,9 +227,61 @@ bool SerialGps::getGPGGAString(char** str){
 			find = true;
 			*str = sentence;
 		}
-		else
-			delete(sentence);
+		//else
+			//delete(sentence);
 	}
 	while(!find);
 	return true;
 }
+
+bool SerialGps::startThread(char* path) {
+	exec=true;
+	//boost::thread y(&SerialImu::imuAcquisition, this, path);
+	pathtofile = path;
+	th = boost::thread(&SerialGps::gpsAcquisition, this);
+	return true;
+}
+
+
+bool SerialGps::stopThread() {
+	if(!exec) {
+		exec = false;
+		cout << "waiting that thread do last cicle" << endl;
+	}
+	return true;
+}
+
+bool SerialGps::gpsAcquisition() {
+	boost::mutex::scoped_lock lk1(mt1, boost::defer_lock);
+	while(exec) {
+
+		for(int i=0; i<8; ++i) {
+			char* x;
+			lk1.lock();
+			getGPGGAString(&x);
+			lk1.unlock();
+			buffer[i] = strcat(x,"\n");
+		}
+		lk1.lock();
+		file.open(pathtofile, ios::app);
+		lk1.unlock();
+		if(!file.is_open()) {
+			strcat(errorExplained,"Impossibile accedere al file");
+			return false;
+		}
+
+		for(int i=0; i<8; ++i) {
+			lk1.lock();
+			file << buffer[i];
+			lk1.unlock();
+		}
+
+		lk1.lock();
+		file.close();
+		lk1.unlock();
+	}
+	th.interrupt();
+	cout << "thread ended" << endl;
+	return true;
+}
+
