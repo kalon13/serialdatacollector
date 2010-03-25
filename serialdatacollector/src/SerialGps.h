@@ -8,6 +8,8 @@
 #ifndef SERIALGPS_H_
 #define SERIALGPS_H_
 #include "SerialDevice.h"
+#include <fstream>
+#include <boost/thread.hpp>
 
 typedef struct {
 		 double utc;
@@ -47,6 +49,15 @@ class SerialGps:public SerialDevice {
 private:
     bool CheckChecksum(unsigned char* packet);
 	unsigned short int decode(unsigned char* sentence);
+
+	bool exec;
+	boost::thread th;
+	bool gpsAcquisition();
+
+	char* pathtofile;
+	char* buffer[8];
+	std::ofstream file;
+	boost::mutex mt1;
     //void decode_GPRMC(unsigned char* sentence,NMEA_GPRMC* gprmc);
     //void decode_GPGGA(unsigned char* sentence,NMEA_GPRMC* gpgga);
 public:
@@ -59,6 +70,9 @@ public:
     //bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     void getGPRMC(NMEA_GPRMC&);
     void getGPGGA(NMEA_GPGGA&);
+
+	bool startThread(char* path);
+	bool stopThread();
 
     SerialGps();
 	virtual ~SerialGps();

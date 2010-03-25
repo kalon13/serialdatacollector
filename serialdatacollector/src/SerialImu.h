@@ -9,6 +9,9 @@
 #define IMU_H_
 
 #include "SerialDevice.h"
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include <fstream>
 
 /*   Costanti per i comandi		*/
 #define CMD_RAW_SENSOR         	0x01
@@ -52,6 +55,15 @@ private:
 	float getTimerSeconds(unsigned char* timestamp);
 	int getEEPROMValue(short address, short *value);
 	int getGyroScale();
+
+	bool exec;
+	boost::thread th;
+	bool imuAcquisition();
+
+	char* pathtofile;
+	char* buffer[32];
+	std::ofstream file;
+	boost::mutex mt;
 public:
    // bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     bool openCommunication(char* port, int baudRate=38400, int dataBits=8, int parity=0, int stopBits=1);
@@ -61,6 +73,10 @@ public:
 	int getOrientMatrix(float mx[][3], int stableOption, float* timestamp);
 	bool getRawSeedData(char** str);
 	void setGyroScale();	//Buona norma eseguirlo dopo l'impostazione della connessione
+
+	bool startThread(char* path);
+	bool stopThread();
+
 
 	SerialImu();
 	virtual ~SerialImu();
