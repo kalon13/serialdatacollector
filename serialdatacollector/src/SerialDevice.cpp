@@ -27,7 +27,7 @@ SerialDevice::~SerialDevice() {
 	/*delete(port);
     delete(errorExplained);*/
     //Chiude la comunicazione
-    if(portNum)
+    if(portNum>0)
     	close(portNum);
 }
 

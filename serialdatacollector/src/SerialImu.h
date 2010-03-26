@@ -56,14 +56,7 @@ private:
 	int getEEPROMValue(short address, short *value);
 	int getGyroScale();
 
-	bool exec;
-	boost::thread th;
-	bool imuAcquisition();
-
 	char* pathtofile;
-	char* buffer[32];
-	std::ofstream file;
-	boost::mutex mt;
 public:
    // bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     bool openCommunication(char* port, int baudRate=38400, int dataBits=8, int parity=0, int stopBits=1);
