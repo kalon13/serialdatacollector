@@ -37,11 +37,8 @@ public:
 	Camera();
 	virtual ~Camera();
 	bool open_camera(int cam, int wait);
-	void* get_photo(void* path);
-	void stop_camera();
-	bool is_Active();
+	void get_photo(char* path);
 	bool is_Open();
-	void active_Camera();
 };
 
 #endif /* CAMERA_H_ */

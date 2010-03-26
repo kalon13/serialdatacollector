@@ -17,8 +17,6 @@ using namespace std;
 SerialImu::SerialImu() {
 	SerialDevice::SerialDevice();
 	gyroGainScale = M3D_GYROGAINSCALE;
-	exec = false;
-
 }
 
 SerialImu::~SerialImu() {
@@ -209,6 +207,7 @@ bool SerialImu::getRawSeedData(char** str) {
     char* final = new char[200];
     if(getVectors(mag, accel, angRate, M3D_INSTANT, &ts1)>0 && getOrientMatrix(&xform[0], M3D_INSTANT, &ts2)>0)
     {
+    	// ci andrà il lock? tutto quello che riguarda le printf non sono thread safe...l'ho letto....
 		sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
 				1,(ts1+ts2)/2,accel[0],accel[1],accel[2],angRate[0],angRate[1],angRate[2],mag[0],mag[1],mag[2],
 				xform[0][0],xform[0][1],xform[0][2],xform[1][0],xform[1][1],xform[1][2],xform[2][0],xform[2][1],
@@ -352,50 +351,10 @@ bool SerialImu::calcChecksum(unsigned char* buffer, int length) {
 }
 
 
-bool SerialImu::startThread(char* path) {
+/*bool SerialImu::startThread(char* path) {
 	exec=true;
 	//boost::thread y(&SerialImu::imuAcquisition, this, path);
 	pathtofile = path;
 	th = boost::thread(&SerialImu::imuAcquisition, this);
 	return true;
-}
-
-
-bool SerialImu::stopThread() {
-	if(!exec) {
-		exec = false;
-		cout << "waiting that thread do last cicle" << endl;
-	}
-	return true;
-}
-
-bool SerialImu::imuAcquisition() {
-	boost::mutex::scoped_lock lk(mt, boost::defer_lock);
-	while(exec) {
-		for(int i=0; i<32; ++i) {
-			char* x;
-			lk.lock();
-			getRawSeedData(&x);
-			lk.unlock();
-			buffer[i] = strcat(x,"\n");
-		}
-		lk.lock();
-		file.open(pathtofile, ios::app);
-		lk.unlock();
-		if(!file.is_open()) {
-			strcat(errorExplained,"Impossibile accedere al file");
-			return false;
-		}
-		for(int i=0; i<32; ++i) {
-			lk.lock();
-			file << buffer[i];
-			lk.unlock();
-		}
-		lk.lock();
-		file.close();
-		lk.unlock();
-	}
-	th.interrupt();
-	cout << "thread ended" << endl;
-	return true;
-}
+}*/
