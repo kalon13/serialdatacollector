@@ -8,6 +8,7 @@
 #include "SerialDevice.h"
 #include "Camera.h"
 #include <boost/thread.hpp>
+#include <vector>
 
 #define MAX_SENSOR 8
 
@@ -17,7 +18,7 @@
 #define DIM_BUFFER_GPS 1
 #define DIM_BUFFER_IMU 32
 
-enum DevId {NOTHING, GPS, IMU, CAM};
+enum DevId {NOTHING=9, GPS=0, IMU=1, CAM=2};
 
 boost::mutex io_mutex;
 
@@ -29,8 +30,10 @@ struct ThreadedDevice
 	bool attivo;
 };
 
-void camAcquisition(ThreadedDevice* dev);
-bool gpsAcquisition(ThreadedDevice* dev);
-bool imuAcquisition(ThreadedDevice* dev);
+vector<ThreadedDevice> d;
+
+void* camAcquisition(void* i);
+void* gpsAcquisition(void* i);
+void* imuAcquisition(void* i);
 
 #endif /* MAIN_H_ */

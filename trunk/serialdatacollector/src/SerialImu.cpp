@@ -204,7 +204,7 @@ bool SerialImu::getRawSeedData(char** str) {
     float accel[3];
     float angRate[3];
     float ts1, ts2;
-    char* final = new char[200];
+    char* final = new char[512];
     if(getVectors(mag, accel, angRate, M3D_INSTANT, &ts1)>0 && getOrientMatrix(&xform[0], M3D_INSTANT, &ts2)>0)
     {
     	// ci andrà il lock? tutto quello che riguarda le printf non sono thread safe...l'ho letto....
@@ -215,6 +215,7 @@ bool SerialImu::getRawSeedData(char** str) {
 		*str = final;
 		return true;
     }
+    delete [] final;
     return false;
 }
 

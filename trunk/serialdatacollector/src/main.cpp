@@ -21,6 +21,8 @@
 #include "highgui.h"
 #include <fcntl.h>
 #include "Camera.h"
+#include <pthread.h>
+#include <vector>
 
 using namespace std;
 using namespace cv;
@@ -30,14 +32,9 @@ int main(int argc, char** argv) {
 
 	cout << "!!!Hello World!!!" << endl << "Welcome to the best program of Data Collector in the World!!!" << endl;
 
-	//ThreadedDevice d[MAX_SENSOR];
-	ThreadedDevice d1;
-	ThreadedDevice d2;
-	ThreadedDevice d3;
-	//boost::thread* thr;
-	boost::thread thr1;
-	boost::thread thr2;
-	boost::thread thr3;
+	d.reserve(3);
+	pthread_t thr[MAX_SENSOR];
+	//thread *thr[MAX_SENSOR];
 	int num_disp = 0;
 
 	RawSeed *dataset = new RawSeed();
@@ -131,22 +128,24 @@ int main(int argc, char** argv) {
 					gps->getError(&errore);
 				}
 
-				/*d[num_disp].identifier = GPS;
-				d[num_disp].device = (void*)gps;
-				d[num_disp].path = path;*/
+				ThreadedDevice td;
+				td.identifier = GPS;
+				td.device = (void*)gps;
 
-				d2.identifier = GPS;
-				d2.device = (void*)gps;
-				//d2.path = path;
+
+				//d2.identifier = GPS;
+				//d2.device = (void*)gps;
 				string pcomp(path);
 				pcomp.append("/GPS.cvs");
 				char* pcomp2 = new char[200];
 				strcpy(pcomp2, pcomp.c_str());
-				//strcat(d2.path,"/GPS.cvs");
-				d2.path = pcomp2;
-				d2.attivo = true;
-				thr2 = boost::thread(gpsAcquisition, &d2);
 
+				td.path = pcomp2;
+				/*d2.path = pcomp2;
+				d2.attivo = true;
+				thr2 = boost::thread(gpsAcquisition, &d2);*/
+
+				d.push_back(td);
 
 				path = NULL;
 				break;
@@ -165,20 +164,23 @@ int main(int argc, char** argv) {
 					imu->getError(&errore);
 				}
 
-				/*d[num_disp].identifier = IMU;
-				d[num_disp].device = (void*)imu;
-				d[num_disp].path = path;*/
-				d1.identifier = IMU;
-				d1.device = (void*)imu;
-				//d1.path = path;
+				ThreadedDevice td;
+				td.identifier = IMU;
+				td.device = (void*)imu;
+
+				/*d1.identifier = IMU;
+				d1.device = (void*)imu;*/
+
 				string pcomp(path);
 				pcomp.append("/IMU_STRETCHED.cvs");
 				char* pcomp2 = new char[200];
 				strcpy(pcomp2, pcomp.c_str());
-				//strcat(d1.path,"/IMU_STRETCHED.cvs");
-				d1.path = pcomp2;
+				td.path = pcomp2;
+			/*	d1.path = pcomp2;
 				d1.attivo = true;
-				thr1 = boost::thread(imuAcquisition, &d1);
+				thr1 = boost::thread(imuAcquisition, &d1);*/
+
+				d.push_back(td);
 
 				path = NULL;
 				break;
@@ -194,15 +196,18 @@ int main(int argc, char** argv) {
 				if(!ok)
 					cout << "Errore nell'apertura della camera! " << endl;
 
-				/*d[num_disp].identifier = WEBCAM;
-				d[num_disp].device = (void*)cam;
-				d[num_disp].path = path;*/
+				ThreadedDevice td;
+				td.identifier = CAM;
+				td.device = (void*)cam;
+				td.path = path;
 
-				d3.identifier = CAM;
+				d.push_back(td);
+
+				/*d3.identifier = CAM;
 				d3.device = (void*)cam;
 				d3.path = path;
 				d3.attivo = true;
-				thr3 = boost::thread(camAcquisition, &d3);
+				thr3 = boost::thread(camAcquisition, &d3);*/
 
 				path = NULL;
 			}
@@ -224,32 +229,34 @@ int main(int argc, char** argv) {
 		cout << "Avvio i thread... attendere prego..." << endl;
 
 		//AVVIO DEI THREAD
-		/*for(int i=0; i<num_disp; ++i) {
+		for(int i=0; i<num_disp; ++i) {
+			d[i].attivo = true;
 			switch(d[i].identifier) {
 				case GPS:
-					thr[i] = new boost::thread(gpsAcquisition, &d[i]);
+					//thr[i] = new thread(gpsAcquisition, (void*)i);
+					pthread_create(&thr[i], NULL, gpsAcquisition, (void*) i);
 					break;
 				case IMU:
-					thr[i] = new boost::thread(imuAcquisition, &d[i]);
+					//thr[i] = new thread(imuAcquisition, (void*)i);
+					pthread_create(&thr[i], NULL, imuAcquisition, (void*) i);
 					break;
-				case WEBCAM:
-					thr[i] = new boost::thread(wcAcquisition, &d[i]);
+				case CAM:
+					//thr[i] = new thread(camAcquisition, (void*)i);
+					pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
 					break;
 			}
-			d[i].attivo = true;
-		}*/
+		}
 
 		cout << "Attendiamo..." << "(inserire un carattere e premete invio per terminare)" << endl;
 		cin >> risp;
 
 		//STOPPO TUTTI I THREAD
-		/*for(int i=0; i<num_disp; ++i) {
-			d[i].attivo = true;
+		for(int i=0; i<num_disp; ++i) {
+			d[i].attivo = false;
 			cout << "Sto stoppando il thread numero " << i << endl;
-			thr[i].join();
-			delete d[i].device;
+			//thr[i]->join();
+			pthread_join(thr[i], NULL);
 		}
-		delete [] thr;*/
 	}
 	else
 		cout << "Non c'è nessuno dispositivo inizializzato!" << endl;
@@ -258,30 +265,33 @@ int main(int argc, char** argv) {
 
 }
 
-void camAcquisition(ThreadedDevice* dev){
-	while(dev->attivo) {
-		((Camera*)dev->device)->get_photo(dev->path);
+void* camAcquisition(void* i){
+	ThreadedDevice dev = d.at((int) i);
+	while(dev.attivo) {
+		((Camera*)dev.device)->get_photo(dev.path);
 	}
 }
 
-bool gpsAcquisition(ThreadedDevice* dev) {
+void* gpsAcquisition( void* i) {
 	char** buffer = new char*[DIM_BUFFER_GPS];
 	ofstream file;
-	int righe_scritte = 0;
+	int n = (int)i;
+	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread del gps è partito" << endl;
-	while(dev->attivo) {
+	while(dev.attivo) {
+		dev = d.at(n);
+		int righe_scritte = 0;
 		for(int i=0; i<DIM_BUFFER_GPS; ++i) {
 			char* x;
-			if(((SerialGps*)dev->device)->getGPGGAString(&x)) {
+			if(((SerialGps*)dev.device)->getGPGGAString(&x)) {
 				buffer[i] = x;
 				++righe_scritte;
 			}
 		}
-		file.open(dev->path, ios::app);
+		file.open(dev.path, ios::app);
 		if(!file.is_open()) {
 			cout << "Impossibile accedere al file" << endl;
-			return false;
 		}
 
 		for(int i=0; i<righe_scritte; ++i) {
@@ -292,29 +302,36 @@ bool gpsAcquisition(ThreadedDevice* dev) {
 	}
 	delete [] *buffer;
 	cout << "gps thread ended" << endl;
-	return true;
 }
 
-bool imuAcquisition(ThreadedDevice* dev) {
+void* imuAcquisition(void* i) {
 	char** buffer = new char*[DIM_BUFFER_IMU];
 	ofstream file;
-	int righe_scritte = 0;
+	int n = (int)i;
+	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread della imu è partito"<< endl;
-	while(dev->attivo) {
+	while(dev.attivo) {
+		dev = d.at(n);
+		int righe_scritte = 0;
 		for(int i=0; i<DIM_BUFFER_IMU; ++i) {
 			char* x;
-			if(((SerialImu*)dev->device)->getRawSeedData(&x)) {
+			if(((SerialImu*)dev.device)->getRawSeedData(&x)) {
 				buffer[i] = x;
+				//cout << "Sto leggendo la riga # " << i <<endl;
 				++righe_scritte;
 			}
+			//else
+			//	cout << "Non ho letto la riga # " << i << endl;
 		}
-		file.open(dev->path, ios::app);
+		file.open(dev.path, ios::app);
 		if(!file.is_open()) {
 			cout << "Impossibile accedere al file";
-			return false;
+			return (void*) false;
 		}
+		//cout << "Ho aperto il file " << dev.path << endl;
 		for(int i=0; i<righe_scritte; ++i) {
+			//cout << "Sto scrivendo la riga # " << i << endl;
 			file << buffer[i] << "\n";
 		}
 		cout << "L'imu ha scritto su file" << endl;
@@ -322,5 +339,5 @@ bool imuAcquisition(ThreadedDevice* dev) {
 	}
 	delete [] *buffer;
 	cout << "imu thread ended" << endl;
-	return true;
+	return (void*) true;
 }
