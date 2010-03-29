@@ -14,10 +14,10 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#define DIM_BUFFER_GPS 4
+#define DIM_BUFFER_GPS 1
 #define DIM_BUFFER_IMU 32
 
-enum DevId {GPS, IMU, WEBCAM};
+enum DevId {NOTHING, GPS, IMU, CAM};
 
 boost::mutex io_mutex;
 
@@ -29,7 +29,7 @@ struct ThreadedDevice
 	bool attivo;
 };
 
-void wcAcquisition(ThreadedDevice* dev);
+void camAcquisition(ThreadedDevice* dev);
 bool gpsAcquisition(ThreadedDevice* dev);
 bool imuAcquisition(ThreadedDevice* dev);
 
