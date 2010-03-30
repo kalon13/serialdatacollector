@@ -24,44 +24,46 @@
 using namespace std;
 
 RawSeed::RawSeed() {
-	string directory("/home/kain/RawSeedDataSet");
-	while(true)
+	bool flag = false;
+	string directory("/home/user/RawSeedDataSet");
+	do
 	{
-		cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory : " << directory << ")" << endl;
-		cin >> directory;
-		cout << endl;
-		if(directory[0] == '/' && directory[1] != '/'){
-			directory += "/RawSeedDataSet";
-			break;
+		while(true)
+		{
+			cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory : " << directory << ")" << endl;
+			cin >> directory;
+			cout << endl;
+			if(directory[0] == '/' && directory[1] != '/'){
+				directory += "/RawSeedDataSet";
+				break;
+			}
+			else
+				cout << "Errore!! Reinserisci il percorso assoluto,che sia una directory Linux" << endl;
 		}
-		else
-			cout << "Errore!! Reinserisci il percorso assoluto,che sia una directory Linux" << endl;
-	}
-	bool ishere;
-	percorso = new char[directory.length()+1];
-	strcpy(percorso,directory.c_str());
-	if((path = opendir(percorso)) == NULL)
-	{
-		ishere = creaRawSeed();
-		if (ishere == false)
-			cout << "C'è stato un errore nella creazione del Data Set";
+		percorso = new char[directory.length()+1];
+		strcpy(percorso,directory.c_str());
+		if((path = opendir(percorso)) == NULL)
+		{
+			flag = creaRawSeed();
+			if (flag == false)
+				cout << "C'è stato un errore nella creazione del Data Set";
+			else
+			{
+				cout << "Data Set creato con successo!";
+				for(int i=0; i<4; i++)
+					contatori[i] = 0;
+				flag = true;
+			}
+		}
 		else
 		{
-			cout << "Data Set creato con successo!";
-			for(int i=0; i<4; i++)
-				contatori[i] = 0;
+			cout << "Struttura Raw Seed già esistente nel file system" << endl;
+			inizializzaContatori();
+			cout << "Percorso Raw Seed letto, pronto per salvare i file..." << endl;
+			flag = true;
 		}
 	}
-	else
-	{
-		cout << "Struttura Raw Seed già esistente nel file system" << endl;
-		inizializzaContatori();
-		cout << "Percorso Raw Seed letto, pronto per salvare i file..." << endl;
-		/*
-		for(int i=0; i<4; i++)
-			cout << contatori[i] << endl;
-		*/
-	}
+	while(!flag);
 }
 
 RawSeed::~RawSeed() {
@@ -280,7 +282,7 @@ bool RawSeed::setType(unsigned short t)
 		type = t;
 		return true;
 	}
-	catch(exception &e)
+	catch(...)
 	{
 		return false;
 	}

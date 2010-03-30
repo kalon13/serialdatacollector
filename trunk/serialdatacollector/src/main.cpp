@@ -44,11 +44,12 @@ int main(int argc, char** argv) {
 	char risp;
 
 
-	while(true)
+	do
 	{
 		bool riuscita;
 		cout << "Vuoi inserire una nuova calibrazione?(S o N)" << endl;
 		cin >> scelta;
+		scelta = toupper(scelta);
 		if(scelta == 'S')
 		{
 			int index = 0;
@@ -68,32 +69,36 @@ int main(int argc, char** argv) {
 		if(scelta == 'N')
 			break;
 	}
-
+	while(true);
 	do
 	{
-		cout << "Specificare il luogo in cui si intende raccogliere i dati: " << endl;
-		cin.ignore();
-		cin.getline(luogo,64);
-		flag = dataset->setLocation(luogo);
-		if(flag == false)
-			cout << "Errore nell'inserimento del luogo, NON puoi mettere il carattere speciale /!!" << endl;
+		do
+		{
+			cout << "Specificare il luogo in cui si intende raccogliere i dati: " << endl;
+			cin.ignore();
+			cin.getline(luogo,64);
+			flag = dataset->setLocation(luogo);
+			if(flag == false)
+				cout << "Errore nell'inserimento del luogo, NON puoi mettere il carattere speciale /!!" << endl;
+		}
+		while(!flag);
+
+		do
+		{
+			cout << "Specificare il tipo di raccolta dati compiuta dal Robot" << endl << "(1 --> Raccolta dati Statica, 2 --> Raccolta dati Dinamica)" << endl;
+			cin >> tipo;
+			flag = dataset->setType(tipo);
+		}
+		while(!flag);
+
+
+		flag = dataset->nuovoDataset();
+		if(flag)
+			cout << endl << "Directory per la raccolta dati creata con successo!!" << endl;
+		else
+			cout << endl << "C'è stato un errore nella creazione della directory!! " << endl;
 	}
 	while(!flag);
-
-	do
-	{
-		cout << "Specificare il tipo di raccolta dati compiuta dal Robot" << endl << "(1 --> Raccolta dati Statica, 2 --> Raccolta dati Dinamica)" << endl;
-		cin >> tipo;
-		flag = dataset->setType(tipo);
-	}
-	while(!flag);
-
-	flag = dataset->nuovoDataset();
-	if(flag)
-		cout << endl << "Directory per la raccolta dati creata con successo!!" << endl;
-	else
-		cout << endl << "C'è stato un errore nella creazione della directory!! " << endl;
-
 
 	// Ciclo di inserimento dei dispositivi seriali collegati al pc. Immetto e istanzio i vari sensori
 	do
