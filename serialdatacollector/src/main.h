@@ -34,4 +34,6 @@ void* camAcquisition(void* i);
 void* gpsAcquisition(void* i);
 void* imuAcquisition(void* i);
 
+void cmdShell();
+
 #endif /* MAIN_H_ */
