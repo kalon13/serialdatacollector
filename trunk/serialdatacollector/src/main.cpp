@@ -7,19 +7,18 @@
 //============================================================================
 
 #include <iostream>
-#include <stdio.h>
+//#include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
 #include "RawSeed.h"
 #include "SerialGps.h"
-#include "SerialDevice.h"
+//#include "SerialDevice.h"
 #include "SerialImu.h"
 #include "main.h"
-#include "Sensor.h"
 #include "cv.h"
 #include "highgui.h"
-#include <fcntl.h>
+//#include <fcntl.h>
 #include "Camera.h"
 #include <pthread.h>
 #include <vector>
@@ -131,7 +130,7 @@ int main(int argc, char** argv) {
 				ThreadedDevice td;
 				td.identifier = GPS;
 				td.device = (void*)gps;
-
+				td.stato = PRONTO;
 
 				//d2.identifier = GPS;
 				//d2.device = (void*)gps;
@@ -167,6 +166,7 @@ int main(int argc, char** argv) {
 				ThreadedDevice td;
 				td.identifier = IMU;
 				td.device = (void*)imu;
+				td.stato = PRONTO;
 
 				/*d1.identifier = IMU;
 				d1.device = (void*)imu;*/
@@ -200,6 +200,7 @@ int main(int argc, char** argv) {
 				td.identifier = CAM;
 				td.device = (void*)cam;
 				td.path = path;
+				td.stato = PRONTO;
 
 				d.push_back(td);
 
@@ -221,6 +222,7 @@ int main(int argc, char** argv) {
 		cout << "Vuoi inserire un altro dispositivo? (s/n) " << endl;
 		cin >> risp;
 		fflush(NULL);
+		//cin.clear();
 	}
 	while(risp!='n');
 
@@ -230,29 +232,31 @@ int main(int argc, char** argv) {
 
 		//AVVIO DEI THREAD
 		for(int i=0; i<num_disp; ++i) {
-			d[i].attivo = true;
+			d[i].stato = ATTIVO;
 			switch(d[i].identifier) {
 				case GPS:
 					//thr[i] = new thread(gpsAcquisition, (void*)i);
-					pthread_create(&thr[i], NULL, gpsAcquisition, (void*) i);
+					pthread_create(&thr[i], NULL, gpsAcquisition, (void*) &i);
 					break;
 				case IMU:
 					//thr[i] = new thread(imuAcquisition, (void*)i);
-					pthread_create(&thr[i], NULL, imuAcquisition, (void*) i);
+					pthread_create(&thr[i], NULL, imuAcquisition, (void*) &i);
 					break;
 				case CAM:
 					//thr[i] = new thread(camAcquisition, (void*)i);
-					pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
+					pthread_create(&thr[i], NULL, camAcquisition, (void*) &i);
 					break;
 			}
 		}
 
+		//cin.clear();
 		cout << "Attendiamo..." << "(inserire un carattere e premete invio per terminare)" << endl;
 		cin >> risp;
+		//cin.get();
 
 		//STOPPO TUTTI I THREAD
 		for(int i=0; i<num_disp; ++i) {
-			d[i].attivo = false;
+			d[i].stato = TERMINATO;
 			cout << "Sto stoppando il thread numero " << i << endl;
 			//thr[i]->join();
 			pthread_join(thr[i], NULL);
@@ -261,82 +265,102 @@ int main(int argc, char** argv) {
 	else
 		cout << "Non c'è nessuno dispositivo inizializzato!" << endl;
 
+	d.clear();
 	delete(dataset);
 
 }
 
 void* camAcquisition(void* i){
-	ThreadedDevice dev = d.at((int) i);
-	while(dev.attivo) {
-		((Camera*)dev.device)->get_photo(dev.path);
+	int n = *static_cast<int*>(i);
+	ThreadedDevice dev = d.at(n);
+	while(dev.stato!=TERMINATO) {
+		while(dev.stato==ATTIVO) {
+			((Camera*)dev.device)->get_photo(dev.path);
+			 dev = d.at(n);
+		}
+		 dev = d.at(n);
 	}
 }
 
-void* gpsAcquisition( void* i) {
+void* gpsAcquisition(void* i) {
 	char** buffer = new char*[DIM_BUFFER_GPS];
 	ofstream file;
-	int n = (int)i;
+	int n = *static_cast<int*>(i);
 	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread del gps è partito" << endl;
-	while(dev.attivo) {
-		dev = d.at(n);
-		int righe_scritte = 0;
-		for(int i=0; i<DIM_BUFFER_GPS; ++i) {
-			char* x;
-			if(((SerialGps*)dev.device)->getGPGGAString(&x)) {
-				buffer[i] = x;
-				++righe_scritte;
+	while(dev.stato!=TERMINATO) {
+		while(dev.stato==ATTIVO) {
+			dev = d.at(n);
+			int righe_scritte = 0;
+			for(int i=0; i<DIM_BUFFER_GPS; ++i) {
+				char* x;
+				if(((SerialGps*)dev.device)->getGPGGAString(&x)) {
+					buffer[i] = x;
+					//cout << "Sto leggendo la riga # " << i <<endl;
+					++righe_scritte;
+				}
+				//else
+				//	cout << "Non ho letto la riga # " << i << endl;
 			}
+			file.open(dev.path, ios::app);
+			if(!file.is_open()) {
+				cout << "Impossibile accedere al file" << endl;
+				return (void*) false;
+			}
+			//cout << "Ho aperto il file " << dev.path << endl;
+			for(int i=0; i<righe_scritte; ++i) {
+				//cout << "Sto scrivendo la riga # " << i << endl;
+				file << buffer[i] << endl;
+			}
+			cout << "Il gps ha scritto su file" << endl;
+			file.close();
 		}
-		file.open(dev.path, ios::app);
-		if(!file.is_open()) {
-			cout << "Impossibile accedere al file" << endl;
-		}
-
-		for(int i=0; i<righe_scritte; ++i) {
-			file << buffer[i] << endl;
-		}
-		cout << "Il gps ha scritto su file" << endl;
-		file.close();
+		dev = d.at(n);
 	}
+
 	delete [] *buffer;
 	cout << "gps thread ended" << endl;
+	return (void*) true;
 }
 
 void* imuAcquisition(void* i) {
 	char** buffer = new char*[DIM_BUFFER_IMU];
 	ofstream file;
-	int n = (int)i;
+	int n = *static_cast<int*>(i);
 	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread della imu è partito"<< endl;
-	while(dev.attivo) {
-		dev = d.at(n);
-		int righe_scritte = 0;
-		for(int i=0; i<DIM_BUFFER_IMU; ++i) {
-			char* x;
-			if(((SerialImu*)dev.device)->getRawSeedData(&x)) {
-				buffer[i] = x;
-				//cout << "Sto leggendo la riga # " << i <<endl;
-				++righe_scritte;
+	while(dev.stato!=TERMINATO) {
+		while(dev.stato==ATTIVO) {
+			dev = d.at(n);
+			int righe_scritte = 0;
+			for(int i=0; i<DIM_BUFFER_IMU; ++i) {
+				char* x;
+				if(((SerialImu*)dev.device)->getRawSeedData(&x)) {
+					buffer[i] = x;
+					//cout << "Sto leggendo la riga # " << i <<endl;
+					++righe_scritte;
+				}
+				//else
+				//	cout << "Non ho letto la riga # " << i << endl;
 			}
-			//else
-			//	cout << "Non ho letto la riga # " << i << endl;
+			file.open(dev.path, ios::app);
+			if(!file.is_open()) {
+				cout << "Impossibile accedere al file";
+				return (void*) false;
+			}
+			//cout << "Ho aperto il file " << dev.path << endl;
+			for(int i=0; i<righe_scritte; ++i) {
+				//cout << "Sto scrivendo la riga # " << i << endl;
+				file << buffer[i] << "\n";
+			}
+			cout << "L'imu ha scritto su file" << endl;
+			file.close();
 		}
-		file.open(dev.path, ios::app);
-		if(!file.is_open()) {
-			cout << "Impossibile accedere al file";
-			return (void*) false;
-		}
-		//cout << "Ho aperto il file " << dev.path << endl;
-		for(int i=0; i<righe_scritte; ++i) {
-			//cout << "Sto scrivendo la riga # " << i << endl;
-			file << buffer[i] << "\n";
-		}
-		cout << "L'imu ha scritto su file" << endl;
-		file.close();
+		dev = d.at(n);
 	}
+
 	delete [] *buffer;
 	cout << "imu thread ended" << endl;
 	return (void*) true;
