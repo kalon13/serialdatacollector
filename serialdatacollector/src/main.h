@@ -19,15 +19,13 @@
 #define DIM_BUFFER_IMU 32
 
 enum DevId {NOTHING=9, GPS=0, IMU=1, CAM=2};
+enum Stato {PRONTO, ATTIVO, PAUSA, TERMINATO};
 
-boost::mutex io_mutex;
-
-struct ThreadedDevice
-{
+struct ThreadedDevice {
 	DevId identifier;
 	void* device;
 	char* path;
-	bool attivo;
+	Stato stato;
 };
 
 vector<ThreadedDevice> d;
