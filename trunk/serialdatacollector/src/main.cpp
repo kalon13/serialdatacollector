@@ -33,7 +33,6 @@ int main(int argc, char** argv) {
 
 	d.reserve(3);
 	pthread_t thr[MAX_SENSOR];
-	//thread *thr[MAX_SENSOR];
 	int num_disp = 0;
 
 	RawSeed *dataset = new RawSeed();
@@ -109,7 +108,7 @@ int main(int argc, char** argv) {
 		dataset->getDataSet(&path);
 		int id;
 		cout << "Specifica l'identificatore del dispositivo che intendi utilizzare nella raccolta dati " << endl
-				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la web cam)" << endl;
+				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la cam)" << endl;
 		cin >> id;
 		switch (id)
 		{
@@ -123,28 +122,23 @@ int main(int argc, char** argv) {
 				SerialGps* gps = new SerialGps();
 				ok = gps->openCommunication(percorso_porta);
 
-				if(!ok) {
-					gps->getError(&errore);
+				if(ok) {
+					ThreadedDevice td;
+					td.identifier = GPS;
+					td.device = (void*)gps;
+					td.stato = PRONTO;
+
+					string pcomp(path);
+					pcomp.append("/GPS.cvs");
+					char* pcomp2 = new char[200];
+					strcpy(pcomp2, pcomp.c_str());
+
+					td.path = pcomp2;
+
+					d.push_back(td);
 				}
-
-				ThreadedDevice td;
-				td.identifier = GPS;
-				td.device = (void*)gps;
-				td.stato = PRONTO;
-
-				//d2.identifier = GPS;
-				//d2.device = (void*)gps;
-				string pcomp(path);
-				pcomp.append("/GPS.cvs");
-				char* pcomp2 = new char[200];
-				strcpy(pcomp2, pcomp.c_str());
-
-				td.path = pcomp2;
-				/*d2.path = pcomp2;
-				d2.attivo = true;
-				thr2 = boost::thread(gpsAcquisition, &d2);*/
-
-				d.push_back(td);
+				else
+					gps->getError(&errore);
 
 				path = NULL;
 				break;
@@ -159,28 +153,22 @@ int main(int argc, char** argv) {
 				SerialImu* imu = new SerialImu();
 				ok = imu->openCommunication(percorso_porta);
 
-				if(!ok) {
-					imu->getError(&errore);
+				if(ok) {
+					ThreadedDevice td;
+					td.identifier = IMU;
+					td.device = (void*)imu;
+					td.stato = PRONTO;
+
+					string pcomp(path);
+					pcomp.append("/IMU_STRETCHED.cvs");
+					char* pcomp2 = new char[200];
+					strcpy(pcomp2, pcomp.c_str());
+					td.path = pcomp2;
+
+					d.push_back(td);
 				}
-
-				ThreadedDevice td;
-				td.identifier = IMU;
-				td.device = (void*)imu;
-				td.stato = PRONTO;
-
-				/*d1.identifier = IMU;
-				d1.device = (void*)imu;*/
-
-				string pcomp(path);
-				pcomp.append("/IMU_STRETCHED.cvs");
-				char* pcomp2 = new char[200];
-				strcpy(pcomp2, pcomp.c_str());
-				td.path = pcomp2;
-			/*	d1.path = pcomp2;
-				d1.attivo = true;
-				thr1 = boost::thread(imuAcquisition, &d1);*/
-
-				d.push_back(td);
+				else
+					imu->getError(&errore);
 
 				path = NULL;
 				break;
@@ -193,22 +181,17 @@ int main(int argc, char** argv) {
 				cin >> wait;
 				Camera* cam = new Camera();
 				ok = cam->open_camera(c, wait);
-				if(!ok)
+				if(ok) {
+					ThreadedDevice td;
+					td.identifier = CAM;
+					td.device = (void*)cam;
+					td.path = path;
+					td.stato = PRONTO;
+
+					d.push_back(td);
+				}
+				else
 					cout << "Errore nell'apertura della camera! " << endl;
-
-				ThreadedDevice td;
-				td.identifier = CAM;
-				td.device = (void*)cam;
-				td.path = path;
-				td.stato = PRONTO;
-
-				d.push_back(td);
-
-				/*d3.identifier = CAM;
-				d3.device = (void*)cam;
-				d3.path = path;
-				d3.attivo = true;
-				thr3 = boost::thread(camAcquisition, &d3);*/
 
 				path = NULL;
 			}
@@ -226,7 +209,7 @@ int main(int argc, char** argv) {
 	}
 	while(risp!='n');
 
-	cout << "Hai inserito " << num_disp << " dispositivi" << endl;
+	cout << "Hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl;
 	if(num_disp>0) {
 		cout << "Avvio i thread... attendere prego..." << endl;
 
@@ -235,43 +218,54 @@ int main(int argc, char** argv) {
 			d[i].stato = ATTIVO;
 			switch(d[i].identifier) {
 				case GPS:
-					//thr[i] = new thread(gpsAcquisition, (void*)i);
 					pthread_create(&thr[i], NULL, gpsAcquisition, (void*) &i);
 					break;
 				case IMU:
-					//thr[i] = new thread(imuAcquisition, (void*)i);
 					pthread_create(&thr[i], NULL, imuAcquisition, (void*) &i);
 					break;
 				case CAM:
-					//thr[i] = new thread(camAcquisition, (void*)i);
 					pthread_create(&thr[i], NULL, camAcquisition, (void*) &i);
+					break;
+				default:
 					break;
 			}
 		}
 
-		//cin.clear();
-		cout << "Attendiamo..." << "(inserire un carattere e premete invio per terminare)" << endl;
-		cin >> risp;
-		//cin.get();
-
-		//STOPPO TUTTI I THREAD
-		for(int i=0; i<num_disp; ++i) {
-			d[i].stato = TERMINATO;
-			cout << "Sto stoppando il thread numero " << i << endl;
-			//thr[i]->join();
-			pthread_join(thr[i], NULL);
-		}
+		cmdShell();
 	}
 	else
 		cout << "Non c'è nessuno dispositivo inizializzato!" << endl;
 
+
+	/*---------------------------------------------
+	 * ...............FINE DEL PROGRAMMA............
+	 * 1)Chiudo tutti i thread vivi
+	 * 2)Pulisco le variabili in memoria
+	 * -------------------------------*/
+	for(int i=0; i<num_disp; ++i) {
+		if(d[i].stato!=TERMINATO) {
+			d[i].stato = TERMINATO;
+			cout << "Sto stoppando il thread numero " << i << endl;
+			pthread_join(thr[i], NULL);
+		}
+	}
 	d.clear();
 	delete(dataset);
 
 }
 
+void cmdShell() {
+
+	//cin.clear();
+	char* cmd;
+	cout << "Attendiamo..." << "(inserire un carattere e premete invio per terminare)" << endl;
+	cin >> cmd;
+	//cin.get();
+
+}
+
 void* camAcquisition(void* i){
-	int n = *static_cast<int*>(i);
+	int n = *(long*)i;
 	ThreadedDevice dev = d.at(n);
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
@@ -280,12 +274,13 @@ void* camAcquisition(void* i){
 		}
 		 dev = d.at(n);
 	}
+	return (void*) true;
 }
 
 void* gpsAcquisition(void* i) {
 	char** buffer = new char*[DIM_BUFFER_GPS];
 	ofstream file;
-	int n = *static_cast<int*>(i);
+	int n = *(long*)i;
 	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread del gps è partito" << endl;
@@ -327,7 +322,7 @@ void* gpsAcquisition(void* i) {
 void* imuAcquisition(void* i) {
 	char** buffer = new char*[DIM_BUFFER_IMU];
 	ofstream file;
-	int n = *static_cast<int*>(i);
+	int n = *(long*)i;
 	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread della imu è partito"<< endl;
