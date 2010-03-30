@@ -218,13 +218,13 @@ int main(int argc, char** argv) {
 			d[i].stato = ATTIVO;
 			switch(d[i].identifier) {
 				case GPS:
-					pthread_create(&thr[i], NULL, gpsAcquisition, (void*) &i);
+					pthread_create(&thr[i], NULL, gpsAcquisition, (void*) i);
 					break;
 				case IMU:
-					pthread_create(&thr[i], NULL, imuAcquisition, (void*) &i);
+					pthread_create(&thr[i], NULL, imuAcquisition, (void*) i);
 					break;
 				case CAM:
-					pthread_create(&thr[i], NULL, camAcquisition, (void*) &i);
+					pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
 					break;
 				default:
 					break;
@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
 void cmdShell() {
 
 	//cin.clear();
-	char* cmd;
+	char cmd;
 	cout << "Attendiamo..." << "(inserire un carattere e premete invio per terminare)" << endl;
 	cin >> cmd;
 	//cin.get();
@@ -265,7 +265,7 @@ void cmdShell() {
 }
 
 void* camAcquisition(void* i){
-	int n = *(long*)i;
+	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
@@ -280,7 +280,7 @@ void* camAcquisition(void* i){
 void* gpsAcquisition(void* i) {
 	char** buffer = new char*[DIM_BUFFER_GPS];
 	ofstream file;
-	int n = *(long*)i;
+	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread del gps è partito" << endl;
@@ -322,7 +322,7 @@ void* gpsAcquisition(void* i) {
 void* imuAcquisition(void* i) {
 	char** buffer = new char*[DIM_BUFFER_IMU];
 	ofstream file;
-	int n = *(long*)i;
+	int n = (long) i;
 	ThreadedDevice dev = d.at(n);
 
 	cout << "Il thread della imu è partito"<< endl;
