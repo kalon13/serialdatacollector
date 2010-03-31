@@ -22,6 +22,7 @@
 #include "Camera.h"
 #include <pthread.h>
 #include <vector>
+#include <string>
 
 using namespace std;
 using namespace cv;
@@ -32,8 +33,7 @@ int main(int argc, char** argv) {
 	cout << "!!!Hello World!!!" << endl << "Welcome to the best program of Data Collector in the World!!!" << endl;
 
 	d.reserve(3);
-	pthread_t thr[MAX_SENSOR];
-	int num_disp = 0;
+	num_disp = 0;
 
 	RawSeed *dataset = new RawSeed();
 	char scelta;
@@ -132,6 +132,7 @@ int main(int argc, char** argv) {
 					td.identifier = GPS;
 					td.device = (void*)gps;
 					td.stato = PRONTO;
+					td.debug = 0;
 
 					string pcomp(path);
 					pcomp.append("/GPS.cvs");
@@ -163,6 +164,7 @@ int main(int argc, char** argv) {
 					td.identifier = IMU;
 					td.device = (void*)imu;
 					td.stato = PRONTO;
+					td.debug = 0;
 
 					string pcomp(path);
 					pcomp.append("/IMU_STRETCHED.cvs");
@@ -192,6 +194,7 @@ int main(int argc, char** argv) {
 					td.device = (void*)cam;
 					td.path = path;
 					td.stato = PRONTO;
+					td.debug = 0;
 
 					d.push_back(td);
 				}
@@ -209,13 +212,13 @@ int main(int argc, char** argv) {
 
 		cout << "Vuoi inserire un altro dispositivo? (s/n) " << endl;
 		cin >> risp;
-		fflush(NULL);
-		//cin.clear();
+		//fflush(NULL);
+		cin.ignore();
 	}
 	while(risp!='n');
 
-	cout << "Hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl;
-	if(num_disp>0) {
+	cout << "Hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl << endl;
+	/*if(num_disp>0) {
 		cout << "Avvio i thread... attendere prego..." << endl;
 
 		//AVVIO DEI THREAD
@@ -223,30 +226,34 @@ int main(int argc, char** argv) {
 			d[i].stato = ATTIVO;
 			switch(d[i].identifier) {
 				case GPS:
-					pthread_create(&thr[i], NULL, gpsAcquisition, (void*) i);
+					d[i].pid_t = pthread_create(&thr[i], NULL, gpsAcquisition, (void*) i);
 					break;
 				case IMU:
-					pthread_create(&thr[i], NULL, imuAcquisition, (void*) i);
+					d[i].pid_t = pthread_create(&thr[i], NULL, imuAcquisition, (void*) i);
 					break;
 				case CAM:
-					pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
+					d[i].pid_t = pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
 					break;
 				default:
 					break;
 			}
 		}
-
-		cmdShell();
+		cin.ignore();
+		cout << "--------attendiamo---- " << endl;
+		cin >> risp;
 	}
 	else
-		cout << "Non c'è nessuno dispositivo inizializzato!" << endl;
+		cout << "Non c'è nessuno dispositivo inizializzato!" << endl;*/
 
+
+	Shell();
 
 	/*---------------------------------------------
 	 * ...............FINE DEL PROGRAMMA............
 	 * 1)Chiudo tutti i thread vivi
 	 * 2)Pulisco le variabili in memoria
 	 * -------------------------------*/
+	cout << "Chiusura del programma in corso... attendere prego" << endl;
 	for(int i=0; i<num_disp; ++i) {
 		if(d[i].stato!=TERMINATO) {
 			d[i].stato = TERMINATO;
@@ -254,18 +261,9 @@ int main(int argc, char** argv) {
 			pthread_join(thr[i], NULL);
 		}
 	}
+	cout << "Arrivederci" << endl;
 	d.clear();
 	delete(dataset);
-
-}
-
-void cmdShell() {
-
-	//cin.clear();
-	char cmd;
-	cout << "Attendiamo..." << "(inserire un carattere e premete invio per terminare)" << endl;
-	cin >> cmd;
-	//cin.get();
 
 }
 
@@ -288,7 +286,8 @@ void* gpsAcquisition(void* i) {
 	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
 
-	cout << "Il thread del gps è partito" << endl;
+	if(dev.debug>0)
+		cout << "Il thread del gps è partito"<< endl;
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
 			dev = d.at(n);
@@ -297,30 +296,35 @@ void* gpsAcquisition(void* i) {
 				char* x;
 				if(((SerialGps*)dev.device)->getGPGGAString(&x)) {
 					buffer[i] = x;
-					//cout << "Sto leggendo la riga # " << i <<endl;
 					++righe_scritte;
+					if(dev.debug>1)
+						cout << "Sto leggendo la riga # " << i <<endl;
 				}
-				//else
-				//	cout << "Non ho letto la riga # " << i << endl;
+				else
+					if(dev.debug>1)
+						cout << "Non ho letto la riga # " << i << endl;
 			}
 			file.open(dev.path, ios::app);
 			if(!file.is_open()) {
-				cout << "Impossibile accedere al file" << endl;
+					cout << "Impossibile accedere al file" << dev.path;
 				return (void*) false;
 			}
 			//cout << "Ho aperto il file " << dev.path << endl;
 			for(int i=0; i<righe_scritte; ++i) {
-				//cout << "Sto scrivendo la riga # " << i << endl;
-				file << buffer[i] << endl;
+				if(dev.debug>1)
+					cout << "Sto scrivendo la riga # " << i << endl;
+				file << buffer[i] << "\n";
 			}
-			cout << "Il gps ha scritto su file" << endl;
+			if(dev.debug>0)
+				cout << "Il gps ha scritto su file" << endl;
 			file.close();
 		}
 		dev = d.at(n);
 	}
 
 	delete [] *buffer;
-	cout << "gps thread ended" << endl;
+	if(dev.debug>0)
+		cout << "Gps thread ended" << endl;
 	return (void*) true;
 }
 
@@ -330,7 +334,8 @@ void* imuAcquisition(void* i) {
 	int n = (long) i;
 	ThreadedDevice dev = d.at(n);
 
-	cout << "Il thread della imu è partito"<< endl;
+	if(dev.debug>0)
+		cout << "Il thread della imu è partito"<< endl;
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
 			dev = d.at(n);
@@ -339,29 +344,337 @@ void* imuAcquisition(void* i) {
 				char* x;
 				if(((SerialImu*)dev.device)->getRawSeedData(&x)) {
 					buffer[i] = x;
-					//cout << "Sto leggendo la riga # " << i <<endl;
 					++righe_scritte;
+					if(dev.debug>1)
+						cout << "Sto leggendo la riga # " << i <<endl;
 				}
-				//else
-				//	cout << "Non ho letto la riga # " << i << endl;
+				else
+					if(dev.debug>1)
+						cout << "Non ho letto la riga # " << i << endl;
 			}
 			file.open(dev.path, ios::app);
 			if(!file.is_open()) {
-				cout << "Impossibile accedere al file";
+					cout << "Impossibile accedere al file" << dev.path;
 				return (void*) false;
 			}
 			//cout << "Ho aperto il file " << dev.path << endl;
 			for(int i=0; i<righe_scritte; ++i) {
-				//cout << "Sto scrivendo la riga # " << i << endl;
+				if(dev.debug>1)
+					cout << "Sto scrivendo la riga # " << i << endl;
 				file << buffer[i] << "\n";
 			}
-			cout << "L'imu ha scritto su file" << endl;
+			if(dev.debug>0)
+				cout << "L'imu ha scritto su file" << endl;
 			file.close();
 		}
 		dev = d.at(n);
 	}
 
 	delete [] *buffer;
-	cout << "imu thread ended" << endl;
+	if(dev.debug>0)
+		cout << "Imu thread ended" << endl;
 	return (void*) true;
+}
+
+svec split(string& subject, string& separator)
+{
+	svec temp;
+    string::size_type start=0, end = 0;
+    while (start != string::npos){
+		end = subject.find(separator, start);
+		temp.push_back(subject.substr(start, end != string::npos ? end - start: string::npos));
+		start = end != string::npos ? end + separator.length() : string::npos ;
+	}
+	return temp;
+}
+
+void* Shell() {
+	bool quit = false;
+	cout << "Benvenuto nella console di comando di serialdatacollector!" << endl;
+	cout << "Per ricevere aiuto digitare 'help'\n\n";
+	do {
+
+		string riga, token;
+		string sep(" ");
+		svec parameters;
+		string cmd;
+		cout << "> ";
+		//cin.ignore();
+
+		getline(cin, riga);
+		istringstream iss(riga);
+		int arg=0;
+		while(getline(iss, token, ' ') )
+		{
+			if(arg==0)
+				cmd = token;
+			else
+				parameters.push_back(token);
+			arg++;
+		}
+
+		/*
+		 * PARSE COMMAND
+		 * */
+		if(cmd.compare("start")==0)
+			cmdStart(parameters);
+		else if(cmd.compare("stop")==0)
+			cmdStop(parameters);
+		else if(cmd.compare("pause")==0)
+			cmdPause(parameters);
+		else if(cmd.compare("show")==0)
+			cmdShow(parameters);
+		else if(cmd.compare("debug")==0)
+			cmdDebug(parameters);
+		else if(cmd.compare("quit")==0)
+			quit = cmdQuit();
+		else if(cmd.compare("help")==0)
+			cmdHelp(parameters);
+		else
+			cmdHelp(parameters);
+
+	}
+	while(!quit);
+}
+
+
+void cmdStart(svec arg) {
+	if(!arg.empty()){
+		if(arg[0].compare("all")==0) {
+			if(num_disp>0) {
+				for(int i=0; i<num_disp; ++i) {
+					if(d[i].stato == PRONTO) {
+						d[i].stato = ATTIVO;
+						cout << "Sto avviando il thread " << i << "..." << endl;
+						switch(d[i].identifier) {
+							case GPS:
+								d[i].pid_t = pthread_create(&thr[i], NULL, gpsAcquisition, (void*) i);
+								break;
+							case IMU:
+								d[i].pid_t = pthread_create(&thr[i], NULL, imuAcquisition, (void*) i);
+								break;
+							case CAM:
+								d[i].pid_t = pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
+								break;
+							default:
+								break;
+						}
+						cout << "Ho avviato il thread " << i << endl;
+					}
+					else if(d[i].stato == PAUSA) {
+						d[i].stato = ATTIVO;
+						cout << "Ho avviato il thread " << i << endl;
+					}
+				}
+			}
+			else
+				cout << "Non è presente nessun dispositivo" << endl;
+		}
+		else{
+			int number;
+			istringstream ss(arg[0]);
+			ss >> number;
+			if (number < num_disp) {
+				if(d[number].stato == PRONTO) {
+					d[number].stato = ATTIVO;
+					cout << "Sto avviando il thread " << number << "..." << endl;
+					switch(d[number].identifier) {
+						case GPS:
+							d[number].pid_t = pthread_create(&thr[number], NULL, gpsAcquisition, (void*) number);
+							break;
+						case IMU:
+							d[number].pid_t = pthread_create(&thr[number], NULL, imuAcquisition, (void*) number);
+							break;
+						case CAM:
+							d[number].pid_t = pthread_create(&thr[number], NULL, camAcquisition, (void*) number);
+							break;
+						default:
+							break;
+					}
+					cout << "Ho avviato il thread " << number << endl;
+				}
+				else if(d[number].stato == PAUSA) {
+					d[number].stato = ATTIVO;
+					cout << "Ho riattivato il thread " << number << endl;
+				}
+			}
+			else
+				cout << "Per info sull'uso di 'start' digitare: 'help start'" << endl;
+
+		}
+	}
+	else
+		cout << "Per info sull'uso di 'start' digitare: 'help start'" << endl;
+}
+void cmdStop(svec arg) {
+	if(!arg.empty()){
+		if(arg[0].compare("all")==0) {
+			if(num_disp>0) {
+				for(int i=0; i<num_disp; ++i) {
+					if(d[i].stato!=TERMINATO) {
+						d[i].stato = TERMINATO;
+						cout << "Terminazione del thread " << i << " in corso..." << endl;
+						pthread_join(thr[i], NULL);
+						cout << "Il thread " << i << " e' stato fermato." << endl;
+					}
+				}
+			}
+			else
+				cout << "Non è presente nessun dispositivo" << endl;
+		}
+		else{
+			int number;
+			istringstream ss(arg[0]);
+			ss >> number;
+			if (ss.good())
+			{
+				if(d[number].stato!=TERMINATO) {
+					d[number].stato = TERMINATO;
+					cout << "Terminazione del thread " << number << " in corso..." << endl;
+					pthread_join(thr[number], NULL);
+					cout << "Il thread " << number << " e' stato fermato." << endl;
+				}
+				else
+					cout << "Il thread " << number << " e' gia terminato." << endl;
+			}
+			else
+				cout << "Per info sull'uso di 'stop' digitare: 'help stop'" << endl;
+
+		}
+	}
+	else
+		cout << "Per info sull'uso di 'stop' digitare: 'help stop'" << endl;
+}
+void cmdPause(svec arg) {
+	if(!arg.empty()){
+		if(arg[0].compare("all")==0) {
+			if(num_disp>0) {
+				for(int i=0; i<num_disp; ++i) {
+					if(d[i].stato==ATTIVO) {
+						d[i].stato = PAUSA;
+						cout << "Il thread " << i << " e' stato messo in pausa." << endl;
+					}
+				}
+			}
+			else
+				cout << "Non è presente nessun dispositivo" << endl;
+		}
+		else{
+			int number;
+			istringstream ss(arg[0]);
+			ss >> number;
+			if (ss.good())
+			{
+				if(d[number].stato==ATTIVO) {
+					d[number].stato = PAUSA;
+					cout << "Il thread " << number << " e' stato messo in pausa." << endl;
+				}
+				else
+					cout << "Impossibile mettere in pausa il thread " << number << endl;
+			}
+			else
+				cout << "Per info sull'uso di 'pause' digitare: 'help pause'" << endl;
+
+		}
+	}
+	else
+		cout << "Per info sull'uso di 'start' digitare: 'help stop'" << endl;
+}
+void cmdShow(svec arg) {
+	if(!arg.empty()){
+		if(arg[0].compare("device")==0) {
+			if(num_disp>0) {
+				for(int i=0; i<num_disp; ++i) {
+					cout << "\nDispositivo " << i << endl;
+					switch(d[i].identifier){
+						case GPS:
+							cout << "\tGPS" << endl;
+							break;
+						case IMU:
+							cout << "\tIMU" << endl;
+							break;
+						case CAM:
+							cout << "\tCAM" << endl;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			else
+				cout << "Non è presente nessun dispositivo" << endl;
+		}
+		else if(arg[0].compare("thread")==0) {
+			if(some_thread_active()) {
+				for(int i=0; i<num_disp; ++i) {
+					cout << "\nThread " << i << endl;
+					switch(d[i].identifier){
+						case GPS:
+							cout << "\tPid:\t" << d[i].pid_t << endl;
+							cout << "\tDispositivo:\tGPS" << endl;
+							break;
+						case IMU:
+							cout << "\tPid:\t" << d[i].pid_t << endl;
+							cout << "\tDispositivo:\tIMU" << endl;
+							break;
+						case CAM:
+							cout << "\tPid:\t" << d[i].pid_t << endl;
+							cout << "\tDispositivo:\tCAM" << endl;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			else
+				cout << "Nessun thread attivo" << endl;
+		}
+		else
+			cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;
+	}
+	else
+		cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;
+}
+void cmdDebug(svec arg) {
+	if(!arg.empty())
+	{
+		int disp;
+		istringstream ss(arg[0]);
+		ss >> disp;
+		if (disp < num_disp){
+			int deb;
+			istringstream ss2(arg[1]);
+			ss2 >> deb;
+			if(ss2.good() || (deb>=0 && deb<3)) {
+				d[disp].debug = deb;
+				cout << "Debug del dispositivo settato correttamente a " << deb <<endl;
+			}
+		}
+		else
+			cout << "Dispositivo non esistente!" << endl;
+	}
+	else
+		cout << "Per info sull'uso di 'debug' digitare: 'help debug'" << endl;
+}
+bool cmdQuit() {
+	bool qualcuno_attivo = some_thread_active();
+	char r;
+	if(qualcuno_attivo)
+		cout << "Ci sono alcuni thread ancora attivi..." << endl;
+	cout << "Sei sicuro di voler chiudere il programma?(s/N) ";
+	cin >> r;
+	if(r=='s')
+		return true;
+	return false;
+}
+void cmdHelp(svec arg) {
+	cout << "Programma di aiuto di serialdatacollector\n\n";
+}
+
+bool some_thread_active() {
+	for(int i=0; i<num_disp; ++i) {
+		if(d[i].stato == ATTIVO)
+			return true;
+	}
+	return false;
 }
