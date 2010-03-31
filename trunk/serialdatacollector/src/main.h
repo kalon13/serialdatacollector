@@ -26,14 +26,32 @@ struct ThreadedDevice {
 	void* device;
 	char* path;
 	Stato stato;
+	int pid_t;
+	short debug;	//0=Nessuna scritta; //1=Poche scritte; //2=Tutto
 };
 
 vector<ThreadedDevice> d;
+int num_disp;
+pthread_t thr[MAX_SENSOR];
+int pidt[MAX_SENSOR];
 
 void* camAcquisition(void* i);
 void* gpsAcquisition(void* i);
 void* imuAcquisition(void* i);
 
-void cmdShell();
+typedef vector<string> svec;
+svec split(string& subject, string& separator);
+
+void* Shell();
+void cmdStart(svec arg);
+void cmdStop(svec arg);
+void cmdPause(svec arg);
+void cmdShow(svec arg);
+void cmdDebug(svec arg);
+bool cmdQuit();
+void cmdHelp(svec arg);
+
+bool some_thread_active();
+
 
 #endif /* MAIN_H_ */
