@@ -69,7 +69,8 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	attempts = 0;
 	while (bytesRead < lengthExpected && attempts++ < MAXATTEMPTS) {
 		n = read(portNum, &inchar, 1);
-		if (DEBUG) cout << n << inchar;
+		if (DEBUG)
+			cout << n << inchar;
 		if (n == 1)
 			data[bytesRead++] = inchar;
 		else

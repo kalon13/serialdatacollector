@@ -254,11 +254,13 @@ int main(int argc, char** argv) {
 	 * 2)Pulisco le variabili in memoria
 	 * -------------------------------*/
 	cout << "Chiusura del programma in corso... attendere prego" << endl;
-	for(int i=0; i<num_disp; ++i) {
-		if(d[i].stato!=TERMINATO) {
-			d[i].stato = TERMINATO;
-			cout << "Sto stoppando il thread numero " << i << endl;
-			pthread_join(thr[i], NULL);
+	if(some_thread_active()){
+		for(int i=0; i<num_disp; ++i) {
+			if(d[i].stato!=TERMINATO) {
+				d[i].stato = TERMINATO;
+				cout << "Sto stoppando il thread numero " << i << endl;
+				pthread_join(thr[i], NULL);
+			}
 		}
 	}
 	cout << "Arrivederci" << endl;
@@ -563,7 +565,7 @@ void cmdPause(svec arg) {
 			int number;
 			istringstream ss(arg[0]);
 			ss >> number;
-			if (ss.good())
+			if(number>=0 && number<num_disp)
 			{
 				if(d[number].stato==ATTIVO) {
 					d[number].stato = PAUSA;
@@ -584,6 +586,7 @@ void cmdShow(svec arg) {
 	if(!arg.empty()){
 		if(arg[0].compare("device")==0) {
 			if(num_disp>0) {
+				cout << "Numero di dispositivi inseriti: " << num_disp << "\n\n";
 				for(int i=0; i<num_disp; ++i) {
 					cout << "\nDispositivo " << i << endl;
 					switch(d[i].identifier){
@@ -641,11 +644,11 @@ void cmdDebug(svec arg) {
 		int disp;
 		istringstream ss(arg[0]);
 		ss >> disp;
-		if (disp < num_disp){
+		if (disp>=0 && disp<num_disp){
 			int deb;
 			istringstream ss2(arg[1]);
 			ss2 >> deb;
-			if(ss2.good() || (deb>=0 && deb<3)) {
+			if((deb>=0 && deb<3)) {
 				d[disp].debug = deb;
 				cout << "Debug del dispositivo settato correttamente a " << deb <<endl;
 			}
@@ -669,6 +672,51 @@ bool cmdQuit() {
 }
 void cmdHelp(svec arg) {
 	cout << "Programma di aiuto di serialdatacollector\n\n";
+	if(arg.empty()) {
+		cout << "\thelp\t\tRichiama questa guida\n";
+		cout << "\tquit\t\rChiude il programma\n";
+		cout << "\tstart\t\rAvvia tutti od un thread specifico\n";
+		cout << "\tstop\t\rFerma tutti od un thread specifico\n";
+		cout << "\tpause\t\rMette in pausa tutti od un thread specifico\n";
+		cout << "\tdebug\t\rImposta le stringhe di debug da visualizzare\n";
+		cout << "\tshow\t\rMostra lo stato di thread e dispositivi\n";
+		cout << "\nPer guide specifiche sui comandi digitare: help <comando>\n\n";
+	}
+	else if(arg[0].compare("start")==0) {
+		cout << "USO DI start\n\n";
+		cout << "ARGOMENTI:\n";
+		cout << "\tall\t\tAvvia tutti i thread dei dispositivi inseriti\n";
+		cout << "\t[num]\t\tValore numerico del dispositivo di cui avviare il thread\n";
+	}
+	else if(arg[0].compare("stop")==0) {
+		cout << "USO DI stop\n\n";
+		cout << "ARGOMENTI:\n";
+		cout << "\tall\t\tFerma tutti i thread dei dispositivi inseriti\n";
+		cout << "\t<num>\t\tValore numerico del dispositivo di cui fermare il thread\n";
+	}
+	else if(arg[0].compare("pause")==0) {
+		cout << "USO DI pause\n\n";
+		cout << "ARGOMENTI:\n";
+		cout << "\tall\t\tMette in pausa tutti i thread dei dispositivi inseriti\n";
+		cout << "\t<num>\t\tValore numerico del dispositivo di cui mettere in pausa il thread\n";
+	}
+	else if(arg[0].compare("debug")==0) {
+		cout << "USO DI debug:\n";
+		cout << "debug <num> <val>\n\n";
+		cout << "ARGOMENTI:\n";
+		cout << "\t<num>\t\tNumero del dispositivo da impostare\n";
+		cout << "\t<val>\t\tValore di debug:\n";
+		cout << "\t\t\t\t0=Nessuna stringa(default)\n\t\t\t\t1=Stringhe base\n\t\t\t\t2=Tutte le stringhe(caotico)\n";
+	}
+	else if(arg[0].compare("show")==0) {
+		cout << "USO DI show:\n";
+		cout << "show <device/thread>\n\n";
+		cout << "ARGOMENTI:\n";
+		cout << "\tdevice\t\tVisualizza informazioni relative ai dispositivi inseriti\n";
+		cout << "\tthread\t\tVisualizza informazioni relativi ai thread:\n";
+	}
+	else
+		cout << "comando " << arg[0] << " non esistente o ancora non inserito nella guida\n";
 }
 
 bool some_thread_active() {
