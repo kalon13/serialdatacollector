@@ -34,13 +34,13 @@ vector<ThreadedDevice> d;
 int num_disp;
 pthread_t thr[MAX_SENSOR];
 int pidt[MAX_SENSOR];
+RawSeed* dataset;
 
 void* camAcquisition(void* i);
 void* gpsAcquisition(void* i);
 void* imuAcquisition(void* i);
 
 typedef vector<string> svec;
-svec split(string& subject, string& separator);
 
 void* Shell();
 void cmdStart(svec arg);
@@ -50,8 +50,11 @@ void cmdShow(svec arg);
 void cmdDebug(svec arg);
 bool cmdQuit();
 void cmdHelp(svec arg);
+void cmdInsert(svec arg);
 
 bool some_thread_active();
+string devKind(DevId n);
+string thrState(Stato stato);
 
 
 #endif /* MAIN_H_ */

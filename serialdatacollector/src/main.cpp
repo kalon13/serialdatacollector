@@ -30,19 +30,16 @@ using namespace boost;
 
 int main(int argc, char** argv) {
 
-	cout << "!!!Hello World!!!" << endl << "Welcome to the best program of Data Collector in the World!!!" << endl;
+	cout << "Welcome to the best program of Data Collector in the World!!!" << endl;
 
 	d.reserve(3);
 	num_disp = 0;
 
-	RawSeed *dataset = new RawSeed();
+	dataset = new RawSeed();
 	char scelta;
 	char* luogo = new char[64];
 	unsigned short tipo;
 	bool flag = false;
-
-	char risp;
-
 
 	do
 	{
@@ -69,6 +66,7 @@ int main(int argc, char** argv) {
 		if(scelta == 'N')
 			break;
 	}
+
 	while(true);
 	do
 	{
@@ -100,156 +98,13 @@ int main(int argc, char** argv) {
 	}
 	while(!flag);
 
-	// Ciclo di inserimento dei dispositivi seriali collegati al pc. Immetto e istanzio i vari sensori
-	do
-	{
-		string porta;
-		char* percorso_porta;
-		char* path;
-
-		bool ok = false;
-		char* errore;
-
-		dataset->getDataSet(&path);
-		int id;
-		cout << "Specifica l'identificatore del dispositivo che intendi utilizzare nella raccolta dati " << endl
-				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la cam)" << endl;
-		cin >> id;
-		switch (id)
-		{
-			case GPS:{
-				cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
-				cout << "Nome Porta : " << endl;
-				cin >> porta;
-				percorso_porta = new char[porta.length()+1];
-				strcpy(percorso_porta,porta.c_str());
-
-				SerialGps* gps = new SerialGps();
-				ok = gps->openCommunication(percorso_porta);
-
-				if(ok) {
-					ThreadedDevice td;
-					td.identifier = GPS;
-					td.device = (void*)gps;
-					td.stato = PRONTO;
-					td.debug = 0;
-
-					string pcomp(path);
-					pcomp.append("/GPS.cvs");
-					char* pcomp2 = new char[200];
-					strcpy(pcomp2, pcomp.c_str());
-
-					td.path = pcomp2;
-
-					d.push_back(td);
-				}
-				else
-					gps->getError(&errore);
-
-				path = NULL;
-				break;
-			}
-			case IMU:{
-				cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
-				cout << "Nome Porta : " << endl;
-				cin >> porta;
-				percorso_porta = new char[porta.length()+1];
-				strcpy(percorso_porta,porta.c_str());
-
-				SerialImu* imu = new SerialImu();
-				ok = imu->openCommunication(percorso_porta);
-
-				if(ok) {
-					ThreadedDevice td;
-					td.identifier = IMU;
-					td.device = (void*)imu;
-					td.stato = PRONTO;
-					td.debug = 0;
-
-					string pcomp(path);
-					pcomp.append("/IMU_STRETCHED.cvs");
-					char* pcomp2 = new char[200];
-					strcpy(pcomp2, pcomp.c_str());
-					td.path = pcomp2;
-
-					d.push_back(td);
-				}
-				else
-					imu->getError(&errore);
-
-				path = NULL;
-				break;
-			}
-			case CAM: {
-				int c, wait;
-				cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
-				cin >> c;
-				cout << "Inserisci i millisecondi di attesa tra lo scatto di una foto e la successiva. " << endl;
-				cin >> wait;
-				Camera* cam = new Camera();
-				ok = cam->open_camera(c, wait);
-				if(ok) {
-					ThreadedDevice td;
-					td.identifier = CAM;
-					td.device = (void*)cam;
-					td.path = path;
-					td.stato = PRONTO;
-					td.debug = 0;
-
-					d.push_back(td);
-				}
-				else
-					cout << "Errore nell'apertura della camera! " << endl;
-
-				path = NULL;
-			}
-		}
-
-		if(ok)
-			++num_disp;
-		else
-			cout << errore << endl;
-
-		cout << "Vuoi inserire un altro dispositivo? (s/n) " << endl;
-		cin >> risp;
-		//fflush(NULL);
-		cin.ignore();
-	}
-	while(risp!='n');
-
-	cout << "Hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl << endl;
-	/*if(num_disp>0) {
-		cout << "Avvio i thread... attendere prego..." << endl;
-
-		//AVVIO DEI THREAD
-		for(int i=0; i<num_disp; ++i) {
-			d[i].stato = ATTIVO;
-			switch(d[i].identifier) {
-				case GPS:
-					d[i].pid_t = pthread_create(&thr[i], NULL, gpsAcquisition, (void*) i);
-					break;
-				case IMU:
-					d[i].pid_t = pthread_create(&thr[i], NULL, imuAcquisition, (void*) i);
-					break;
-				case CAM:
-					d[i].pid_t = pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
-					break;
-				default:
-					break;
-			}
-		}
-		cin.ignore();
-		cout << "--------attendiamo---- " << endl;
-		cin >> risp;
-	}
-	else
-		cout << "Non c'è nessuno dispositivo inizializzato!" << endl;*/
-
-
+	/*-------------------------------------------
+	 * Avvio shell dei comandi
+	 -------------------------------------------*/
 	Shell();
 
 	/*---------------------------------------------
-	 * ...............FINE DEL PROGRAMMA............
+	 * FINE DEL PROGRAMMA
 	 * 1)Chiudo tutti i thread vivi
 	 * 2)Pulisco le variabili in memoria
 	 * -------------------------------*/
@@ -378,30 +233,18 @@ void* imuAcquisition(void* i) {
 	return (void*) true;
 }
 
-svec split(string& subject, string& separator)
-{
-	svec temp;
-    string::size_type start=0, end = 0;
-    while (start != string::npos){
-		end = subject.find(separator, start);
-		temp.push_back(subject.substr(start, end != string::npos ? end - start: string::npos));
-		start = end != string::npos ? end + separator.length() : string::npos ;
-	}
-	return temp;
-}
-
 void* Shell() {
 	bool quit = false;
 	cout << "Benvenuto nella console di comando di serialdatacollector!" << endl;
+	cout << "Non sono stati inseriti dispositivi. Per inserirne uno digitare 'insert'\n";
 	cout << "Per ricevere aiuto digitare 'help'\n\n";
+	bool invio = false;
 	do {
-
 		string riga, token;
-		string sep(" ");
 		svec parameters;
 		string cmd;
-		cout << "> ";
-		//cin.ignore();
+		if(!invio) cout << ">";
+		invio=false;
 
 		getline(cin, riga);
 		istringstream iss(riga);
@@ -418,7 +261,9 @@ void* Shell() {
 		/*
 		 * PARSE COMMAND
 		 * */
-		if(cmd.compare("start")==0)
+		if(cmd.compare("insert")==0)
+			cmdInsert(parameters);
+		else if(cmd.compare("start")==0)
 			cmdStart(parameters);
 		else if(cmd.compare("stop")==0)
 			cmdStop(parameters);
@@ -433,10 +278,11 @@ void* Shell() {
 		else if(cmd.compare("help")==0)
 			cmdHelp(parameters);
 		else
-			cmdHelp(parameters);
+			invio = true;
 
 	}
 	while(!quit);
+	return 0;
 }
 
 
@@ -461,11 +307,11 @@ void cmdStart(svec arg) {
 							default:
 								break;
 						}
-						cout << "Ho avviato il thread " << i << endl;
+						cout << "Ho avviato il thread " << i << " con pid " << d[i].pid_t << endl;
 					}
 					else if(d[i].stato == PAUSA) {
 						d[i].stato = ATTIVO;
-						cout << "Ho avviato il thread " << i << endl;
+						cout << "Ho avviato il thread " << i <<  endl;
 					}
 				}
 			}
@@ -493,7 +339,7 @@ void cmdStart(svec arg) {
 						default:
 							break;
 					}
-					cout << "Ho avviato il thread " << number << endl;
+					cout << "Ho avviato il thread " << number << " con pid " << d[number].pid_t << endl;
 				}
 				else if(d[number].stato == PAUSA) {
 					d[number].stato = ATTIVO;
@@ -528,7 +374,7 @@ void cmdStop(svec arg) {
 			int number;
 			istringstream ss(arg[0]);
 			ss >> number;
-			if (ss.good())
+			if (number>=0 && number<num_disp)
 			{
 				if(d[number].stato!=TERMINATO) {
 					d[number].stato = TERMINATO;
@@ -582,6 +428,137 @@ void cmdPause(svec arg) {
 	else
 		cout << "Per info sull'uso di 'start' digitare: 'help stop'" << endl;
 }
+
+void cmdInsert(svec arg) {
+	string porta;
+	char* percorso_porta;
+	char* path;
+	bool ok = false;
+	char* errore;
+	int id = -1;
+
+	dataset->getDataSet(&path);
+
+	if(arg.empty()) {
+		cout << "Specifica l'identificatore del dispositivo che intendi utilizzare nella raccolta dati " << endl
+				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la cam)" << endl;
+		cin >> id;
+	}
+	else if(arg.size()==1) {
+		if(arg[0].compare("gps")==0)
+			id=0;
+		else if(arg[0].compare("imu")==0)
+			id=1;
+		else if(arg[0].compare("cam")==0)
+			id=2;
+		else
+			id=-1;
+	}
+
+	switch (id)
+	{
+		case GPS:{
+			cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
+			cout << "Nome Porta : " << endl;
+			cin >> porta;
+			percorso_porta = new char[porta.length()+1];
+			strcpy(percorso_porta,porta.c_str());
+
+			SerialGps* gps = new SerialGps();
+			ok = gps->openCommunication(percorso_porta);
+
+			if(ok) {
+				ThreadedDevice td;
+				td.identifier = GPS;
+				td.device = (void*)gps;
+				td.stato = PRONTO;
+				td.debug = 0;
+
+				string pcomp(path);
+				pcomp.append("/GPS.cvs");
+				char* pcomp2 = new char[200];
+				strcpy(pcomp2, pcomp.c_str());
+
+				td.path = pcomp2;
+
+				d.push_back(td);
+			}
+			else
+				gps->getError(&errore);
+
+			path = NULL;
+			break;
+		}
+		case IMU:{
+			cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
+			cout << "Nome Porta : " << endl;
+			cin >> porta;
+			percorso_porta = new char[porta.length()+1];
+			strcpy(percorso_porta,porta.c_str());
+
+			SerialImu* imu = new SerialImu();
+			ok = imu->openCommunication(percorso_porta);
+
+			if(ok) {
+				ThreadedDevice td;
+				td.identifier = IMU;
+				td.device = (void*)imu;
+				td.stato = PRONTO;
+				td.debug = 0;
+
+				string pcomp(path);
+				pcomp.append("/IMU_STRETCHED.cvs");
+				char* pcomp2 = new char[200];
+				strcpy(pcomp2, pcomp.c_str());
+				td.path = pcomp2;
+
+				d.push_back(td);
+			}
+			else
+				imu->getError(&errore);
+
+			path = NULL;
+			break;
+		}
+		case CAM: {
+			int c, wait;
+			cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
+			cin >> c;
+			cout << "Inserisci i millisecondi di attesa tra lo scatto di una foto e la successiva. " << endl;
+			cin >> wait;
+			Camera* cam = new Camera();
+			ok = cam->open_camera(c, wait);
+			if(ok) {
+				ThreadedDevice td;
+				td.identifier = CAM;
+				td.device = (void*)cam;
+				td.path = path;
+				td.stato = PRONTO;
+				td.debug = 0;
+
+				d.push_back(td);
+			}
+			else
+				cout << "Errore nell'apertura della camera! " << endl;
+
+			path = NULL;
+			break;
+		}
+		default:
+			ok = false;
+			break;
+	}
+
+	if(ok) {
+		++num_disp;
+		cout << "Dispositivo inserito correttamente\n";
+	}
+	else
+		cout << errore << endl;
+
+	cout << "Fino ad ora, in totale, hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl << endl;
+}
+
 void cmdShow(svec arg) {
 	if(!arg.empty()){
 		if(arg[0].compare("device")==0) {
@@ -589,48 +566,20 @@ void cmdShow(svec arg) {
 				cout << "Numero di dispositivi inseriti: " << num_disp << "\n\n";
 				for(int i=0; i<num_disp; ++i) {
 					cout << "\nDispositivo " << i << endl;
-					switch(d[i].identifier){
-						case GPS:
-							cout << "\tGPS" << endl;
-							break;
-						case IMU:
-							cout << "\tIMU" << endl;
-							break;
-						case CAM:
-							cout << "\tCAM" << endl;
-							break;
-						default:
-							break;
-					}
+					cout << "\t" << devKind(d[i].identifier) << endl;
 				}
 			}
 			else
 				cout << "Non è presente nessun dispositivo" << endl;
 		}
 		else if(arg[0].compare("thread")==0) {
-			if(some_thread_active()) {
-				for(int i=0; i<num_disp; ++i) {
-					cout << "\nThread " << i << endl;
-					switch(d[i].identifier){
-						case GPS:
-							cout << "\tPid:\t" << d[i].pid_t << endl;
-							cout << "\tDispositivo:\tGPS" << endl;
-							break;
-						case IMU:
-							cout << "\tPid:\t" << d[i].pid_t << endl;
-							cout << "\tDispositivo:\tIMU" << endl;
-							break;
-						case CAM:
-							cout << "\tPid:\t" << d[i].pid_t << endl;
-							cout << "\tDispositivo:\tCAM" << endl;
-							break;
-						default:
-							break;
-					}
-				}
+			for(int i=0; i<num_disp; ++i) {
+				cout << "\nThread " << i << endl;
+				cout << "\tDispositivo: " << devKind(d[i].identifier) << endl;
+				cout << "\tStato thread: " << thrState(d[i].stato) << endl;
+				if(d[i].stato==ATTIVO || d[i].stato==PAUSA)
+					cout << "\tPid thread: " << d[i].pid_t << endl;
 			}
-			else
-				cout << "Nessun thread attivo" << endl;
 		}
 		else
 			cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;
@@ -638,6 +587,7 @@ void cmdShow(svec arg) {
 	else
 		cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;
 }
+
 void cmdDebug(svec arg) {
 	if(!arg.empty())
 	{
@@ -659,6 +609,7 @@ void cmdDebug(svec arg) {
 	else
 		cout << "Per info sull'uso di 'debug' digitare: 'help debug'" << endl;
 }
+
 bool cmdQuit() {
 	bool qualcuno_attivo = some_thread_active();
 	char r;
@@ -670,17 +621,27 @@ bool cmdQuit() {
 		return true;
 	return false;
 }
+
 void cmdHelp(svec arg) {
 	cout << "Programma di aiuto di serialdatacollector\n\n";
 	if(arg.empty()) {
 		cout << "\thelp\t\tRichiama questa guida\n";
 		cout << "\tquit\t\rChiude il programma\n";
+		cout << "\tinsert\t\Inserisce un dispositivo\n";
 		cout << "\tstart\t\rAvvia tutti od un thread specifico\n";
 		cout << "\tstop\t\rFerma tutti od un thread specifico\n";
 		cout << "\tpause\t\rMette in pausa tutti od un thread specifico\n";
 		cout << "\tdebug\t\rImposta le stringhe di debug da visualizzare\n";
 		cout << "\tshow\t\rMostra lo stato di thread e dispositivi\n";
 		cout << "\nPer guide specifiche sui comandi digitare: help <comando>\n\n";
+	}
+	else if(arg[0].compare("insert")==0) {
+		cout << "USO DI insert\n";
+		cout << "insert [dispositivo]\n\n";
+		cout << "ARGOMENTI:\n";
+		cout << "\[dispositivo]\t\tInserisce uno specifico dispositivo. Valori ammessi:\n";
+		cout << "\t\t\t\tgps=Inserimento di un gps\n\t\t\t\timu=Inserimento di una imu"
+				"\n\t\t\t\tcam=Inserimento di una camera\n";
 	}
 	else if(arg[0].compare("start")==0) {
 		cout << "USO DI start\n\n";
@@ -725,4 +686,38 @@ bool some_thread_active() {
 			return true;
 	}
 	return false;
+}
+
+string devKind(DevId n) {
+	switch(n) {
+		case GPS:
+			return "GPS";
+			break;
+		case IMU:
+			return "IMU";
+			break;
+		case CAM:
+			return "CAM";
+			break;
+		default:
+			return "SCONOSCIUTO";
+			break;
+	}
+}
+
+string thrState(Stato stato) {
+	switch(stato) {
+	case PRONTO:
+		return "PRONTO";
+		break;
+	case ATTIVO:
+		return "ATTIVO";
+		break;
+	case PAUSA:
+		return "IN PAUSA";
+		break;
+	case TERMINATO:
+		return "TERMINATO";
+		break;
+	}
 }
