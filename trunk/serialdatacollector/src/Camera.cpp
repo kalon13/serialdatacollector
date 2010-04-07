@@ -11,12 +11,10 @@ using namespace std;
 using namespace cv;
 
 Camera::Camera() {
-	// TODO Auto-generated constructor stub
 	camera_flag = false;
 }
 
 Camera::~Camera() {
-	// TODO Auto-generated destructor stub
 	cap->release();
 	delete(cap);
 }

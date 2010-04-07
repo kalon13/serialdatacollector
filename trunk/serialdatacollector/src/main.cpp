@@ -7,13 +7,10 @@
 //============================================================================
 
 #include <iostream>
-//#include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-//#include <boost/thread.hpp>
 #include "RawSeed.h"
 #include "SerialGps.h"
-//#include "SerialDevice.h"
 #include "SerialImu.h"
 #include "main.h"
 #include "cv.h"
@@ -41,6 +38,9 @@ int main(int argc, char** argv) {
 	unsigned short tipo;
 	bool flag = false;
 
+	/*TODO: Miglioramento
+	 * Vedere se si possono mettere tutte queste richieste come comandi
+	 */
 	do
 	{
 		bool riuscita;
@@ -125,6 +125,9 @@ int main(int argc, char** argv) {
 }
 
 void* camAcquisition(void* i){
+	/*TODO: Miglioramento
+	 * Vedere se si riesce a far salvare ogni tanto una foto con un nome specifico
+	 */
 	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
 	while(dev.stato!=TERMINATO) {
@@ -138,10 +141,20 @@ void* camAcquisition(void* i){
 }
 
 void* gpsAcquisition(void* i) {
+	/*TODO: timestamp
+	 * Inserire timestamp nel file
+	 */
 	char** buffer = new char*[DIM_BUFFER_GPS];
 	ofstream file;
 	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
+
+	int conta=0;
+	ofstream file_ultimo;
+	string p1(dev.path);
+	p1.append(".u");
+	char* p2 = new char[200];
+	strcpy(p2, p1.c_str());
 
 	if(dev.debug>0)
 		cout << "Il thread del gps è partito"<< endl;
@@ -172,9 +185,20 @@ void* gpsAcquisition(void* i) {
 					cout << "Sto scrivendo la riga # " << i << endl;
 				file << buffer[i] << "\n";
 			}
+
 			if(dev.debug>0)
 				cout << "Il gps ha scritto su file" << endl;
 			file.close();
+
+			if(conta==8) {
+				file_ultimo.open(p2, ios::out);
+				for(int i=0; i<righe_scritte; ++i) {
+					file_ultimo << buffer[i] << "\n";
+				}
+				file_ultimo.close();
+				conta=-1;
+			}
+			++conta;
 		}
 		dev = d.at(n);
 	}
@@ -186,10 +210,20 @@ void* gpsAcquisition(void* i) {
 }
 
 void* imuAcquisition(void* i) {
+	/*TODO: timestamp
+	 * Inserire timestamp nel file
+	 */
 	char** buffer = new char*[DIM_BUFFER_IMU];
 	ofstream file;
 	int n = (long) i;
 	ThreadedDevice dev = d.at(n);
+
+	int conta=0;
+	ofstream file_ultimo;
+	string p1(dev.path);
+	p1.append(".u");
+	char* p2 = new char[200];
+	strcpy(p2, p1.c_str());
 
 	if(dev.debug>0)
 		cout << "Il thread della imu è partito"<< endl;
@@ -220,9 +254,20 @@ void* imuAcquisition(void* i) {
 					cout << "Sto scrivendo la riga # " << i << endl;
 				file << buffer[i] << "\n";
 			}
+
 			if(dev.debug>0)
 				cout << "L'imu ha scritto su file" << endl;
 			file.close();
+
+			if(conta==16) {
+				file_ultimo.open(p2, ios::out);
+				for(int i=0; i<righe_scritte; ++i) {
+					file_ultimo << buffer[i] << "\n";
+				}
+				file_ultimo.close();
+				conta=-1;
+			}
+			++conta;
 		}
 		dev = d.at(n);
 	}
@@ -454,7 +499,12 @@ void cmdInsert(svec arg) {
 		else
 			id=-1;
 	}
-
+	/*TODO: Miglioramento
+	 * Accorciare inserimento indicando direttamente la porta nel comando insert,
+	 * pur tuttavia facendo rimanere la possibilità di inserirlo dopo(come è adesso)
+	 * Es:
+	 * insert gps /dev/ttyUSB0 piu eventuali parametri della porta
+	 * */
 	switch (id)
 	{
 		case GPS:{
