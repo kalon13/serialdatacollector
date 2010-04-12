@@ -87,6 +87,15 @@ bool RawSeed::creaRawSeed()
 		//se mkdir è riuscito, allora err è = a zero
 		if(err == 0)
 		{
+			//Copia il file index.php nella directory rawseed quando la crea
+			string php(directory);
+			php.append("/index.php");
+			ifstream in ("index.php"); // open original file
+			ofstream out(php.c_str()); // open target file
+			out << in.rdbuf(); // read original file into target
+			out.close(); // explicit close, unnecessary in this case
+			in.close();// explicit close, unnecessary in this case
+
 			string percorsi_prova[] = {(directory + "/Utils"),(directory + "/Calibration"),(directory + "/DataSet"), (directory + "/Docs"), (directory + "/Drawings"), (directory + "/FileFormat"), (directory + "/SensorPosition"), (directory + "/DataSet/Indoor"), (directory + "/DataSet/Mixed"), (directory + "/DataSet/Outdoor")};
 			char* percorsoAttuale;
 			//Crea ciclicamente le directory principali del dataset

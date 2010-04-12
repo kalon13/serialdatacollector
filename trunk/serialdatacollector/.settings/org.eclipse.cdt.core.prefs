@@ -1,0 +1,4 @@
+#Tue Apr 06 14:35:37 CEST 2010
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.config.gnu.exe.debug.517340130=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<environment append\="true" appendContributed\="true">\n<variable delimiter\="\:" name\="LD_PRELOAD" operation\="replace" value\="/usr/lib/libv4l/v4l1compat.so"/>\n</environment>\n
+environment/project/cdt.managedbuild.config.gnu.exe.release.216990126=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<environment append\="true" appendContributed\="true">\n<variable delimiter\="\:" name\="LD_PRELOAD" operation\="append" value\="/usr/lib/libv4l/v4l1compat.so"/>\n</environment>\n
