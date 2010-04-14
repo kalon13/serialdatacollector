@@ -18,8 +18,10 @@
 
 #define DIM_BUFFER_GPS 1
 #define DIM_BUFFER_IMU 32
+#define DIM_BUFFER_HOKUYO 8
 
-enum DevId {NOTHING=9, GPS=0, IMU=1, CAM=2};
+typedef vector<string> svec;
+enum DevId {NOTHING=9, GPS=0, IMU=1, CAM=2, HOK=3};
 enum Stato {PRONTO, ATTIVO, PAUSA, TERMINATO};
 
 /*TODO: Miglioramento
@@ -44,8 +46,7 @@ RawSeed* dataset;
 void* camAcquisition(void* i);
 void* gpsAcquisition(void* i);
 void* imuAcquisition(void* i);
-
-typedef vector<string> svec;
+void* hokAcquisition(void* i);
 
 void* Shell();
 void cmdStart(svec arg);

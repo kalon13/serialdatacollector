@@ -13,10 +13,11 @@
 #include "SerialGps.h"
 #include "SerialImu.h"
 #include "main.h"
-#include "cv.h"
-#include "highgui.h"
+//#include "cv.h"
+//#include "highgui.h"
 //#include <fcntl.h>
 #include "Camera.h"
+#include "Hokuyo.h"
 #include <pthread.h>
 #include <vector>
 #include <string>
@@ -179,7 +180,6 @@ void* gpsAcquisition(void* i) {
 					cout << "Impossibile accedere al file" << dev.path;
 				return (void*) false;
 			}
-			//cout << "Ho aperto il file " << dev.path << endl;
 			for(int i=0; i<righe_scritte; ++i) {
 				if(dev.debug>1)
 					cout << "Sto scrivendo la riga # " << i << endl;
@@ -248,7 +248,6 @@ void* imuAcquisition(void* i) {
 					cout << "Impossibile accedere al file" << dev.path;
 				return (void*) false;
 			}
-			//cout << "Ho aperto il file " << dev.path << endl;
 			for(int i=0; i<righe_scritte; ++i) {
 				if(dev.debug>1)
 					cout << "Sto scrivendo la riga # " << i << endl;
@@ -275,6 +274,66 @@ void* imuAcquisition(void* i) {
 	delete [] *buffer;
 	if(dev.debug>0)
 		cout << "Imu thread ended" << endl;
+	return (void*) true;
+}
+
+
+void* hokAcquisition(void* i){
+	char** buffer = new char*[DIM_BUFFER_HOKUYO];
+	int n = (long)i;
+	ThreadedDevice dev = d.at(n);
+	ofstream file;
+	stringstream out;
+	string temp;
+	lvec vet;
+	long timestamp;
+	int righe_scritte;
+
+		if(dev.debug>0)
+			cout << "Il thread dell'hokuyo è partito"<< endl;
+		while(dev.stato!=TERMINATO) {
+			while(dev.stato==ATTIVO) {
+				righe_scritte = 0;
+				for(int j=0; j<DIM_BUFFER_HOKUYO; ++j) {
+					int t = ((Hokuyo*)dev.device)->readData(&vet, &timestamp);
+					if(t > 0){
+						out << timestamp;
+						for(int k=0; k<t; ++k)
+							out << "," << vet[k];
+						out << endl;
+						++righe_scritte;
+						temp = out.str();
+						buffer[j] = (char*)temp.c_str();
+						if(dev.debug>1)
+							cout << "Sto leggendo la riga # " << i <<endl;
+					}
+					else if(dev.debug>1)
+						cout << "Non ho letto la riga # " << i <<endl;
+				}
+
+				file.open(dev.path, ios::app);
+				if(!file.is_open()) {
+						cout << "Impossibile accedere al file" << dev.path;
+					return (void*) false;
+				}
+				for(int j=0; j<righe_scritte; ++j) {
+					if(dev.debug>1)
+						cout << "Sto scrivendo la riga # " << i << endl;
+					file << buffer[j] << "\n";
+				}
+
+				if(dev.debug>0)
+					cout << "L'hokuyo ha scritto su file" << endl;
+				file.close();
+
+				dev = d.at(n);
+			}
+			dev = d.at(n);
+		}
+	delete [] *buffer;
+	if(dev.debug>0)
+		cout << "Hokuyo thread ended" << endl;
+
 	return (void*) true;
 }
 
@@ -349,6 +408,9 @@ void cmdStart(svec arg) {
 							case CAM:
 								d[i].pid_t = pthread_create(&thr[i], NULL, camAcquisition, (void*) i);
 								break;
+							case HOK:
+								d[i].pid_t = pthread_create(&thr[i], NULL, hokAcquisition, (void*) i);
+								break;
 							default:
 								break;
 						}
@@ -380,6 +442,9 @@ void cmdStart(svec arg) {
 							break;
 						case CAM:
 							d[number].pid_t = pthread_create(&thr[number], NULL, camAcquisition, (void*) number);
+							break;
+						case HOK:
+							d[number].pid_t = pthread_create(&thr[number], NULL, hokAcquisition, (void*) number);
 							break;
 						default:
 							break;
@@ -486,7 +551,7 @@ void cmdInsert(svec arg) {
 
 	if(arg.empty()) {
 		cout << "Specifica l'identificatore del dispositivo che intendi utilizzare nella raccolta dati " << endl
-				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la cam)" << endl;
+				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la cam, 3 --> per l'hokuyo)" << endl;
 		cin >> id;
 	}
 	else if(arg.size()==1) {
@@ -496,6 +561,8 @@ void cmdInsert(svec arg) {
 			id=1;
 		else if(arg[0].compare("cam")==0)
 			id=2;
+		else if(arg[0].compare("hok")==0)
+			id=3;
 		else
 			id=-1;
 	}
@@ -592,6 +659,35 @@ void cmdInsert(svec arg) {
 				cout << "Errore nell'apertura della camera! " << endl;
 
 			path = NULL;
+			break;
+		}
+		case HOK: {
+			int c;
+
+			cout << "Inserisci il numero della porta /dev/ttyACM che vuoi aprire." << endl;
+			cin >> c;
+
+			Hokuyo* hok = new Hokuyo();
+			ok = hok->openCommunication(c);
+
+			if(ok) {
+				ThreadedDevice td;
+				td.identifier = HOK;
+				td.device = (void*)hok;
+				td.stato = PRONTO;
+				td.debug = 0;
+
+				string pcomp(path);
+				pcomp.append("/HOKUYO.cvs");
+				char* pcomp2 = new char[200];
+				strcpy(pcomp2, pcomp.c_str());
+
+				td.path = pcomp2;
+
+				d.push_back(td);
+			}
+			else
+				hok->getError(&errore);
 			break;
 		}
 		default:
@@ -691,7 +787,7 @@ void cmdHelp(svec arg) {
 		cout << "ARGOMENTI:\n";
 		cout << "\[dispositivo]\t\tInserisce uno specifico dispositivo. Valori ammessi:\n";
 		cout << "\t\t\t\tgps=Inserimento di un gps\n\t\t\t\timu=Inserimento di una imu"
-				"\n\t\t\t\tcam=Inserimento di una camera\n";
+				"\n\t\t\t\tcam=Inserimento di una camera\n\t\t\t\thok=Inserimento dell'hokuyo\n";
 	}
 	else if(arg[0].compare("start")==0) {
 		cout << "USO DI start\n\n";
@@ -748,6 +844,9 @@ string devKind(DevId n) {
 			break;
 		case CAM:
 			return "CAM";
+			break;
+		case HOK:
+			return "HOKUYO";
 			break;
 		default:
 			return "SCONOSCIUTO";
