@@ -31,7 +31,7 @@
 	  }
 	}
 
-	$IMU_File = $dir."/"."IMU_STRETCHED.cvs";
+	$IMU_File = $dir."/"."IMU_STRETCHED.cvs.u";
 	if(file_exists ($IMU_File)) {
 		$fh = fopen($IMU_File, 'r');
 		$IMU_Data = fread($fh, filesize($IMU_File));
