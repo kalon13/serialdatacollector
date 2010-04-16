@@ -44,7 +44,7 @@ private:
 
 public:
 	RawSeed();
-	RawSeed(char* percorso);
+	RawSeed(char* pathrs);
 	virtual ~RawSeed();
 	bool creaRawSeed(); //crea la struttura del dataset
 	void inizializzaContatori();
