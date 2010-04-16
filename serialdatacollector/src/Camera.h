@@ -36,9 +36,9 @@ public:
 	static bool camera_flag;*/
 	Camera();
 	virtual ~Camera();
-	bool open_camera(int cam, int wait);
-	void get_photo(char* path);
-	bool is_Open();
+	bool openCommunication(int cam, int wait);
+	void getPhoto(char* path);
+	bool isConnected();
 };
 
 #endif /* CAMERA_H_ */

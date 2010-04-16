@@ -15,7 +15,6 @@ using namespace std;
 
 Hokuyo::Hokuyo() {
 	device = new char[16];
-	is_connected=false;
 	urg = new UrgCtrl();
 }
 
@@ -30,15 +29,27 @@ bool Hokuyo::openCommunication(int port) {
 		errorExplained = (char*) urg->what();
 		return false;
 	}
-	is_connected=true;
 	return true;
 }
 
 int Hokuyo::readData(lvec* data, long* timestamp) {
+	if(urg->isConnected()) {
 	  int n = urg->capture(*data, timestamp);
 	  if (n < 0) {
 		errorExplained = (char*) urg->what();
 	    return -1;
 	  }
 	  return n;
+	}
+	errorExplained = "Il dispositivo non e' stato aperto correttamente";
+	return -1;
+}
+
+bool Hokuyo::isConnected() {
+	return urg->isConnected();
+}
+
+bool Hokuyo::closeCommunication() {
+	if(urg->isConnected())
+		urg->disconnect();
 }

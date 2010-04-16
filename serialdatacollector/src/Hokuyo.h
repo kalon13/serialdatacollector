@@ -15,7 +15,6 @@ typedef std::vector<long> lvec;
 
 class Hokuyo:public SerialDevice {
 private:
-	bool is_connected;
 	char* device;
 	qrk::UrgCtrl* urg;
 
@@ -24,7 +23,9 @@ public:
 	Hokuyo();
 	virtual ~Hokuyo();
 	bool openCommunication(int port);
+	bool closeCommunication();
 	int readData(lvec* data, long* timestamp);
+	bool isConnected();
 };
 
 #endif /* HOKUYO_H_ */

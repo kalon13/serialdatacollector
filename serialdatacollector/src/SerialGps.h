@@ -45,10 +45,12 @@ typedef struct {
 		 short unsigned int CHECKSUM;
 		 } NMEA_GPGGA;
 
+enum NMEASTRING {GPGGA, GPRMC, GPGSA, GPGSV, SCONOSCIUTO};
+
 class SerialGps:public SerialDevice {
 private:
     bool CheckChecksum(unsigned char* packet);
-	unsigned short int decode(unsigned char* sentence);
+	NMEASTRING decode(unsigned char* sentence);
 
 	char* pathtofile;
     //void decode_GPRMC(unsigned char* sentence,NMEA_GPRMC* gprmc);
@@ -58,7 +60,7 @@ public:
     void print_SatNum(unsigned char* sentence, unsigned short int byte);
     void print_Long(unsigned char* sentence, unsigned short int byte);
     void print_Lang(unsigned char* sentence, unsigned short int byte);*/
-    bool getGPGGAString(char** str);	//Se ci sono errori restituisce NULL altrimenti la stringa completa
+    bool getData(char** str, NMEASTRING tipo);	//Se ci sono errori restituisce NULL altrimenti la stringa completa
     bool openCommunication(char* port, int baudRate=4800, int dataBits=8, int parity=0, int stopBits=1);
     //bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     void getGPRMC(NMEA_GPRMC&);
