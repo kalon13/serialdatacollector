@@ -13,9 +13,6 @@
 #include "SerialGps.h"
 #include "SerialImu.h"
 #include "main.h"
-//#include "cv.h"
-//#include "highgui.h"
-//#include <fcntl.h>
 #include "Camera.h"
 #include "Hokuyo.h"
 #include <pthread.h>
@@ -26,14 +23,17 @@ using namespace std;
 using namespace cv;
 using namespace boost;
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
 
 	cout << "Welcome to the best program of Data Collector in the World!!!" << endl;
 
 	d.reserve(3);
 	num_disp = 0;
 
-	dataset = new RawSeed();
+	if(--argc>0)
+		dataset = new RawSeed(argv[1]);
+	else
+		dataset = new RawSeed();
 	char scelta;
 	char* luogo = new char[64];
 	unsigned short tipo;

@@ -60,8 +60,9 @@ RawSeed::~RawSeed() {
 
 }
 
-RawSeed::RawSeed(char* percorso){
+RawSeed::RawSeed(char* pathrs){
 	bool flag = false;
+	percorso=pathrs;
 	do
 	{
 		if((path = opendir(percorso)) == NULL)
