@@ -25,23 +25,13 @@ using namespace std;
 
 RawSeed::RawSeed() {
 	bool flag = false;
-	string directory("/home/user/RawSeedDataSet");
 	do
 	{
-		while(true)
+		do
 		{
-			cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory : " << directory << ")" << endl;
-			cin >> directory;
-			cout << endl;
-			if(directory[0] == '/' && directory[1] != '/'){
-				directory += "/RawSeedDataSet";
-				break;
-			}
-			else
-				cout << "Errore!! Reinserisci il percorso assoluto,che sia una directory Linux" << endl;
+			flag = specificaPath();
 		}
-		percorso = new char[directory.length()+1];
-		strcpy(percorso,directory.c_str());
+		while(!flag);
 		if((path = opendir(percorso)) == NULL)
 		{
 			flag = creaRawSeed();
@@ -68,6 +58,36 @@ RawSeed::RawSeed() {
 
 RawSeed::~RawSeed() {
 
+}
+
+RawSeed::RawSeed(char* percorso){
+	bool flag = false;
+	do
+	{
+		if((path = opendir(percorso)) == NULL)
+		{
+			flag = creaRawSeed();
+			if (flag == false){
+				cout << "C'è stato un errore nella creazione del Data Set" << endl << "Specifica il percorso manualmente" << endl;
+				flag = specificaPath();
+			}
+			else
+			{
+				cout << "Data Set creato con successo!";
+				for(int i=0; i<4; i++)
+					contatori[i] = 0;
+				flag = true;
+			}
+		}
+		else
+		{
+			cout << "Struttura Raw Seed individuata nel file system" << endl;
+			inizializzaContatori();
+			cout << "Percorso Raw Seed letto, pronto per salvare i file..." << endl;
+			flag = true;
+		}
+	}
+	while(!flag);
 }
 
 bool RawSeed::creaRawSeed()
@@ -100,7 +120,6 @@ bool RawSeed::creaRawSeed()
 			char* percorsoAttuale;
 			//Crea ciclicamente le directory principali del dataset
 			for(int i=0; i<10; i++){
-				//delete(percorsoAttuale);
 				percorsoAttuale = new char[percorsi_prova[i].length()+1];
 				strcpy(percorsoAttuale, percorsi_prova[i].c_str());
 				if ((err = mkdir(percorsoAttuale, 0777))!=0){
@@ -124,8 +143,7 @@ void RawSeed::inizializzaContatori()
 {
 	string esaminata(percorso);
 	string percorsi_esaminati[] = {(esaminata + "/Calibration"),(esaminata + "/Drawings"), (esaminata + "/FileFormat"), (esaminata + "/SensorPosition")};
-	//int n_calib = 0, n_sensor_position = 0, n_draws = 0, n_fileformat = 0;
-	//(percorso);
+
 	int k = 0;
 	for(int i = 0; i < 4; ++i)
 	{
@@ -149,7 +167,6 @@ void RawSeed::inizializzaContatori()
 		closedir(path);
 		contatori[i] = (k - 2); //serve il meno 2 perchè conta anche le directory . e ..
 		k = 0;
-		//delete(percorso);
 	}
 
 	/*
@@ -157,7 +174,6 @@ void RawSeed::inizializzaContatori()
 	 * al valore iniziale, cioè "percorso scelto dall'utente" + "/RawSeedDataSet"
 	 * dato che alla fine del ciclo for valeva lo stesso percorso + "/SensorPosition"
 	 */
-//	delete(percorso);
 	percorso = new char [esaminata.length()+1];
 	strcpy(percorso, esaminata.c_str());
 }
@@ -165,7 +181,6 @@ void RawSeed::inizializzaContatori()
 bool RawSeed::nuovaCalibrazione(int indice)
 {
 	//il contatore delle calibrazioni è il primo dell'array
-	//int NN = contatori[0];
 	int NN = contatori[indice];
 
 	// Salvo il valore iniziale del percorso del dataset in una stringa
@@ -194,7 +209,6 @@ bool RawSeed::nuovaCalibrazione(int indice)
 		break;
 	}
 
-	//delete(percorso);
 	percorso = new char[dir.length()+1];
 	strcpy(percorso,dir.c_str());
 	int err = mkdir(percorso, MY_MASK);
@@ -220,7 +234,6 @@ bool RawSeed::nuovaCalibrazione(int indice)
 		}
 	}
 	// rimetto il percorso al valore di partenza e aggiorno i contatori
-	//delete(percorso);
 	percorso = new char[salvo.length()+1];
 	strcpy(percorso,salvo.c_str());
 	++NN;
@@ -253,7 +266,6 @@ bool RawSeed::nuovoDataset()
 		dataset += "_Static";
 	else
 		dataset += "_Dynamic";
-	//delete(percorso);
 	percorso = new char[dataset.length()+1];
 	strcpy(percorso,dataset.c_str());
 	int err = mkdir(percorso, MY_MASK);
@@ -266,7 +278,6 @@ bool RawSeed::nuovoDataset()
 	{
 		datasetAttuale = new char[dataset.length()+1];
 		strcpy(datasetAttuale, dataset.c_str());
-		//delete(percorso);
 		percorso = new char[salva.length()+1];
 		strcpy(percorso, salva.c_str());
 		return true;
@@ -313,7 +324,6 @@ bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
 	string salvataggio(datasetAttuale);
 	string nome_file;
 	bool letturaRiuscita = true;
-	//string stringa_da_salvare[BUFFER_LENGTH];
 	switch(identifier)
 	{
 		// E' il GPS
@@ -340,7 +350,27 @@ bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
 bool RawSeed::getDataSet(char** dsa) {
 	/*TODO	Inserimento Controlli
 	 * C'è da inserire dei controlli
+	 *
+	 * ma anche no invece.....
 	 */
 	*dsa = datasetAttuale;
 	return true;
+}
+
+bool RawSeed::specificaPath(){
+	string directory("/home/user/RawSeedDataSet");
+	cout << "Specifica il percorso (assoluto) dove creare il database" << endl << "(Default directory : " << directory << ")" << endl;
+	cin >> directory;
+	cout << endl;
+	if(directory[0] == '/' && directory[1] != '/'){
+		directory += "/RawSeedDataSet";
+		percorso = new char[directory.length()+1];
+		strcpy(percorso,directory.c_str());
+		return true;
+	}
+	else
+	{
+		cout << "Errore!! Reinserisci il percorso assoluto,che sia una directory Linux" << endl;
+		return false;
+	}
 }

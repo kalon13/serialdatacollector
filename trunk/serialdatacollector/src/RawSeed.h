@@ -44,6 +44,7 @@ private:
 
 public:
 	RawSeed();
+	RawSeed(char* percorso);
 	virtual ~RawSeed();
 	bool creaRawSeed(); //crea la struttura del dataset
 	void inizializzaContatori();
@@ -54,6 +55,7 @@ public:
 	void scriviData(char* date);
 	bool salvaFile(int identifier, char* buffer[BUFFER_LENGTH]);
 	bool getDataSet(char **dsa);
+	bool specificaPath();
 };
 
 #endif /* RAWSEED_H_ */
