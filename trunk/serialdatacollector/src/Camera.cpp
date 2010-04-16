@@ -11,7 +11,7 @@ using namespace std;
 using namespace cv;
 
 Camera::Camera() {
-	camera_flag = false;
+	cap = new VideoCapture();
 }
 
 Camera::~Camera() {
@@ -19,7 +19,7 @@ Camera::~Camera() {
 	delete(cap);
 }
 
-void Camera::get_photo(char* path) {
+void Camera::getPhoto(char* path) {
 	string percorso(path);
 	Mat frame;
 	*cap >> frame; // get a new frame from camera
@@ -44,14 +44,14 @@ void Camera::get_photo(char* path) {
 	waitKey(wait_time);
 }
 
-bool Camera::open_camera(int cam, int wait) {
-	cap = new VideoCapture(cam); // Open the selected Camera 0 for Default
-		if(!cap->isOpened())  // check if we succeeded
-			return false;
+bool Camera::openCommunication(int cam, int wait) {
+	cap->open(cam); // Open the selected Camera 0 for Default
+	if(!cap->isOpened())  // check if we succeeded
+		return false;
 	wait_time = wait;
 	return true;
 }
 
-bool Camera::is_Open(){
+bool Camera::isConnected(){
 	return cap->isOpened();
 }

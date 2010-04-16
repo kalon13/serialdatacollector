@@ -213,7 +213,7 @@ void SerialDevice::closeCommunication() {
     if(portNum)
     	close(portNum);
 }
-bool SerialDevice::communicationStatus() {
+bool SerialDevice::isConnected() {
 	return communicationOpened;
 }
 

@@ -9,9 +9,6 @@
 #define IMU_H_
 
 #include "SerialDevice.h"
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-#include <fstream>
 
 /*   Costanti per i comandi		*/
 #define CMD_RAW_SENSOR         	0x01
@@ -38,8 +35,7 @@
 #define LSB_MASK 				0xFF
 #define MSB_MASK 				0xFF00
 
-struct EulerAngles
-{
+struct EulerAngles {
 	float roll;
 	float pitch;
 	float yaw;
@@ -55,8 +51,6 @@ private:
 	float getTimerSeconds(unsigned char* timestamp);
 	int getEEPROMValue(short address, short *value);
 	int getGyroScale();
-
-	char* pathtofile;
 public:
    // bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     bool openCommunication(char* port, int baudRate=38400, int dataBits=8, int parity=0, int stopBits=1);
@@ -64,7 +58,7 @@ public:
 	int getQuaternions(float q[], int stableOption, float* timestamp);
 	int getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp);
 	int getOrientMatrix(float mx[][3], int stableOption, float* timestamp);
-	bool getRawSeedData(char** str);
+	bool getData(char** str);
 	void setGyroScale();	//Buona norma eseguirlo dopo l'impostazione della connessione
 
 	bool startThread(char* path);

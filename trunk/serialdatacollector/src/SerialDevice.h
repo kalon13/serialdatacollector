@@ -28,7 +28,7 @@ public:
     int sendData(unsigned char* data, int dataLength);
     virtual bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     void closeCommunication();
-    bool communicationStatus();			/*Ritorna vero se la comunicazione è aperta altrimento falso*/
+    bool isConnected();			/*Ritorna vero se la comunicazione è aperta altrimento falso*/
 
     //Metodi che impostano i parametri
     void setDebug(bool);

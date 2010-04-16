@@ -133,7 +133,7 @@ void* camAcquisition(void* i){
 	ThreadedDevice dev = d.at(n);
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
-			((Camera*)dev.device)->get_photo(dev.path);
+			((Camera*)dev.device)->getPhoto(dev.path);
 			 dev = d.at(n);
 		}
 		 dev = d.at(n);
@@ -141,11 +141,76 @@ void* camAcquisition(void* i){
 	return (void*) true;
 }
 
-void* gpsAcquisition(void* i) {
-	/*TODO: timestamp
-	 * Inserire timestamp nel file
+void* hokAcquisition(void* i){
+	/*TODO: nominal scan frequency
+	 * Inserire la nominal scan frequency
 	 */
-	char** buffer = new char*[DIM_BUFFER_GPS];
+	/*TODO: verifica timestamp
+	 * Verificare il formato del timestamp dell'hokuyo
+	 */
+	vector<string> buffer;
+	buffer.reserve(DIM_BUFFER_HOKUYO);
+	int n = (long)i;
+	ThreadedDevice dev = d.at(n);
+	ofstream file;
+	stringstream out;
+	lvec vet;
+	long timestamp;
+	int righe_scritte;
+
+		if(dev.debug>0)
+			cout << "Il thread dell'hokuyo è partito"<< endl;
+		while(dev.stato!=TERMINATO) {
+			while(dev.stato==ATTIVO) {
+				righe_scritte = 0;
+				for(int j=0; j<DIM_BUFFER_HOKUYO; ++j) {
+					int t = ((Hokuyo*)dev.device)->readData(&vet, &timestamp);
+					if(t > 0){
+						out << timestamp;
+						for(int k=0; k<t; ++k)
+							out << "," << vet[k];
+						out << endl;
+						++righe_scritte;
+						buffer.push_back(out.str());
+						if(dev.debug>1)
+							cout << "Sto leggendo la riga # " << i <<endl;
+					}
+					else if(dev.debug>1)
+						cout << "Non ho letto la riga # " << i <<endl;
+				}
+
+				file.open(dev.path, ios::app);
+				if(!file.is_open()) {
+						cout << "Impossibile accedere al file" << dev.path;
+					return (void*) false;
+				}
+				for(int j=0; j<righe_scritte; ++j) {
+					if(dev.debug>1)
+						cout << "Sto scrivendo la riga # " << i << endl;
+					file << buffer[j] << "\n";
+				}
+
+				if(dev.debug>0)
+					cout << "L'hokuyo ha scritto su file" << endl;
+				file.close();
+
+				dev = d.at(n);
+			}
+			dev = d.at(n);
+		}
+	buffer.clear();
+	if(dev.debug>0)
+		cout << "Hokuyo thread ended" << endl;
+
+	return (void*) true;
+}
+
+void* gpsAcquisition(void* i) {
+	/*TODO: nominal scan frequency
+	 * Inserire la nominal scan frequency
+	 */
+	vector<string> buffer;
+	buffer.reserve(DIM_BUFFER_GPS);
 	ofstream file;
 	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
@@ -165,9 +230,12 @@ void* gpsAcquisition(void* i) {
 			int righe_scritte = 0;
 			for(int i=0; i<DIM_BUFFER_GPS; ++i) {
 				char* x;
-				if(((SerialGps*)dev.device)->getGPGGAString(&x)) {
-					buffer[i] = x;
-					++righe_scritte;
+				struct timespec ts;
+				clock_gettime(CLOCK_REALTIME, &ts);
+				if(((SerialGps*)dev.device)->getData(&x, GPGGA)) {
+					stringstream ss;
+					ss << (int)ts.tv_sec << "." << (int)(ts.tv_nsec/100) << "," << x;
+					buffer.push_back(ss.str());
 					if(dev.debug>1)
 						cout << "Sto leggendo la riga # " << i <<endl;
 				}
@@ -203,17 +271,18 @@ void* gpsAcquisition(void* i) {
 		dev = d.at(n);
 	}
 
-	delete [] *buffer;
+	buffer.clear();
 	if(dev.debug>0)
 		cout << "Gps thread ended" << endl;
 	return (void*) true;
 }
 
 void* imuAcquisition(void* i) {
-	/*TODO: timestamp
-	 * Inserire timestamp nel file
+	/*TODO: nominal scan frequency
+	 * Inserire la nominal scan frequency
 	 */
-	char** buffer = new char*[DIM_BUFFER_IMU];
+	vector<string> buffer;
+	buffer.reserve(DIM_BUFFER_IMU);
 	ofstream file;
 	int n = (long) i;
 	ThreadedDevice dev = d.at(n);
@@ -233,8 +302,12 @@ void* imuAcquisition(void* i) {
 			int righe_scritte = 0;
 			for(int i=0; i<DIM_BUFFER_IMU; ++i) {
 				char* x;
-				if(((SerialImu*)dev.device)->getRawSeedData(&x)) {
-					buffer[i] = x;
+				struct timespec ts;
+				clock_gettime(CLOCK_REALTIME, &ts);
+				if(((SerialImu*)dev.device)->getData(&x)) {
+					stringstream ss;
+					ss << (int)ts.tv_sec << "." << (int)(ts.tv_nsec/100) << "," << x;
+					buffer.push_back(ss.str());
 					++righe_scritte;
 					if(dev.debug>1)
 						cout << "Sto leggendo la riga # " << i <<endl;
@@ -271,71 +344,12 @@ void* imuAcquisition(void* i) {
 		dev = d.at(n);
 	}
 
-	delete [] *buffer;
+	buffer.clear();
 	if(dev.debug>0)
 		cout << "Imu thread ended" << endl;
 	return (void*) true;
 }
 
-
-void* hokAcquisition(void* i){
-	char** buffer = new char*[DIM_BUFFER_HOKUYO];
-	int n = (long)i;
-	ThreadedDevice dev = d.at(n);
-	ofstream file;
-	stringstream out;
-	string temp;
-	lvec vet;
-	long timestamp;
-	int righe_scritte;
-
-		if(dev.debug>0)
-			cout << "Il thread dell'hokuyo è partito"<< endl;
-		while(dev.stato!=TERMINATO) {
-			while(dev.stato==ATTIVO) {
-				righe_scritte = 0;
-				for(int j=0; j<DIM_BUFFER_HOKUYO; ++j) {
-					int t = ((Hokuyo*)dev.device)->readData(&vet, &timestamp);
-					if(t > 0){
-						out << timestamp;
-						for(int k=0; k<t; ++k)
-							out << "," << vet[k];
-						out << endl;
-						++righe_scritte;
-						temp = out.str();
-						buffer[j] = (char*)temp.c_str();
-						if(dev.debug>1)
-							cout << "Sto leggendo la riga # " << i <<endl;
-					}
-					else if(dev.debug>1)
-						cout << "Non ho letto la riga # " << i <<endl;
-				}
-
-				file.open(dev.path, ios::app);
-				if(!file.is_open()) {
-						cout << "Impossibile accedere al file" << dev.path;
-					return (void*) false;
-				}
-				for(int j=0; j<righe_scritte; ++j) {
-					if(dev.debug>1)
-						cout << "Sto scrivendo la riga # " << i << endl;
-					file << buffer[j] << "\n";
-				}
-
-				if(dev.debug>0)
-					cout << "L'hokuyo ha scritto su file" << endl;
-				file.close();
-
-				dev = d.at(n);
-			}
-			dev = d.at(n);
-		}
-	delete [] *buffer;
-	if(dev.debug>0)
-		cout << "Hokuyo thread ended" << endl;
-
-	return (void*) true;
-}
 
 void* Shell() {
 	bool quit = false;
@@ -541,8 +555,8 @@ void cmdPause(svec arg) {
 
 void cmdInsert(svec arg) {
 	string porta;
-	char* percorso_porta;
-	char* path;
+	char* percorso_porta = new char[32];
+	char* path = NULL;
 	bool ok = false;
 	char* errore;
 	int id = -1;
@@ -554,7 +568,7 @@ void cmdInsert(svec arg) {
 				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la cam, 3 --> per l'hokuyo)" << endl;
 		cin >> id;
 	}
-	else if(arg.size()==1) {
+	else if(arg.size()>0) {
 		if(arg[0].compare("gps")==0)
 			id=0;
 		else if(arg[0].compare("imu")==0)
@@ -569,17 +583,19 @@ void cmdInsert(svec arg) {
 	/*TODO: Miglioramento
 	 * Accorciare inserimento indicando direttamente la porta nel comando insert,
 	 * pur tuttavia facendo rimanere la possibilità di inserirlo dopo(come è adesso)
-	 * Es:
-	 * insert gps /dev/ttyUSB0 piu eventuali parametri della porta
+	 * Da fare per hokuyo e cam. Imu e gps ok.
 	 * */
 	switch (id)
 	{
 		case GPS:{
-			cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
-			cout << "Nome Porta : " << endl;
-			cin >> porta;
-			percorso_porta = new char[porta.length()+1];
-			strcpy(percorso_porta,porta.c_str());
+			if(arg.size()>1)
+				strcpy(percorso_porta,arg[1].c_str());
+			else {
+				cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
+				cout << "Nome Porta : " << endl;
+				cin >> porta;
+				strcpy(percorso_porta,porta.c_str());
+			}
 
 			SerialGps* gps = new SerialGps();
 			ok = gps->openCommunication(percorso_porta);
@@ -607,11 +623,14 @@ void cmdInsert(svec arg) {
 			break;
 		}
 		case IMU:{
-			cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
-			cout << "Nome Porta : " << endl;
-			cin >> porta;
-			percorso_porta = new char[porta.length()+1];
-			strcpy(percorso_porta,porta.c_str());
+			if(arg.size()>1)
+				strcpy(percorso_porta,arg[1].c_str());
+			else {
+				cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
+				cout << "Nome Porta : " << endl;
+				cin >> porta;
+				strcpy(percorso_porta,porta.c_str());
+			}
 
 			SerialImu* imu = new SerialImu();
 			ok = imu->openCommunication(percorso_porta);
@@ -644,7 +663,7 @@ void cmdInsert(svec arg) {
 			cout << "Inserisci i millisecondi di attesa tra lo scatto di una foto e la successiva. " << endl;
 			cin >> wait;
 			Camera* cam = new Camera();
-			ok = cam->open_camera(c, wait);
+			ok = cam->openCommunication(c, wait);
 			if(ok) {
 				ThreadedDevice td;
 				td.identifier = CAM;
@@ -702,6 +721,8 @@ void cmdInsert(svec arg) {
 	else
 		cout << errore << endl;
 
+	delete(percorso_porta);
+
 	cout << "Fino ad ora, in totale, hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl << endl;
 }
 
@@ -719,13 +740,17 @@ void cmdShow(svec arg) {
 				cout << "Non è presente nessun dispositivo" << endl;
 		}
 		else if(arg[0].compare("thread")==0) {
-			for(int i=0; i<num_disp; ++i) {
-				cout << "\nThread " << i << endl;
-				cout << "\tDispositivo: " << devKind(d[i].identifier) << endl;
-				cout << "\tStato thread: " << thrState(d[i].stato) << endl;
-				if(d[i].stato==ATTIVO || d[i].stato==PAUSA)
-					cout << "\tPid thread: " << d[i].pid_t << endl;
+			if(num_disp>0) {
+				for(int i=0; i<num_disp; ++i) {
+					cout << "\nThread " << i << endl;
+					cout << "\tDispositivo: " << devKind(d[i].identifier) << endl;
+					cout << "\tStato thread: " << thrState(d[i].stato) << endl;
+					if(d[i].stato==ATTIVO || d[i].stato==PAUSA)
+						cout << "\tPid thread: " << d[i].pid_t << endl;
+				}
 			}
+			else
+				cout << "Nessun dispositivo inserito" << endl;
 		}
 		else
 			cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;
@@ -772,13 +797,13 @@ void cmdHelp(svec arg) {
 	cout << "Programma di aiuto di serialdatacollector\n\n";
 	if(arg.empty()) {
 		cout << "\thelp\t\tRichiama questa guida\n";
-		cout << "\tquit\t\rChiude il programma\n";
-		cout << "\tinsert\t\Inserisce un dispositivo\n";
-		cout << "\tstart\t\rAvvia tutti od un thread specifico\n";
-		cout << "\tstop\t\rFerma tutti od un thread specifico\n";
-		cout << "\tpause\t\rMette in pausa tutti od un thread specifico\n";
-		cout << "\tdebug\t\rImposta le stringhe di debug da visualizzare\n";
-		cout << "\tshow\t\rMostra lo stato di thread e dispositivi\n";
+		cout << "\tquit\t\tChiude il programma\n";
+		cout << "\tinsert\t\tInserisce un dispositivo\n";
+		cout << "\tstart\t\tAvvia tutti od un thread specifico\n";
+		cout << "\tstop\t\tFerma tutti od un thread specifico\n";
+		cout << "\tpause\t\tMette in pausa tutti od un thread specifico\n";
+		cout << "\tdebug\t\tImposta le stringhe di debug da visualizzare\n";
+		cout << "\tshow\t\tMostra lo stato di thread e dispositivi\n";
 		cout << "\nPer guide specifiche sui comandi digitare: help <comando>\n\n";
 	}
 	else if(arg[0].compare("insert")==0) {

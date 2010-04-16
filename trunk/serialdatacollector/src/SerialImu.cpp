@@ -198,7 +198,7 @@ int SerialImu::getOrientMatrix(float mx[][3], int stableOption, float* timestamp
  * 					Orient matrix row by row
  * 					Nominal scan frequency
  *--------------------------------------------------------------------------*/
-bool SerialImu::getRawSeedData(char** str) {
+bool SerialImu::getData(char** str) {
     float xform[3][3];
     float mag[3];
     float accel[3];
@@ -207,11 +207,10 @@ bool SerialImu::getRawSeedData(char** str) {
     char* final = new char[512];
     if(getVectors(mag, accel, angRate, M3D_INSTANT, &ts1)>0 && getOrientMatrix(&xform[0], M3D_INSTANT, &ts2)>0)
     {
-    	// ci andrà il lock? tutto quello che riguarda le printf non sono thread safe...l'ho letto....
-		sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+		sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
 				1,(ts1+ts2)/2,accel[0],accel[1],accel[2],angRate[0],angRate[1],angRate[2],mag[0],mag[1],mag[2],
 				xform[0][0],xform[0][1],xform[0][2],xform[1][0],xform[1][1],xform[1][2],xform[2][0],xform[2][1],
-				xform[1][2],76.29);
+				xform[1][2]);
 		*str = final;
 		return true;
     }
@@ -350,12 +349,3 @@ bool SerialImu::calcChecksum(unsigned char* buffer, int length) {
 	}
 	return false;
 }
-
-
-/*bool SerialImu::startThread(char* path) {
-	exec=true;
-	//boost::thread y(&SerialImu::imuAcquisition, this, path);
-	pathtofile = path;
-	th = boost::thread(&SerialImu::imuAcquisition, this);
-	return true;
-}*/

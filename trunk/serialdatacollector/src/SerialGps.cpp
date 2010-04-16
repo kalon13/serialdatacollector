@@ -34,18 +34,18 @@ bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, int pa
 
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa
 // NMEA è stata letta
-unsigned short int SerialGps::decode(unsigned char* sentence)
+NMEASTRING SerialGps::decode(unsigned char* sentence)
 {
 		if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
-			return 1;
+			return GPRMC;
 		if(strncmp((const char *)sentence,"$GPGGA",6) == 0)
-			return 2;
+			return GPGGA;
 		if(strncmp((const char *)sentence,"$GPGSA",6) == 0)
-			return 3;
+			return GPGSA;
 		if(strncmp((const char *)sentence,"$GPGSV",6) == 0)
-			return 4;
+			return GPGSV;
 		else
-			return 0;
+			return SCONOSCIUTO;
 }
 /*
 void decode_GPRMC(unsigned char *sentence,this.NMEA_GPRMC *gprmc)
@@ -190,7 +190,7 @@ bool SerialGps::CheckChecksum(unsigned char* packet)
 	  return false;
 }
 
-bool SerialGps::getGPGGAString(char** str){
+bool SerialGps::getData(char** str, NMEASTRING tipo){
 	bool find = false;
 	unsigned char data[200];
 	int length;
@@ -222,7 +222,7 @@ bool SerialGps::getGPGGAString(char** str){
 			}
 		}
 
-		if(decode((unsigned char*)sentence)==2) {
+		if(decode((unsigned char*)sentence)==tipo) {
 			find = true;
 			*str = sentence;
 		}
