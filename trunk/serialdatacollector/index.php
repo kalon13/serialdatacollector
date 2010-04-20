@@ -5,29 +5,30 @@
 <body>
 <?php
 	$dataset = "DataSet/Outdoor";
-	$newstamp1 = 0;
+	$DS_newstamp = 0;
 	$lastdir = "";
-	$dc1 = opendir($dataset);
-	while ($fn1 = readdir($dc1)) {
-		if (ereg('^\.{1,2}$',$fn1)) continue;
-		$timedat1 = filemtime("$dataset/$fn1");
-		if ($timedat1 > $newstamp1) {
-			$newstamp1 = $timedat1;
-			$lastdir = $fn1;
+	$DS_dc = opendir($dataset);
+	while ($DS_filename = readdir($DS_dc)) {
+		if (ereg('^\.{1,2}$',$DS_filename)) continue;
+		$DS_timedat = filemtime("$dataset/$fn1");
+		if ($DS_timedat > $DS_newstamp) {
+			$DS_newstamp = $DS_timedat;
+			$lastdir = $DS_filename;
 		}
 	}
+	
 	$dir = $dataset."/".$lastdir;
-	$pattern = '\.(png)$';
-	$newstamp = 0;
-	$newname = "";
-	$dc = opendir($dir);
-	while ($fn = readdir($dc)) {
-	  if (ereg('^\.{1,2}$',$fn)) continue;
-	  if (! ereg($pattern,$fn)) continue;
-	  $timedat = filemtime("$dir/$fn");
-	  if ($timedat > $newstamp) {
-		$newstamp = $timedat;
-		$newname = $fn;
+	$IMG_pattern = '\.(png)$';
+	$IMG_newstamp = 0;
+	$IMG_newname = "";
+	$IMG_dc = opendir($dir);
+	while ($IMG_filename = readdir($IMG_dc)) {
+	  if (ereg('^\.{1,2}$',$IMG_filename)) continue;
+	  if (! ereg($IMG_pattern,$IMG_filename)) continue;
+	  $IMG_timedat = filemtime("$dir/$fn");
+	  if ($IMG_timedat > $IMG_newstamp) {
+		$IMG_newstamp = $IMG_timedat;
+		$IMG_newname = $IMG_filename;
 	  }
 	}
 
@@ -46,8 +47,18 @@
 		fclose($fh);
 	}
 	else
-	$GPS_Data = "Il file del gps non esiste";
+		$GPS_Data = "Il file del gps non esiste";
+
+/*OUTPUT DEI DATI*/
+
+	echo "<p>DataSet: $lastdir</p>";
+	echo "<p>$GPS_Data</p>";
+	echo "<p>$IMU_Data</p>";
+
+	if(IMG_newstamp!=0)
+		echo "<img src=\"$dir/$newname\" />";
+	else
+		echo "<p>Nessuna immagine presente</p>";
 ?>
-<p><?=$GPS_Data?></p><p><?=$IMU_Data?></p><br><img src="<?=$dir?>/<?=$newname?>" />
 </body>
 </html>
