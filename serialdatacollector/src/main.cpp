@@ -14,7 +14,9 @@
 #include "SerialImu.h"
 #include "main.h"
 #include "Camera.h"
-#include "Hokuyo.h"
+
+	#include "Hokuyo.h"
+
 #include <pthread.h>
 #include <vector>
 #include <string>
@@ -119,6 +121,7 @@ void* hokAcquisition(void* i){
 	/*TODO: verifica timestamp
 	 * Verificare il formato del timestamp dell'hokuyo
 	 */
+#ifndef HOKUYO_H_
 	vector<string> buffer;
 	buffer.reserve(DIM_BUFFER_HOKUYO);
 	int n = (long)i;
@@ -172,7 +175,7 @@ void* hokAcquisition(void* i){
 	buffer.clear();
 	if(dev.debug>0)
 		cout << "Hokuyo thread ended" << endl;
-
+#endif
 	return (void*) true;
 }
 
@@ -654,6 +657,7 @@ void cmdInsert(svec arg) {
 			break;
 		}
 		case HOK: {
+#ifndef HOKUYO_H_
 			int c;
 
 			cout << "Inserisci il numero della porta /dev/ttyACM che vuoi aprire." << endl;
@@ -680,6 +684,10 @@ void cmdInsert(svec arg) {
 			}
 			else
 				hok->getError(&errore);
+#else
+			cout << "Dispositivo non abilitato" << endl;
+			ok = false;
+#endif
 			break;
 		}
 		default:

@@ -5,6 +5,7 @@
  *      Author: studenti
  */
 
+#ifndef HOKUYO_H_
 #include "Hokuyo.h"
 #include "UrgCtrl.h"
 #include <stdio.h>
@@ -53,3 +54,5 @@ bool Hokuyo::closeCommunication() {
 	if(urg->isConnected())
 		urg->disconnect();
 }
+
+#endif
