@@ -51,8 +51,11 @@ bool Hokuyo::isConnected() {
 }
 
 bool Hokuyo::closeCommunication() {
-	if(urg->isConnected())
+	if(urg->isConnected()) {
 		urg->disconnect();
+		return true;
+	}
+	return false;
 }
 
 #endif

@@ -20,6 +20,7 @@
 #include <time.h>
 #include <fstream>
 #define BUFFER_LENGTH 32
+#define RAWSEED_FOLDER "/RawSeedDataSet"
 
 class RawSeed {
 private:
