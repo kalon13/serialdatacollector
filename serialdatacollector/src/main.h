@@ -57,6 +57,7 @@ void cmdDebug(svec arg);
 bool cmdQuit();
 void cmdHelp(svec arg);
 void cmdInsert(svec arg);
+void cmdCalibration();
 
 bool some_thread_active();
 string devKind(DevId n);
