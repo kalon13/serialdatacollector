@@ -25,8 +25,6 @@ using namespace boost;
 
 int main(int argc, char* argv[]) {
 
-	cout << "Welcome to the best program of Data Collector in the World!!!" << endl;
-
 	d.reserve(3);
 	num_disp = 0;
 
@@ -34,7 +32,7 @@ int main(int argc, char* argv[]) {
 		dataset = new RawSeed(argv[1]);
 	else
 		dataset = new RawSeed();
-	char scelta;
+
 	char* luogo = new char[64];
 	unsigned short tipo;
 	bool flag = false;
@@ -42,33 +40,6 @@ int main(int argc, char* argv[]) {
 	/*TODO: Miglioramento
 	 * Vedere se si possono mettere tutte queste richieste come comandi
 	 */
-	do
-	{
-		bool riuscita;
-		cout << "Vuoi inserire una nuova calibrazione?(S o N)" << endl;
-		cin >> scelta;
-		scelta = toupper(scelta);
-		if(scelta == 'S')
-		{
-			int index = 0;
-			while(true)
-			{
-				cout << "Inserire un valore corrispondente alla nuova directory creata : " << endl << "(0 --> nuova calibrazione, 1 --> nuovo disegno," << endl << "2 --> nuovo formato file, 3 --> nuova posizione sensori)" << endl << "Default: 0" << endl;
-				cin >> index;
-				if(index >= 0 && index <= 3)
-					break;
-			}
-			riuscita = dataset->nuovaCalibrazione(index);
-			if(riuscita == true)
-				cout << "Directory creata con successo" << endl;
-			else
-				cout << "Errore nella creazione directory" << endl;
-		}
-		if(scelta == 'N')
-			break;
-	}
-
-	while(true);
 	do
 	{
 		do
@@ -391,6 +362,8 @@ void* Shell() {
 			cmdShow(parameters);
 		else if(cmd.compare("debug")==0)
 			cmdDebug(parameters);
+		else if(cmd.compare("calibration")==0)
+			cmdCalibration();
 		else if(cmd.compare("quit")==0)
 			quit = cmdQuit();
 		else if(cmd.compare("help")==0)
@@ -759,6 +732,21 @@ void cmdShow(svec arg) {
 		cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;
 }
 
+void cmdCalibration() {
+	bool riuscita;
+	int index = 0;
+	do {
+		cout << "Inserire un valore corrispondente alla nuova directory creata : " << endl << "(0 --> nuova calibrazione, 1 --> nuovo disegno," << endl << "2 --> nuovo formato file, 3 --> nuova posizione sensori)" << endl << "Default: 0" << endl;
+		cin >> index;
+	}
+	while(index < 0 || index > 3);
+	riuscita = dataset->nuovaCalibrazione(index);
+	if(riuscita == true)
+		cout << "Directory della calibrazione create con successo" << endl;
+	else
+		cout << "Errore nella creazione directory della calibrazione" << endl;
+}
+
 void cmdDebug(svec arg) {
 	if(!arg.empty())
 	{
@@ -798,6 +786,7 @@ void cmdHelp(svec arg) {
 	if(arg.empty()) {
 		cout << "\thelp\t\tRichiama questa guida\n";
 		cout << "\tquit\t\tChiude il programma\n";
+		cout << "\tcalibration\t\tInserisce una nuova calibrazione\n";
 		cout << "\tinsert\t\tInserisce un dispositivo\n";
 		cout << "\tstart\t\tAvvia tutti od un thread specifico\n";
 		cout << "\tstop\t\tFerma tutti od un thread specifico\n";
@@ -846,6 +835,10 @@ void cmdHelp(svec arg) {
 		cout << "ARGOMENTI:\n";
 		cout << "\tdevice\t\tVisualizza informazioni relative ai dispositivi inseriti\n";
 		cout << "\tthread\t\tVisualizza informazioni relativi ai thread:\n";
+	}
+	else if(arg[0].compare("calibration")==0) {
+		cout << "USO DI calibration:\n";
+		cout << "calibration\n\n";
 	}
 	else
 		cout << "comando " << arg[0] << " non esistente o ancora non inserito nella guida\n";
