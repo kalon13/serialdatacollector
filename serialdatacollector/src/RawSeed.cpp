@@ -62,7 +62,7 @@ RawSeed::~RawSeed() {
 
 RawSeed::RawSeed(char* pathrs){
 	bool flag = false;
-	percorso=pathrs;
+	percorso=strcat(pathrs, RAWSEED_FOLDER);
 	do
 	{
 		if((path = opendir(percorso)) == NULL)
@@ -364,7 +364,7 @@ bool RawSeed::specificaPath(){
 	cin >> directory;
 	cout << endl;
 	if(directory[0] == '/' && directory[1] != '/'){
-		directory += "/RawSeedDataSet";
+		directory += RAWSEED_FOLDER;
 		percorso = new char[directory.length()+1];
 		strcpy(percorso,directory.c_str());
 		return true;

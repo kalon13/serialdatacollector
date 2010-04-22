@@ -14,9 +14,7 @@
 #include "SerialImu.h"
 #include "main.h"
 #include "Camera.h"
-
-	#include "Hokuyo.h"
-
+#include "Hokuyo.h"
 #include <pthread.h>
 #include <vector>
 #include <string>
