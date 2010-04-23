@@ -1,27 +1,24 @@
 //============================================================================
-// Name        : main.cpp
+// Name        : serialdatacollector
 // Author      : 
-// Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Version     : 0.1
+// Copyright   : GPL v3
+// Description : A program that collects data from serial device
 //============================================================================
 
 #include <iostream>
 #include <time.h>
-#include <stdlib.h>
-#include "RawSeed.h"
-#include "SerialGps.h"
-#include "SerialImu.h"
-#include "main.h"
-#include "Camera.h"
-#include "Hokuyo.h"
 #include <pthread.h>
 #include <vector>
 #include <string>
+#include "main.h"
+#include "RawSeed.h"
+#include "SerialGps.h"
+#include "SerialImu.h"
+#include "Camera.h"
+#include "Hokuyo.h"
 
 using namespace std;
-using namespace cv;
-using namespace boost;
 
 int main(int argc, char* argv[]) {
 

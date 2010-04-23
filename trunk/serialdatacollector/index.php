@@ -1,12 +1,18 @@
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="it" dir="ltr">
 <head>
-<title>SerialDataCollector - PHP Monitor</title>
+	<title>SerialDataCollector - PHP Monitor</title>
+	<style type="text/css">
+	
+	</style>
 </head>
 <body>
 <?php
 	$dataset = "DataSet/Outdoor";
-	$DS_newstamp = 0;
 	$lastdir = "";
+	
+	/*TROVA L'ULTIMA CARTELLA CREATA*/
+	$DS_newstamp = 0;
 	$DS_dc = opendir($dataset);
 	while ($DS_filename = readdir($DS_dc)) {
 		if (ereg('^\.{1,2}$',$DS_filename)) continue;
@@ -17,7 +23,10 @@
 		}
 	}
 	
+	/*PERCORSO DEI DATI*/
 	$dir = $dataset."/".$lastdir;
+	
+	/*TROVA L'ULTIMA IMMAGINE*/
 	$IMG_pattern = '\.(png)$';
 	$IMG_newstamp = 0;
 	$IMG_newname = "";
@@ -31,7 +40,7 @@
 		$IMG_newname = $IMG_filename;
 	  }
 	}
-
+	/*VERIFICA SE ESISTE IL FILE DELLA IMU E LO LEGGE*/
 	$IMU_File = $dir."/"."IMU_STRETCHED.cvs.u";
 	if(file_exists ($IMU_File)) {
 		$fh = fopen($IMU_File, 'r');
@@ -40,6 +49,7 @@
 	}
 	else
 		$IMU_Data = "Il file della imu non esiste!";
+	/*VERIFICA SE ESISTE IL FILE DEL GPS E LO LEGGE*/
 	$GPS_File = $dir."/"."GPS.cvs.u";
 	if(file_exists($GPS_File)) {
 		$fh = fopen($GPS_File, 'r');
@@ -49,14 +59,13 @@
 	else
 		$GPS_Data = "Il file del gps non esiste";
 
-/*OUTPUT DEI DATI*/
-
+	/*OUTPUT DEI DATI*/
 	echo "<p>DataSet: $lastdir</p>";
 	echo "<p>$GPS_Data</p>";
 	echo "<p>$IMU_Data</p>";
 
 	if(IMG_newstamp!=0)
-		echo "<img src=\"$dir/$newname\" />";
+		echo "<img src=\"$dir/$IMG_newname\" />";
 	else
 		echo "<p>Nessuna immagine presente</p>";
 ?>
