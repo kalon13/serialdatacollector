@@ -28,7 +28,10 @@ int main(int argc, char* argv[]) {
 	if(--argc>0)
 		dataset = new RawSeed(argv[1]);
 	else
+	{
 		dataset = new RawSeed();
+		cin.ignore();
+	}
 
 	char* luogo = new char[64];
 	unsigned short tipo;
@@ -42,11 +45,10 @@ int main(int argc, char* argv[]) {
 		do
 		{
 			cout << "Specificare il luogo in cui si intende raccogliere i dati: " << endl;
-			cin.ignore();
 			cin.getline(luogo,64);
 			flag = dataset->setLocation(luogo);
 			if(flag == false)
-				cout << "Errore nell'inserimento del luogo, NON puoi mettere il carattere speciale /!!" << endl;
+				cout << "Errore nell'inserimento del luogo, NON puoi mettere il carattere speciale '/'!!" << endl;
 		}
 		while(!flag);
 
@@ -61,7 +63,7 @@ int main(int argc, char* argv[]) {
 
 		flag = dataset->nuovoDataset();
 		if(flag)
-			cout << endl << "Directory per la raccolta dati creata con successo!!" << endl;
+			cout << endl << "Directory per la raccolta dati creata con successo!" << endl;
 		else
 			cout << endl << "C'è stato un errore nella creazione della directory!! " << endl;
 	}
@@ -201,10 +203,13 @@ void* gpsAcquisition(void* i) {
 				char* x;
 				struct timespec ts;
 				clock_gettime(CLOCK_REALTIME, &ts);
+				cout << "Parte la lettura..." << endl;
 				if(((SerialGps*)dev.device)->getData(&x, GPGGA)) {
+					cout << "Ho letto: " << x << endl;
 					stringstream ss;
 					ss << (int)ts.tv_sec << "." << (int)(ts.tv_nsec/100) << "," << x;
 					buffer.push_back(ss.str());
+					++righe_scritte;
 					if(dev.debug>1)
 						cout << "Sto leggendo la riga # " << i <<endl;
 				}
@@ -586,6 +591,7 @@ void cmdInsert(svec arg) {
 				td.path = pcomp2;
 
 				d.push_back(td);
+				cout << "Il gps alla porta " << percorso_porta << " salverà i dati in " << pcomp2 << endl;
 			}
 			else
 				gps->getError(&errore);
@@ -620,6 +626,7 @@ void cmdInsert(svec arg) {
 				td.path = pcomp2;
 
 				d.push_back(td);
+				cout << "La imu alla porta " << percorso_porta << " salverà i dati in " << pcomp2 << endl;
 			}
 			else
 				imu->getError(&errore);

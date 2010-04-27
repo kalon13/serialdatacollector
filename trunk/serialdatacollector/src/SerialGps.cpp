@@ -7,16 +7,13 @@
 
 #include "SerialGps.h"
 #include <iostream>
-//#include <stdlib.h>
+#include <stdlib.h>
 #include <cstring>
 //#include <unistd.h>
 //#include <fcntl.h>
 //#include <sys/types.h>
 //#include <time.h>
 //#include <termios.h>
-#include "SerialDevice.h"
-#include <fstream>
-#include <boost/thread.hpp>
 
 using namespace std;
 
@@ -25,6 +22,7 @@ SerialGps::SerialGps() {
 }
 
 SerialGps::~SerialGps() {
+	closeCommunication();
 }
 
 
