@@ -54,7 +54,7 @@ public:
 	bool setLocation(char* loc);
 	bool setType(unsigned short t);
 	void scriviData(char* date);
-	bool salvaFile(int identifier, char* buffer[BUFFER_LENGTH]);
+	//bool salvaFile(int identifier, char* buffer[BUFFER_LENGTH]);
 	bool getDataSet(char **dsa);
 	bool specificaPath();
 };

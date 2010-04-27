@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <fstream>
-#include <boost/thread.hpp>
 
 using namespace std;
 
@@ -20,7 +18,7 @@ SerialImu::SerialImu() {
 }
 
 SerialImu::~SerialImu() {
-
+	closeCommunication();
 }
 
 bool SerialImu::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits) {

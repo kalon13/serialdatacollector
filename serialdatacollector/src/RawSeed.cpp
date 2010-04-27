@@ -13,12 +13,11 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <string.h>
+//#include <string.h>
 #include <string>
 #include <stdlib.h>
 #include <sstream>
 #include <time.h>
-#include <fstream>
 
 #define MY_MASK 0777
 using namespace std;
@@ -36,10 +35,10 @@ RawSeed::RawSeed() {
 		{
 			flag = creaRawSeed();
 			if (flag == false)
-				cout << "C'è stato un errore nella creazione del Data Set";
+				cout << "C'è stato un errore nella creazione del Data Set in " << percorso << endl;
 			else
 			{
-				cout << "Data Set creato con successo!";
+				cout << "Data Set creato con successo in " << path << endl;
 				for(int i=0; i<4; i++)
 					contatori[i] = 0;
 				flag = true;
@@ -47,9 +46,9 @@ RawSeed::RawSeed() {
 		}
 		else
 		{
-			cout << "Struttura Raw Seed già esistente nel file system" << endl;
+			cout << "Struttura RawSeed già esistente nel file system (" << percorso << ")" << endl;
 			inizializzaContatori();
-			cout << "Percorso Raw Seed letto, pronto per salvare i file..." << endl;
+			cout << "Percorso RawSeed inizializzato, pronto per salvare i file..." << endl;
 			flag = true;
 		}
 	}
@@ -69,12 +68,13 @@ RawSeed::RawSeed(char* pathrs){
 		{
 			flag = creaRawSeed();
 			if (flag == false){
-				cout << "C'è stato un errore nella creazione del Data Set" << endl << "Specifica il percorso manualmente" << endl;
+				cout << "C'è stato un errore nella creazione del Data Set in " << percorso << endl
+						<< "Specifica il percorso manualmente" << endl;
 				flag = specificaPath();
 			}
 			else
 			{
-				cout << "Data Set creato con successo!";
+				cout << "Data Set creato con successo in " << path << endl;
 				for(int i=0; i<4; i++)
 					contatori[i] = 0;
 				flag = true;
@@ -82,9 +82,9 @@ RawSeed::RawSeed(char* pathrs){
 		}
 		else
 		{
-			cout << "Struttura Raw Seed individuata nel file system" << endl;
+			cout << "Struttura RawSeed individuata nel file system (" << percorso << ")" << endl;
 			inizializzaContatori();
-			cout << "Percorso Raw Seed letto, pronto per salvare i file..." << endl;
+			cout << "Percorso RawSeed inizializzato, pronto per salvare i file..." << endl;
 			flag = true;
 		}
 	}
@@ -108,7 +108,10 @@ bool RawSeed::creaRawSeed()
 		//se mkdir è riuscito, allora err è = a zero
 		if(err == 0)
 		{
-			//Copia il file index.php nella directory rawseed quando la crea
+			/*
+			 * PROCEDURA PER COPIARE INDEX.PHP
+			 * Copia il file index.php nella directory rawseed quando la crea
+			 */
 			string php(directory);
 			php.append("/index.php");
 			ifstream in ("index.php"); // open original file
@@ -116,6 +119,7 @@ bool RawSeed::creaRawSeed()
 			out << in.rdbuf(); // read original file into target
 			out.close(); // explicit close, unnecessary in this case
 			in.close();// explicit close, unnecessary in this case
+			/* FINE PROCEDURA */
 
 			string percorsi_prova[] = {(directory + "/Utils"),(directory + "/Calibration"),(directory + "/DataSet"), (directory + "/Docs"), (directory + "/Drawings"), (directory + "/FileFormat"), (directory + "/SensorPosition"), (directory + "/DataSet/Indoor"), (directory + "/DataSet/Mixed"), (directory + "/DataSet/Outdoor")};
 			char* percorsoAttuale;
@@ -319,7 +323,7 @@ void RawSeed::scriviData(char* date)
 	sprintf(date, "%d-%d-%d", yyyy, mm, gg);
 }
 
-bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
+/*bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
 {
 	fstream file;
 	string salvataggio(datasetAttuale);
@@ -346,7 +350,7 @@ bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
 			letturaRiuscita = false;
 	file.close();
 	return letturaRiuscita;
-}
+}*/
 
 bool RawSeed::getDataSet(char** dsa) {
 	/*TODO	Inserimento Controlli
