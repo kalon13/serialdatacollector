@@ -10,6 +10,8 @@
 
 #include <stdlib.h>
 
+enum PARITY {NONE=0, EVEN=1, ODD=2, MARK=3, SPACE=4};
+
 class SerialDevice {
 protected:
 	char* port;      			/* Nome della porta(es /dev/ttyS0)*/
@@ -22,11 +24,15 @@ protected:
     int WAITCHARTIME;  			/* time to wait for a char to arrive. */
     bool communicationOpened;
 
+    bool setPortParameters(int baudRate, int dataBits, PARITY parity, int stopBits);
+    bool setPortParameters2(int baudRate, int dataBits, PARITY parity, int stopBits);
+
 public:
     void getError(char** er);
     int readData(unsigned char* data, int lengthExpected);
     int sendData(unsigned char* data, int dataLength);
-    virtual bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
+    virtual bool openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits);
+    bool tryOpenCommunication(char* port);
     void closeCommunication();
     bool isConnected();			/*Ritorna vero se la comunicazione è aperta altrimento falso*/
 

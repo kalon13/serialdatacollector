@@ -13,7 +13,7 @@
 using namespace std;
 
 SerialImu::SerialImu() {
-	SerialDevice::SerialDevice();
+	SerialDevice();
 	gyroGainScale = M3D_GYROGAINSCALE;
 }
 
@@ -21,7 +21,7 @@ SerialImu::~SerialImu() {
 	closeCommunication();
 }
 
-bool SerialImu::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits) {
+bool SerialImu::openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits) {
 	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
 }
 
@@ -203,7 +203,7 @@ bool SerialImu::getData(char** str) {
     float angRate[3];
     float ts1, ts2;
     char* final = new char[512];
-    if(getVectors(mag, accel, angRate, M3D_INSTANT, &ts1)>0 && getOrientMatrix(&xform[0], M3D_INSTANT, &ts2)>0)
+    if(getVectors(mag, accel, angRate, M3D_STABILIZED, &ts1)>0 && getOrientMatrix(&xform[0], M3D_STABILIZED, &ts2)>0)
     {
 		sprintf(final,"%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
 				1,(ts1+ts2)/2,accel[0],accel[1],accel[2],angRate[0],angRate[1],angRate[2],mag[0],mag[1],mag[2],

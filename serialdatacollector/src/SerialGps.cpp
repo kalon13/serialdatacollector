@@ -18,7 +18,7 @@
 using namespace std;
 
 SerialGps::SerialGps() {
-	SerialDevice::SerialDevice();
+	SerialDevice();
 }
 
 SerialGps::~SerialGps() {
@@ -26,7 +26,7 @@ SerialGps::~SerialGps() {
 }
 
 
-bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits) {
+bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits) {
 	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
 }
 
@@ -220,12 +220,13 @@ bool SerialGps::getData(char** str, NMEASTRING tipo){
 			}
 		}
 
+
 		if(decode((unsigned char*)sentence)==tipo) {
-			find = true;
-			*str = sentence;
+			//if(CheckChecksum((unsigned char*) sentence)) {
+				find = true;
+				*str = sentence;
+			//}
 		}
-		//else
-			//delete(sentence);
 	}
 	while(!find);
 	return true;
