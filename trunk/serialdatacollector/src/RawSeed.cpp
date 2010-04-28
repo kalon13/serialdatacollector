@@ -277,6 +277,8 @@ bool RawSeed::nuovoDataset()
 	if (err != 0)
 	{
 		perror(percorso);
+		percorso = new char[salva.length()+1];
+		strcpy(percorso, salva.c_str());
 		return false;
 	}
 	else
@@ -305,10 +307,15 @@ bool RawSeed::setType(unsigned short t)
 	try
 	{
 		type = t;
-		return true;
+		// Controllo che type sia uguale a 1 o 2
+		if(type == 1 || type == 2)
+			return true;
+		else
+			return false;
 	}
 	catch(...)
 	{
+		// Se entra qui significa che l'utente non ha inserito un numero ma un carattere
 		return false;
 	}
 }
@@ -323,41 +330,7 @@ void RawSeed::scriviData(char* date)
 	sprintf(date, "%d-%d-%d", yyyy, mm, gg);
 }
 
-/*bool RawSeed::salvaFile(int identifier, char* buffer[BUFFER_LENGTH])
-{
-	fstream file;
-	string salvataggio(datasetAttuale);
-	string nome_file;
-	bool letturaRiuscita = true;
-	switch(identifier)
-	{
-		// E' il GPS
-		case 0:
-			nome_file = salvataggio + "/GPS.csv";
-		break;
-		// E' la IMU
-		case 1:
-			nome_file = salvataggio + "/IMU_STRETCHED.csv";
-		break;
-		// E' la web_cam
-		case 2:
-
-		break;
-	}
-	file.open(nome_file.c_str(), ios::app);
-	for(int i=0; i < BUFFER_LENGTH; ++i)
-		if((file << buffer[i]) < 0)
-			letturaRiuscita = false;
-	file.close();
-	return letturaRiuscita;
-}*/
-
 bool RawSeed::getDataSet(char** dsa) {
-	/*TODO	Inserimento Controlli
-	 * C'è da inserire dei controlli
-	 *
-	 * ma anche no invece.....
-	 */
 	*dsa = datasetAttuale;
 	return true;
 }

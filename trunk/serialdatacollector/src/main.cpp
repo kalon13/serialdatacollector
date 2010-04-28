@@ -36,37 +36,45 @@ int main(int argc, char* argv[]) {
 
 	char* luogo = new char[64];
 	unsigned short tipo;
-	bool flag = false;
+	bool flag = false , luogo_ok = false, tipo_ok = false;
 
 	/*TODO: Miglioramento comandi
 	 * Vedere se si possono mettere tutte queste richieste come comandi
 	 */
 	do
 	{
+		flag = false;
 		do
 		{
+			luogo_ok = false;
 			cout << "Specificare il luogo in cui si intende raccogliere i dati: " << endl;
 			cin.getline(luogo,64);
-			flag = dataset->setLocation(luogo);
-			if(flag == false)
+			luogo_ok = dataset->setLocation(luogo);
+			if(luogo_ok == false)
 				cout << "Errore nell'inserimento del luogo, NON puoi mettere il carattere speciale '/'!!" << endl;
 		}
-		while(!flag);
+		while(!luogo_ok);
 
 		do
 		{
+			tipo_ok = false;
 			cout << "Specificare il tipo di raccolta dati compiuta dal Robot" << endl << "(1 --> Raccolta dati Statica, 2 --> Raccolta dati Dinamica)" << endl;
 			cin >> tipo;
-			flag = dataset->setType(tipo);
+			tipo_ok = dataset->setType(tipo);
+			if(tipo_ok == false)
+				cout << "Inserisci solo 1 o 2！" << endl;
 		}
-		while(!flag);
+		while(!tipo_ok);
 
 
 		flag = dataset->nuovoDataset();
 		if(flag)
 			cout << endl << "Directory per la raccolta dati creata con successo!" << endl;
 		else
+		{
 			cout << endl << "C'è stato un errore nella creazione della directory!! " << endl;
+			cin.ignore();
+		}
 	}
 	while(!flag);
 
