@@ -1,9 +1,10 @@
 //============================================================================
-// Name        : serialdatacollector
-// Author      : 
-// Version     : 0.1
-// Copyright   : GPL v3
-// Description : A program that collects data from serial device
+// Name			: serialdatacollector
+// Author		:
+// Version		: 0.1
+// Last Modify	: 28/04/2010
+// Copyright	: GPL v3
+// Description	: A program that collects data from serial device
 //============================================================================
 
 #include <iostream>
@@ -37,7 +38,7 @@ int main(int argc, char* argv[]) {
 	unsigned short tipo;
 	bool flag = false;
 
-	/*TODO: Miglioramento
+	/*TODO: Miglioramento comandi
 	 * Vedere se si possono mettere tutte queste richieste come comandi
 	 */
 	do
@@ -78,7 +79,7 @@ int main(int argc, char* argv[]) {
 	 * FINE DEL PROGRAMMA
 	 * 1)Chiudo tutti i thread vivi
 	 * 2)Pulisco le variabili in memoria
-	 * -------------------------------*/
+	 * ------------------------------------------*/
 	cout << "Chiusura del programma in corso... attendere prego" << endl;
 	if(some_thread_active()){
 		for(int i=0; i<num_disp; ++i) {
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
 }
 
 void* camAcquisition(void* i){
-	/*TODO: Miglioramento
+	/*TODO: Miglioramento foto
 	 * Vedere se si riesce a far salvare ogni tanto una foto con un nome specifico
 	 */
 	int n = (long)i;
@@ -115,7 +116,7 @@ void* hokAcquisition(void* i){
 	/*TODO: nominal scan frequency
 	 * Inserire la nominal scan frequency
 	 */
-	/*TODO: verifica timestamp
+	/*TODO: Verifica timestamp
 	 * Verificare il formato del timestamp dell'hokuyo
 	 */
 #ifndef HOKUYO_H_
@@ -144,20 +145,18 @@ void* hokAcquisition(void* i){
 						++righe_scritte;
 						buffer.push_back(out.str());
 						if(dev.debug>1)
-							cout << "Sto leggendo la riga # " << i <<endl;
+							cout << "#" << i  << ": " << x << endl;
 					}
-					else if(dev.debug>1)
-						cout << "Non ho letto la riga # " << i <<endl;
+					else
+						if(dev.debug>1)
+							cout << "# " << i << ": Errore di lettura" << endl;
 				}
 
 				file.open(dev.path, ios::app);
 				if(!file.is_open()) {
 						cout << "Impossibile accedere al file" << dev.path;
-					return (void*) false;
 				}
 				for(int j=0; j<righe_scritte; ++j) {
-					if(dev.debug>1)
-						cout << "Sto scrivendo la riga # " << i << endl;
 					file << buffer[j] << "\n";
 				}
 
@@ -203,28 +202,23 @@ void* gpsAcquisition(void* i) {
 				char* x;
 				struct timespec ts;
 				clock_gettime(CLOCK_REALTIME, &ts);
-				cout << "Parte la lettura..." << endl;
 				if(((SerialGps*)dev.device)->getData(&x, GPGGA)) {
-					cout << "Ho letto: " << x << endl;
 					stringstream ss;
 					ss << (int)ts.tv_sec << "." << (int)(ts.tv_nsec/100) << "," << x;
 					buffer.push_back(ss.str());
 					++righe_scritte;
 					if(dev.debug>1)
-						cout << "Sto leggendo la riga # " << i <<endl;
+						cout << "#" << i  << ": " << x << endl;
 				}
 				else
 					if(dev.debug>1)
-						cout << "Non ho letto la riga # " << i << endl;
+						cout << "# " << i << ": Errore di lettura" << endl;
 			}
 			file.open(dev.path, ios::app);
 			if(!file.is_open()) {
 					cout << "Impossibile accedere al file" << dev.path;
-				return (void*) false;
 			}
 			for(int i=0; i<righe_scritte; ++i) {
-				if(dev.debug>1)
-					cout << "Sto scrivendo la riga # " << i << endl;
 				file << buffer[i] << "\n";
 			}
 
@@ -284,20 +278,17 @@ void* imuAcquisition(void* i) {
 					buffer.push_back(ss.str());
 					++righe_scritte;
 					if(dev.debug>1)
-						cout << "Sto leggendo la riga # " << i <<endl;
+						cout << "#" << i  << ": " << x << endl;
 				}
 				else
 					if(dev.debug>1)
-						cout << "Non ho letto la riga # " << i << endl;
+						cout << "# " << i << ": Errore di lettura" << endl;
 			}
 			file.open(dev.path, ios::app);
 			if(!file.is_open()) {
 					cout << "Impossibile accedere al file" << dev.path;
-				return (void*) false;
 			}
 			for(int i=0; i<righe_scritte; ++i) {
-				if(dev.debug>1)
-					cout << "Sto scrivendo la riga # " << i << endl;
 				file << buffer[i] << "\n";
 			}
 
@@ -307,9 +298,9 @@ void* imuAcquisition(void* i) {
 
 			if(conta==16) {
 				file_ultimo.open(p2, ios::out);
-				for(int i=0; i<righe_scritte; ++i) {
-					file_ultimo << buffer[i] << "\n";
-				}
+				//for(int i=0; i<righe_scritte; ++i) {
+					file_ultimo << buffer[0] << "\n";
+				//}
 				file_ultimo.close();
 				conta=-1;
 			}
@@ -454,6 +445,10 @@ void cmdStart(svec arg) {
 	else
 		cout << "Per info sull'uso di 'start' digitare: 'help start'" << endl;
 }
+
+/* TODO: Rivedere stop/pause
+ * Rivedere gestione dello start/stop/pause
+ */
 void cmdStop(svec arg) {
 	if(!arg.empty()){
 		if(arg[0].compare("all")==0) {
@@ -556,10 +551,14 @@ void cmdInsert(svec arg) {
 		else
 			id=-1;
 	}
-	/*TODO: Miglioramento
+	/*TODO: Miglioramento insert
 	 * Accorciare inserimento indicando direttamente la porta nel comando insert,
 	 * pur tuttavia facendo rimanere la possibilità di inserirlo dopo(come è adesso)
 	 * Da fare per hokuyo e cam. Imu e gps ok.
+	 * */
+	/*TODO: Inserimento parametri insert
+	 * fare in modo che si possano specificare baud_rate, parità, ecc... oltre alla porta.
+	 * in assenza fare come è attualmente
 	 * */
 	switch (id)
 	{
@@ -709,6 +708,12 @@ void cmdInsert(svec arg) {
 	cout << "Fino ad ora, in totale, hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl << endl;
 }
 
+/* TODO: Inserimento Comando
+ * Comando show port: Fa vedere una lista di porte valide per
+ * l'inserimento dei dispositivi
+ * Fare un tryOpenCommunication(metodo di serialdevice)
+ * su tutte le /dev/ttySX e /dev/ttyUSBX)
+ */
 void cmdShow(svec arg) {
 	if(!arg.empty()){
 		if(arg[0].compare("device")==0) {
@@ -734,6 +739,9 @@ void cmdShow(svec arg) {
 			}
 			else
 				cout << "Nessun dispositivo inserito" << endl;
+		}
+		else if(arg[0].compare("port")==0) {
+			cout << "Comando non ancora implementato" << endl;
 		}
 		else
 			cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;

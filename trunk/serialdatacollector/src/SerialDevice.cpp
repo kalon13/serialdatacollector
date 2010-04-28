@@ -8,7 +8,13 @@
 #include "SerialDevice.h"
 #include <termios.h>	//Comunicazione seriale
 #include <fcntl.h>
-#include <iostream>		//Per la read
+#include <unistd.h>
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
 
 using namespace std;
 
@@ -19,7 +25,7 @@ SerialDevice::SerialDevice() {
     WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
     portNum = 0;
     communicationOpened = false;
-    errorExplained = "";
+    errorExplained = new char[128];
 }
 
 SerialDevice::~SerialDevice() {
@@ -27,6 +33,7 @@ SerialDevice::~SerialDevice() {
 	/*delete(port);
     delete(errorExplained);*/
     //Chiude la comunicazione
+	delete errorExplained;
     if(portNum>0)
     	close(portNum);
 }
@@ -44,7 +51,6 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 
 	int n, bytesRead, attempts;
 	char inchar;
-	int maxPorts;
 	struct timeval timeout;
 	fd_set readfs;    /* file descriptor set */
 
@@ -107,25 +113,238 @@ int SerialDevice::sendData(unsigned char* data, int dataLength)
     }
 }
 
-bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits){
+bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits) {
 
-    struct termios portOptions;
-    int portHandle;
+    /*int portHandle;
     int status;
-    int BAUD, DATABITS, PARITY, PARITYON, STOPBITS;
 
-    this->port = port;
     portHandle = open(port, O_RDWR);
 
     if(portHandle<0) {
         errorExplained = "Errore nell'apertura del dispositivo\n";
         return false;
     }
+    this->port = port;
+    this->portNum = portHandle;*/
+
+    int portHandle;
+
+    portHandle = open(port, O_RDWR);
+
+    if(portHandle<0) {
+        errorExplained = "Errore nell'apertura del dispositivo!\n";
+        return false;
+    }
+
+    this->port = port;
     this->portNum = portHandle;
 
+    tcflush(portNum, TCIOFLUSH);
+
+    /*TODO: Maledire
+     * Maledire queste 2 righe
+     */
+    int n = fcntl(portNum, F_GETFL, 0);
+    fcntl(portNum, F_SETFL, n & ~O_NDELAY);
+
+    if(!setPortParameters(baudRate, dataBits, parity, stopBits))
+    	return false;
+
+    communicationOpened = true;
+    return true;
+}
+
+
+bool SerialDevice::setPortParameters(int baudRate, int dataBits, PARITY parity, int stopBits) {
+	struct termios newtio;
+	if (tcgetattr(portNum, &newtio)!=0)	{
+	  errorExplained  = "tcgetattr() 3 failed";
+	  return false;
+	}
+
+	speed_t _baud=0;
+	switch (baudRate) {
+		#ifdef B0
+		   case      0: _baud=B0;     break;
+		#endif
+		#ifdef B50
+		   case     50: _baud=B50;    break;
+		#endif
+		#ifdef B75
+		   case     75: _baud=B75;    break;
+		#endif
+		#ifdef B110
+		   case    110: _baud=B110;   break;
+		#endif
+		#ifdef B134
+		   case    134: _baud=B134;   break;
+		#endif
+		#ifdef B150
+		   case    150: _baud=B150;   break;
+		#endif
+		#ifdef B200
+		   case    200: _baud=B200;   break;
+		#endif
+		#ifdef B300
+		   case    300: _baud=B300;   break;
+		#endif
+		#ifdef B600
+		   case    600: _baud=B600;   break;
+		#endif
+		#ifdef B1200
+		   case   1200: _baud=B1200;  break;
+		#endif
+		#ifdef B1800
+		   case   1800: _baud=B1800;  break;
+		#endif
+		#ifdef B2400
+		   case   2400: _baud=B2400;  break;
+		#endif
+		#ifdef B4800
+		   case   4800: _baud=B4800;  break;
+		#endif
+		#ifdef B7200
+		   case   7200: _baud=B7200;  break;
+		#endif
+		#ifdef B9600
+		   case   9600: _baud=B9600;  break;
+		#endif
+		#ifdef B14400
+		   case  14400: _baud=B14400; break;
+		#endif
+		#ifdef B19200
+		   case  19200: _baud=B19200; break;
+		#endif
+		#ifdef B28800
+		   case  28800: _baud=B28800; break;
+		#endif
+		#ifdef B38400
+		   case  38400: _baud=B38400; break;
+		#endif
+		#ifdef B57600
+		   case  57600: _baud=B57600; break;
+		#endif
+		#ifdef B76800
+		   case  76800: _baud=B76800; break;
+		#endif
+		#ifdef B115200
+		   case 115200: _baud=B115200; break;
+		#endif
+		#ifdef B128000
+		   case 128000: _baud=B128000; break;
+		#endif
+		#ifdef B230400
+		   case 230400: _baud=B230400; break;
+		#endif
+		#ifdef B460800
+		   case 460800: _baud=B460800; break;
+		#endif
+		#ifdef B576000
+		   case 576000: _baud=B576000; break;
+		#endif
+		#ifdef B921600
+		   case 921600: _baud=B921600; break;
+		#endif
+	   default:		_baud=B4800;	break;
+	}
+	cfsetospeed(&newtio, (speed_t)_baud);
+	cfsetispeed(&newtio, (speed_t)_baud);
+
+	/* We generate mark and space parity ourself. */
+	if (dataBits == 7 && (parity==MARK || parity == SPACE))
+	  dataBits = 8;
+	switch (dataBits)	{
+	case 5:
+	  newtio.c_cflag = (newtio.c_cflag & ~CSIZE) | CS5;
+	  break;
+	case 6:
+	  newtio.c_cflag = (newtio.c_cflag & ~CSIZE) | CS6;
+	  break;
+	case 7:
+	  newtio.c_cflag = (newtio.c_cflag & ~CSIZE) | CS7;
+	  break;
+	case 8:
+	default:
+	  newtio.c_cflag = (newtio.c_cflag & ~CSIZE) | CS8;
+	  break;
+	}
+
+	newtio.c_cflag |= CLOCAL | CREAD;
+
+	//parity
+	newtio.c_cflag &= ~(PARENB | PARODD);
+	if (parity == EVEN)
+	  newtio.c_cflag |= PARENB;
+	else if (parity == ODD)
+	  newtio.c_cflag |= (PARENB | PARODD);
+
+	//hardware handshake
+	newtio.c_cflag &= ~CRTSCTS;
+
+	//stopbits
+	if (stopBits==2)
+	  newtio.c_cflag |= CSTOPB;
+	else
+	  newtio.c_cflag &= ~CSTOPB;
+
+	newtio.c_iflag=IGNBRK;
+
+	//software handshake
+	/*if (softwareHandshake)
+	  newtio.c_iflag |= IXON | IXOFF;
+	else*/
+	  newtio.c_iflag &= ~(IXON|IXOFF|IXANY);
+
+	newtio.c_lflag=0;
+	newtio.c_oflag=0;
+
+	newtio.c_cc[VTIME]=1;
+	newtio.c_cc[VMIN]=60;
+
+	//   tcflush(m_fd, TCIFLUSH);
+	if (tcsetattr(portNum, TCSANOW, &newtio)!=0)	{
+	  errorExplained = "tcsetattr() 1 failed";
+	  return false;
+	}
+
+	int mcs=0;
+	ioctl(portNum, TIOCMGET, &mcs);
+	mcs |= TIOCM_RTS;
+	ioctl(portNum, TIOCMSET, &mcs);
+
+	if (tcgetattr(portNum, &newtio)!=0) {
+	  errorExplained = "tcgetattr() 4 failed";
+	  return false;
+	}
+
+	//hardware handshake
+	/*if (hardwareHandshake)
+	  newtio.c_cflag |= CRTSCTS;
+	else*/
+	  newtio.c_cflag &= ~CRTSCTS;
+
+	if (tcsetattr(portNum, TCSANOW, &newtio)!=0) {
+	  errorExplained = "tcsetattr() 2 failed";
+	  return false;
+	}
+	return true;
+}
+
+/*
+ * TODO: Non serve più
+ * Ma teniamolo in caso...
+ */
+
+bool SerialDevice::setPortParameters2(int baudRate, int dataBits, PARITY parity, int stopBits) {
+
+    struct termios portOptions;
+    int BAUD, DATABITS, PARITY, PARITYON, STOPBITS;
+
+    int status;
+
     /*  get port options for speed, etc. */
-    tcgetattr(portHandle, &portOptions);
-    tcflush(portHandle, TCIFLUSH);
+    tcgetattr(portNum, &portOptions);
+    tcflush(portNum, TCIFLUSH);
 
     /* baudrate settings */
     switch (baudRate) {
@@ -196,16 +415,26 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, int
 
     cfsetospeed(&portOptions, BAUD);  /* redundant with the cflag setting, above */
     cfsetispeed(&portOptions, BAUD);
-    status = tcsetattr(portHandle, TCSANOW, &portOptions);
+    status = tcsetattr(portNum, TCSANOW, &portOptions);
 
-    if (status != 0)
-    {
+    if (status != 0) {
         errorExplained = "Errore nell'impostazioni dei parametri della porta\n";
         return false;  //FALLITO
     }
 
-    communicationOpened = true;
-    return true;  //OK
+    return true;
+}
+
+bool SerialDevice::tryOpenCommunication(char* port) {
+    int portHandle;
+
+    portHandle = open(port, O_RDONLY);
+
+    if(portHandle<0)
+        return false;
+
+    close(portHandle);
+    return true;
 }
 
 void SerialDevice::closeCommunication() {
