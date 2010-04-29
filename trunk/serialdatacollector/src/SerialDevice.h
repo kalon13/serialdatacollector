@@ -9,6 +9,7 @@
 #define SERIALDEVICE_H_
 
 #include <stdlib.h>
+#include <termios.h>
 
 enum PARITY {NONE=0, EVEN=1, ODD=2, MARK=3, SPACE=4};
 
@@ -17,6 +18,7 @@ protected:
 	char* port;      			/* Nome della porta(es /dev/ttyS0)*/
     char* errorExplained;		/* Stringa che conterrà l'ultimo errore dato*/
     int portNum;				/* Valore intero che verrà associtato alla porta aperta*/
+    struct termios oldtio;
 
     bool DEBUG;					/* Per far vedere o no le scritte di debug*/
     int TIMEOUT;				/* time to wait for port to respond, in microseconds */

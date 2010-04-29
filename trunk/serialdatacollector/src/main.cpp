@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <vector>
 #include <string>
+#include <termios.h>
 #include "main.h"
 #include "RawSeed.h"
 #include "SerialGps.h"
@@ -542,22 +543,23 @@ void cmdInsert(svec arg) {
 
 	dataset->getDataSet(&path);
 
-	if(arg.empty()) {
+	if(arg.size()>0) {
+			if(arg[0].compare("gps")==0)
+				id=0;
+			else if(arg[0].compare("imu")==0)
+				id=1;
+			else if(arg[0].compare("cam")==0)
+				id=2;
+			else if(arg[0].compare("hok")==0)
+				id=3;
+			else
+				id=-1;
+		}
+
+	if(arg.empty() || id==-1) {
 		cout << "Specifica l'identificatore del dispositivo che intendi utilizzare nella raccolta dati " << endl
 				<< "(0 --> per il GPS, 1 --> per la IMU, 2 --> per la cam, 3 --> per l'hokuyo)" << endl;
 		cin >> id;
-	}
-	else if(arg.size()>0) {
-		if(arg[0].compare("gps")==0)
-			id=0;
-		else if(arg[0].compare("imu")==0)
-			id=1;
-		else if(arg[0].compare("cam")==0)
-			id=2;
-		else if(arg[0].compare("hok")==0)
-			id=3;
-		else
-			id=-1;
 	}
 	/*TODO: Miglioramento insert
 	 * Accorciare inserimento indicando direttamente la porta nel comando insert,

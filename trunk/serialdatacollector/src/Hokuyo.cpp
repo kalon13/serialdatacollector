@@ -55,7 +55,8 @@ bool Hokuyo::closeCommunication() {
 		urg->disconnect();
 		return true;
 	}
-	return false;
+	else
+		return false;
 }
 
 #endif

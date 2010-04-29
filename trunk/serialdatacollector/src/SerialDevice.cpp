@@ -147,6 +147,11 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, PAR
     int n = fcntl(portNum, F_GETFL, 0);
     fcntl(portNum, F_SETFL, n & ~O_NDELAY);
 
+    if (tcgetattr(portNum, &oldtio)!=0) {
+       errorExplained = "tcgetattr() 2 failed";
+       return false;
+    }
+
     if(!setPortParameters(baudRate, dataBits, parity, stopBits))
     	return false;
 
