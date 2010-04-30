@@ -11,7 +11,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <vector>
-#include <string>
+#include <string.h>
 #include <termios.h>
 #include "main.h"
 #include "RawSeed.h"
@@ -211,9 +211,9 @@ void* gpsAcquisition(void* i) {
 				char* x;
 				struct timespec ts;
 				clock_gettime(CLOCK_REALTIME, &ts);
-				if(((SerialGps*)dev.device)->getData(&x, GPGGA)) {
+				if(((SerialGps*)dev.device)->readData(&x, GPGGA)) {
 					stringstream ss;
-					ss << (int)ts.tv_sec << "." << (int)(ts.tv_nsec/100) << "," << x;
+					ss << (int)ts.tv_sec << "." << (int)ts.tv_nsec << "," << x;
 					buffer.push_back(ss.str());
 					++righe_scritte;
 					if(dev.debug>1)
@@ -234,6 +234,7 @@ void* gpsAcquisition(void* i) {
 			if(dev.debug>0)
 				cout << "Il gps ha scritto su file" << endl;
 			file.close();
+			buffer.clear();
 
 			if(conta==8) {
 				file_ultimo.open(p2, ios::out);
@@ -281,9 +282,9 @@ void* imuAcquisition(void* i) {
 				char* x;
 				struct timespec ts;
 				clock_gettime(CLOCK_REALTIME, &ts);
-				if(((SerialImu*)dev.device)->getData(&x)) {
+				if(((SerialImu*)dev.device)->readData(&x)) {
 					stringstream ss;
-					ss << (int)ts.tv_sec << "." << (int)(ts.tv_nsec/100) << "," << x;
+					ss << (int)ts.tv_sec << "." << (int)ts.tv_nsec << "," << x;
 					buffer.push_back(ss.str());
 					++righe_scritte;
 					if(dev.debug>1)
@@ -304,6 +305,7 @@ void* imuAcquisition(void* i) {
 			if(dev.debug>0)
 				cout << "L'imu ha scritto su file" << endl;
 			file.close();
+			buffer.clear();
 
 			if(conta==16) {
 				file_ultimo.open(p2, ios::out);
@@ -318,7 +320,6 @@ void* imuAcquisition(void* i) {
 		dev = d.at(n);
 	}
 
-	buffer.clear();
 	if(dev.debug>0)
 		cout << "Imu thread ended" << endl;
 	return (void*) true;
@@ -331,6 +332,9 @@ void* Shell() {
 	cout << "Non sono stati inseriti dispositivi. Per inserirne uno digitare 'insert'\n";
 	cout << "Per ricevere aiuto digitare 'help'\n\n";
 	bool invio = false;
+
+	cin.ignore();
+
 	do {
 		string riga, token;
 		svec parameters;
@@ -371,8 +375,8 @@ void* Shell() {
 			quit = cmdQuit();
 		else if(cmd.compare("help")==0)
 			cmdHelp(parameters);
-		else
-			invio = true;
+		//else
+			//invio = true;
 
 	}
 	while(!quit);
@@ -584,7 +588,7 @@ void cmdInsert(svec arg) {
 
 			SerialGps* gps = new SerialGps();
 			ok = gps->openCommunication(percorso_porta);
-
+			//ok = true;
 			if(ok) {
 				ThreadedDevice td;
 				td.identifier = GPS;

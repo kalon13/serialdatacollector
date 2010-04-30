@@ -22,10 +22,14 @@ class Camera {
 private:
 	VideoCapture *cap;
 	int wait_time;
+
+	Mat frame;
+	std::vector<int> params;
 	time_t rawtime;
 	struct tm* leggibile;
 	struct timespec nano;
-	bool camera_flag;
+	bool shot;
+
 public:
 	/*
 	static VideoCapture *cap;
@@ -39,6 +43,8 @@ public:
 	bool openCommunication(int cam, int wait);
 	void getPhoto(char* path);
 	bool isConnected();
+	int readData();
+	int writeData(char* path);
 };
 
 #endif /* CAMERA_H_ */
