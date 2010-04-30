@@ -18,7 +18,7 @@ SerialImu::SerialImu() {
 }
 
 SerialImu::~SerialImu() {
-	closeCommunication();
+	SerialDevice::closeCommunication();
 }
 
 bool SerialImu::openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits) {
@@ -196,7 +196,7 @@ int SerialImu::getOrientMatrix(float mx[][3], int stableOption, float* timestamp
  * 					Orient matrix row by row
  * 					Nominal scan frequency
  *--------------------------------------------------------------------------*/
-bool SerialImu::getData(char** str) {
+bool SerialImu::readData(char** str) {
     float xform[3][3];
     float mag[3];
     float accel[3];
@@ -346,4 +346,8 @@ bool SerialImu::calcChecksum(unsigned char* buffer, int length) {
 			errorExplained = "Checksum Error";
 	}
 	return false;
+}
+
+bool SerialImu::closeCommunication() {
+	SerialDevice::closeCommunication();
 }

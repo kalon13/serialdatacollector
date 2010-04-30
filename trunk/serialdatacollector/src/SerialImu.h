@@ -58,7 +58,8 @@ public:
 	int getQuaternions(float q[], int stableOption, float* timestamp);
 	int getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp);
 	int getOrientMatrix(float mx[][3], int stableOption, float* timestamp);
-	bool getData(char** str);
+	bool readData(char** str);
+	bool closeCommunication();
 	void setGyroScale();	//Buona norma eseguirlo dopo l'impostazione della connessione
 
 	bool startThread(char* path);

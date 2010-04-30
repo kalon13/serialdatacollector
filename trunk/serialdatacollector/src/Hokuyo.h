@@ -13,7 +13,7 @@
 
 typedef std::vector<long> lvec;
 
-class Hokuyo:public SerialDevice {
+class Hokuyo: public SerialDevice {
 private:
 	char* device;
 	qrk::UrgCtrl* urg;

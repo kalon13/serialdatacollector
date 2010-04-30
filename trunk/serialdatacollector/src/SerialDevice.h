@@ -31,15 +31,15 @@ protected:
 
 public:
     void getError(char** er);
-    int readData(unsigned char* data, int lengthExpected);
-    int sendData(unsigned char* data, int dataLength);
+    virtual int readData(unsigned char* data, int lengthExpected);
+    virtual int sendData(unsigned char* data, int dataLength);
     virtual bool openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits);
+    virtual bool closeCommunication();
     bool tryOpenCommunication(char* port);
-    void closeCommunication();
-    bool isConnected();			/*Ritorna vero se la comunicazione è aperta altrimento falso*/
-
-    //Metodi che impostano i parametri
+    bool isConnected();			/* Ritorna vero se la comunicazione è aperta altrimento falso */
     void setDebug(bool);
+
+    /* Metodi che impostano i parametri per la read seriale. Se si fa l'ovverride di readData non servono più */
     void setTimeout(int);
     void setMaxAttempts(int);
     void setWaitCharTime(int);

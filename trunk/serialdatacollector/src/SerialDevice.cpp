@@ -61,7 +61,8 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	FD_SET(portNum, &readfs);  /* set testing for portHandle */
 	if (DEBUG) cout << "Waiting for port to respond\n";
 	//portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
-	if (!FD_ISSET(portNum, &readfs)) {
+	int portCount = select(portNum+1, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
+	if ((portCount==0) || (!FD_ISSET(portNum, &readfs))) {
 		if (DEBUG) cout << " - timeout expired!\n" ;
 		return -1;
 	}
@@ -74,13 +75,14 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	bytesRead = 0;
 	attempts = 0;
 	while (bytesRead < lengthExpected && attempts++ < MAXATTEMPTS) {
-		n = read(portNum, &inchar, 1);
+		n=read(portNum, &inchar, 1);
 		if (DEBUG)
 			cout << n << inchar;
 		if (n == 1)
 			data[bytesRead++] = inchar;
 		else
 			sleep(WAITCHARTIME);  /* sleep a while for next byte. */
+		//cout << "hei" << endl;
 	}
 	if (DEBUG) cout << "\nattempts" << attempts;
 	if (DEBUG) cout << "\nreceiveData: bytes read: " << bytesRead << "\texpected: " << lengthExpected << endl;
@@ -442,11 +444,17 @@ bool SerialDevice::tryOpenCommunication(char* port) {
     return true;
 }
 
-void SerialDevice::closeCommunication() {
+bool SerialDevice::closeCommunication() {
     //Chiude la comunicazione
-    if(portNum)
+    if(communicationOpened)
     	close(portNum);
+    else{
+    	errorExplained = "Il dispositivo non è aperto!";
+    	return false;
+    }
+    return true;
 }
+
 bool SerialDevice::isConnected() {
 	return communicationOpened;
 }

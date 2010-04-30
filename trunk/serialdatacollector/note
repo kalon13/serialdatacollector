@@ -1,0 +1,5 @@
+SPECIFICHE RAWSEED NON RISPETTATE:
+	- Compressione dei file cvs in tar.gz
+	- Nel timestamp ci sono secondi.nanosecondi invece che secondi.microsecondi
+	- Manca la nominal scan frequency
+	- Nella imu c'è da vedere il parametro '# range of data'

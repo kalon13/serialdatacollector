@@ -22,7 +22,7 @@ SerialGps::SerialGps() {
 }
 
 SerialGps::~SerialGps() {
-	closeCommunication();
+	SerialDevice::closeCommunication();
 }
 
 
@@ -188,15 +188,15 @@ bool SerialGps::CheckChecksum(unsigned char* packet)
 	  return false;
 }
 
-bool SerialGps::getData(char** str, NMEASTRING tipo){
+bool SerialGps::readData(char** str, NMEASTRING tipo){
 	bool find = false;
-	unsigned char data[200];
+	unsigned char data[256];
 	int length;
 	int i=0,j=0, count=0;
 
 	do {
 		char* sentence = new char[84];
-		length = SerialDevice::readData(&data[0],200);
+		length = SerialDevice::readData(&data[0],256);
 
 		for(i=0; i<length; i++){
 			if(data[i] == (unsigned char)'$')
@@ -230,6 +230,10 @@ bool SerialGps::getData(char** str, NMEASTRING tipo){
 	}
 	while(!find);
 	return true;
+}
+
+bool SerialGps::closeCommunication(){
+	SerialDevice::closeCommunication();
 }
 
 
