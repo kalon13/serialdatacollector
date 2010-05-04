@@ -21,7 +21,7 @@ using namespace std;
 SerialDevice::SerialDevice() {
     DEBUG = false;			/* Per far vedere o no le scritte di debug*/
     TIMEOUT = 50000;		/* time to wait for port to respond, in microseconds */
-    MAXATTEMPTS = 200;    	/* maximum number of attempts to read characters */
+    MAXATTEMPTS = 4096;    	/* maximum number of attempts to read characters */
     WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
     portNum = 0;
     communicationOpened = false;
@@ -64,6 +64,7 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	int portCount = select(portNum+1, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
 	if ((portCount==0) || (!FD_ISSET(portNum, &readfs))) {
 		if (DEBUG) cout << " - timeout expired!\n" ;
+		errorExplained = "timeout expired";
 		return -1;
 	}
 	if (DEBUG) cout << "Time remaining " << timeout.tv_usec/1000 << "ms.\n";
