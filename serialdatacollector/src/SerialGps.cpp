@@ -37,10 +37,13 @@ bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY
 			return true;
 		}
 		closeCommunication();
-		cout << "Ritento?(s\\N)";
-		cin >> risp;
+		cout << errorExplained << endl;
+		if(risp!='a') {
+			cout << "Ritento?(s\\N\a)";
+			cin >> risp;
+		}
 	}
-	while(risp=='s');
+	while(risp=='s' || risp=='a');
 	return false;
 }
 
