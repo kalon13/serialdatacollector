@@ -28,15 +28,20 @@ SerialGps::~SerialGps() {
 
 bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits) {
 	unsigned char p[4096];
-	SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
-	if(SerialDevice::readData(&p[0],4096)>0) {
-		//for(int i=0; i<4096; ++i)
-			//cout << p[i];
-		return true;
+	char risp='n';
+	do{
+		SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
+		if(SerialDevice::readData(&p[0],4096)>0) {
+			//for(int i=0; i<4096; ++i)
+				//cout << p[i];
+			return true;
+		}
+		closeCommunication();
+		cout << "Ritento?(s\\N)";
+		cin >> risp;
 	}
-	cout << errorExplained;
+	while(risp=='s');
 	return false;
-	return true;
 }
 
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa
