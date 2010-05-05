@@ -20,7 +20,7 @@ using namespace std;
 
 SerialDevice::SerialDevice() {
     DEBUG = false;			/* Per far vedere o no le scritte di debug*/
-    TIMEOUT = 50000;		/* time to wait for port to respond, in microseconds */
+    TIMEOUT = 100000;		/* time to wait for port to respond, in microseconds */
     MAXATTEMPTS = 4096;    	/* maximum number of attempts to read characters */
     WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
     portNum = 0;
@@ -62,6 +62,7 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	if (DEBUG) cout << "Waiting for port to respond\n";
 	//portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
 	int portCount = select(portNum+1, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
+	//cout << portNum << " " << portCount << endl;
 	if ((portCount==0) || (!FD_ISSET(portNum, &readfs))) {
 		if (DEBUG) cout << " - timeout expired!\n" ;
 		errorExplained = "timeout expired";
@@ -165,10 +166,10 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, PAR
 
 bool SerialDevice::setPortParameters(int baudRate, int dataBits, PARITY parity, int stopBits) {
 	struct termios newtio;
-	if (tcgetattr(portNum, &newtio)!=0)	{
+	/*if (tcgetattr(portNum, &newtio)!=0)	{
 	  errorExplained  = "tcgetattr() 3 failed";
 	  return false;
-	}
+	}*/
 
 	speed_t _baud=0;
 	switch (baudRate) {
@@ -310,20 +311,20 @@ bool SerialDevice::setPortParameters(int baudRate, int dataBits, PARITY parity, 
 	newtio.c_cc[VMIN]=60;
 
 	//   tcflush(m_fd, TCIFLUSH);
-	if (tcsetattr(portNum, TCSANOW, &newtio)!=0)	{
+	/*if (tcsetattr(portNum, TCSANOW, &newtio)!=0)	{
 	  errorExplained = "tcsetattr() 1 failed";
 	  return false;
-	}
+	}*/
 
 	int mcs=0;
 	ioctl(portNum, TIOCMGET, &mcs);
 	mcs |= TIOCM_RTS;
 	ioctl(portNum, TIOCMSET, &mcs);
 
-	if (tcgetattr(portNum, &newtio)!=0) {
+	/*if (tcgetattr(portNum, &newtio)!=0) {
 	  errorExplained = "tcgetattr() 4 failed";
 	  return false;
-	}
+	}*/
 
 	//hardware handshake
 	/*if (hardwareHandshake)
@@ -331,7 +332,7 @@ bool SerialDevice::setPortParameters(int baudRate, int dataBits, PARITY parity, 
 	else*/
 	  newtio.c_cflag &= ~CRTSCTS;
 
-	if (tcsetattr(portNum, TCSANOW, &newtio)!=0) {
+	if (tcsetattr(portNum, TCSAFLUSH, &newtio)!=0) {
 	  errorExplained = "tcsetattr() 2 failed";
 	  return false;
 	}
