@@ -7,6 +7,7 @@
 
 #ifndef HOKUYO_H_
 #define HOKUYO_H_
+#ifndef HOKUYO
 #include "UrgCtrl.h"
 #include "SerialDevice.h"
 #include <vector>
@@ -28,4 +29,5 @@ public:
 	bool isConnected();
 };
 
+#endif
 #endif /* HOKUYO_H_ */

@@ -30,7 +30,9 @@ bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY
 	unsigned char p[4096];
 	char risp='n';
 	do{
-		SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
+		if(!SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits)) {
+			cout << "cacca" << errorExplained << endl;
+		}
 		if(SerialDevice::readData(&p[0],4096)>0) {
 			//for(int i=0; i<4096; ++i)
 				//cout << p[i];

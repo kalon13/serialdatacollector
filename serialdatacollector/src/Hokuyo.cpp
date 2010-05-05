@@ -5,7 +5,7 @@
  *      Author: studenti
  */
 
-#ifndef HOKUYO_H_
+#ifndef HOKUYO
 #include "Hokuyo.h"
 #include "UrgCtrl.h"
 #include <stdio.h>

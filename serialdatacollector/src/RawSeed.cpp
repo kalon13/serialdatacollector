@@ -349,6 +349,7 @@ bool RawSeed::specificaPath(){
 	else
 	{
 		cout << "Errore!! Reinserisci il percorso assoluto,che sia una directory Linux" << endl;
+		directory.clear();
 		return false;
 	}
 }

@@ -133,7 +133,7 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, PAR
 
     int portHandle;
 
-    portHandle = open(port, O_RDWR);
+    portHandle = open(port, O_RDWR | O_NDELAY);
 
     if(portHandle<0) {
         errorExplained = "Errore nell'apertura del dispositivo!\n";
@@ -145,19 +145,18 @@ bool SerialDevice::openCommunication(char* port, int baudRate, int dataBits, PAR
 
     tcflush(portNum, TCIOFLUSH);
 
-    /*TODO: Maledire
-     * Maledire queste 2 righe
-     */
     int n = fcntl(portNum, F_GETFL, 0);
     fcntl(portNum, F_SETFL, n & ~O_NDELAY);
 
-    if (tcgetattr(portNum, &oldtio)!=0) {
+    if (tcgetattr(portNum, &oldtio)!=0) {			 /* save current serial port settings */
        errorExplained = "tcgetattr() 2 failed";
        return false;
     }
 
-    if(!setPortParameters(baudRate, dataBits, parity, stopBits))
+    if(!setPortParameters(baudRate, dataBits, parity, stopBits)){
+    	errorExplained = "Errore nel set dei parametri";
     	return false;
+    }
 
     communicationOpened = true;
     return true;
@@ -170,6 +169,8 @@ bool SerialDevice::setPortParameters(int baudRate, int dataBits, PARITY parity, 
 	  errorExplained  = "tcgetattr() 3 failed";
 	  return false;
 	}*/
+
+	bzero(&newtio, sizeof(newtio)); /* clear struct for new port settings */
 
 	speed_t _baud=0;
 	switch (baudRate) {
@@ -307,11 +308,12 @@ bool SerialDevice::setPortParameters(int baudRate, int dataBits, PARITY parity, 
 	newtio.c_lflag=0;
 	newtio.c_oflag=0;
 
-	newtio.c_cc[VTIME]=1;
-	newtio.c_cc[VMIN]=60;
+	newtio.c_cc[VTIME]=1/*1*/;			/* inter-character timer unused */
+	newtio.c_cc[VMIN]=60/*60*/;		/* blocking read until 1 character arrives */
 
-	//   tcflush(m_fd, TCIFLUSH);
-	/*if (tcsetattr(portNum, TCSANOW, &newtio)!=0)	{
+
+/*	   tcflush(portNum, TCIFLUSH);
+	if (tcsetattr(portNum, TCSANOW, &newtio)!=0)	{
 	  errorExplained = "tcsetattr() 1 failed";
 	  return false;
 	}*/
@@ -333,7 +335,7 @@ bool SerialDevice::setPortParameters(int baudRate, int dataBits, PARITY parity, 
 	  newtio.c_cflag &= ~CRTSCTS;
 
 	if (tcsetattr(portNum, TCSAFLUSH, &newtio)!=0) {
-	  errorExplained = "tcsetattr() 2 failed";
+	  errorExplained = "tcsetattr() 3 failed";
 	  return false;
 	}
 	return true;
