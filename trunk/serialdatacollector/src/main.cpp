@@ -650,7 +650,7 @@ void cmdInsert(svec arg) {
 			break;
 		}
 		case CAM: {
-#ifndef CAMERA_H_
+#ifndef CAMERA
 			int c, wait;
 			cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
 			cin >> c;
@@ -672,14 +672,14 @@ void cmdInsert(svec arg) {
 				cout << "Errore nell'apertura della camera! " << endl;
 
 			path = NULL;
-			break;
 #else
 			cout << "Dispositivo non abilitato" << endl;
 			ok = false;
 #endif
+			break;
 		}
 		case HOK: {
-#ifndef HOKUYO_H_
+#ifndef HOKUYO
 			int c;
 
 			cout << "Inserisci il numero della porta /dev/ttyACM che vuoi aprire." << endl;

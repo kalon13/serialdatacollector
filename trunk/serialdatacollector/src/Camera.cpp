@@ -5,10 +5,11 @@
  *      Author: kain
  */
 
-#ifndef CAMERA
+
 
 #include "Camera.h"
 
+#ifndef CAMERA
 using namespace std;
 using namespace cv;
 
