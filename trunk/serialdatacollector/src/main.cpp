@@ -109,7 +109,7 @@ void* camAcquisition(void* i){
 	/*TODO: Miglioramento foto
 	 * Vedere se si riesce a far salvare ogni tanto una foto con un nome specifico
 	 */
-#ifndef CAMERA_H_
+#ifndef CAMERA
 	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
 	while(dev.stato!=TERMINATO) {
@@ -130,7 +130,7 @@ void* hokAcquisition(void* i){
 	/*TODO: Verifica timestamp
 	 * Verificare il formato del timestamp dell'hokuyo
 	 */
-#ifndef HOKUYO_H_
+#ifndef HOKUYO
 	vector<string> buffer;
 	buffer.reserve(DIM_BUFFER_HOKUYO);
 	int n = (long)i;
@@ -156,7 +156,7 @@ void* hokAcquisition(void* i){
 						++righe_scritte;
 						buffer.push_back(out.str());
 						if(dev.debug>1)
-							cout << "#" << i  << ": " << x << endl;
+							cout << "#" << i  << ": " << vet[0] << endl;
 					}
 					else
 						if(dev.debug>1)

@@ -5,7 +5,7 @@
  *      Author: kain
  */
 
-#ifndef CAMERA_H_
+#ifndef CAMERA
 
 #include "Camera.h"
 

@@ -8,6 +8,7 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
+#ifndef CAMERA
 #include <time.h>
 #include <iostream>
 #include <time.h>
@@ -47,4 +48,5 @@ public:
 	int writeData(char* path);
 };
 
+#endif
 #endif /* CAMERA_H_ */
