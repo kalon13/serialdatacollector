@@ -5,6 +5,8 @@
  *      Author: kain
  */
 
+#ifndef CAMERA_H_
+
 #include "Camera.h"
 
 using namespace std;
@@ -93,3 +95,5 @@ bool Camera::openCommunication(int cam, int wait) {
 bool Camera::isConnected(){
 	return cap->isOpened();
 }
+
+#endif
