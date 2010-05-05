@@ -20,7 +20,7 @@ using namespace std;
 
 SerialDevice::SerialDevice() {
     DEBUG = false;			/* Per far vedere o no le scritte di debug*/
-    TIMEOUT = 100000;		/* time to wait for port to respond, in microseconds */
+    TIMEOUT = 50000;		/* time to wait for port to respond, in microseconds */
     MAXATTEMPTS = 4096;    	/* maximum number of attempts to read characters */
     WAITCHARTIME = 1000;  	/* time to wait for a char to arrive. */
     portNum = 0;

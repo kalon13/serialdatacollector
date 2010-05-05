@@ -109,6 +109,7 @@ void* camAcquisition(void* i){
 	/*TODO: Miglioramento foto
 	 * Vedere se si riesce a far salvare ogni tanto una foto con un nome specifico
 	 */
+#ifndef CAMERA_H_
 	int n = (long)i;
 	ThreadedDevice dev = d.at(n);
 	while(dev.stato!=TERMINATO) {
@@ -118,6 +119,7 @@ void* camAcquisition(void* i){
 		}
 		 dev = d.at(n);
 	}
+#endif
 	return (void*) true;
 }
 
@@ -648,6 +650,7 @@ void cmdInsert(svec arg) {
 			break;
 		}
 		case CAM: {
+#ifndef CAMERA_H_
 			int c, wait;
 			cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
 			cin >> c;
@@ -670,6 +673,10 @@ void cmdInsert(svec arg) {
 
 			path = NULL;
 			break;
+#else
+			cout << "Dispositivo non abilitato" << endl;
+			ok = false;
+#endif
 		}
 		case HOK: {
 #ifndef HOKUYO_H_
