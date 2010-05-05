@@ -27,7 +27,8 @@ SerialGps::~SerialGps() {
 
 
 bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits) {
-	unsigned char p[4096];
+	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
+	/*unsigned char p[4096];
 	char risp='n';
 	do{
 		if(!SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits)) {
@@ -46,7 +47,7 @@ bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY
 		}
 	}
 	while(risp=='s' || risp=='a');
-	return false;
+	return false;*/
 }
 
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa

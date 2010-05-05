@@ -8,7 +8,6 @@
 #include "RawSeed.h"
 #include "SerialDevice.h"
 #include "Camera.h"
-#include <boost/thread.hpp>
 #include <vector>
 
 #define MAX_SENSOR 8

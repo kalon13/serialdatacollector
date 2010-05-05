@@ -9,7 +9,6 @@
 #define SERIALGPS_H_
 #include "SerialDevice.h"
 #include <fstream>
-#include <boost/thread.hpp>
 
 typedef struct {
 		 double utc;
