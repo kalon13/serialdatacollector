@@ -35,7 +35,7 @@ public:
     virtual int sendData(unsigned char* data, int dataLength);
     virtual bool openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits);
     virtual bool closeCommunication();
-    bool tryOpenCommunication(char* port);
+    static bool tryOpenCommunication(char* port);
     bool isConnected();			/* Ritorna vero se la comunicazione è aperta altrimento falso */
     void setDebug(bool);
 

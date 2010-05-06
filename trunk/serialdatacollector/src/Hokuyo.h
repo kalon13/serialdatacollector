@@ -18,8 +18,6 @@ class Hokuyo: public SerialDevice {
 private:
 	char* device;
 	qrk::UrgCtrl* urg;
-
-
 public:
 	Hokuyo();
 	virtual ~Hokuyo();

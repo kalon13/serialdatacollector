@@ -215,7 +215,7 @@ bool SerialGps::readData(char** str, NMEASTRING tipo){
 	int i=0,j=0, count=0;
 
 	do {
-		char* sentence = new char[84];
+		char* sentence = new char[128];
 		length = SerialDevice::readData(&data[0],256);
 
 		for(i=0; i<length; i++){

@@ -23,6 +23,8 @@ Camera::~Camera() {
 	delete(cap);
 }
 
+/* Quando ho fatto diventare camera sottoclasse di SerialDevice
+ * questo metodo è inutile.... si usano gli altri 2 */
 void Camera::getPhoto(char* path) {
 	string percorso(path);
 	Mat frame;
@@ -48,7 +50,7 @@ void Camera::getPhoto(char* path) {
 	waitKey(wait_time);
 }
 
-int Camera::readData() {
+bool Camera::readData() {
 	if(isConnected()) {
 		*cap >> frame;
 		clock_gettime(CLOCK_REALTIME, &nano);
@@ -58,12 +60,12 @@ int Camera::readData() {
 		params.push_back(CV_IMWRITE_PNG_COMPRESSION);
 		params.push_back(3);
 		shot=true;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
-int Camera::writeData(char* path) {
+bool Camera::writeData(char* path) {
 	if(shot) {
 		string percorso(path);
 		int nano_sec = nano.tv_nsec;
@@ -80,9 +82,9 @@ int Camera::writeData(char* path) {
 		shot=false;
 		//usleep(wait_time);
 		waitKey(wait_time);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 bool Camera::openCommunication(int cam, int wait) {

@@ -16,10 +16,11 @@
 #include <string.h>
 #include "cv.h"
 #include "highgui.h"
+#include "SerialDevice.h"
 
 using namespace cv;
 
-class Camera {
+class Camera: public SerialDevice {
 private:
 	VideoCapture *cap;
 	int wait_time;
@@ -41,11 +42,11 @@ public:
 	static bool camera_flag;*/
 	Camera();
 	virtual ~Camera();
-	bool openCommunication(int cam, int wait);
+	bool openCommunication(int cam=0, int wait=200);
 	void getPhoto(char* path);
 	bool isConnected();
-	int readData();
-	int writeData(char* path);
+	bool readData();
+	bool writeData(char* path);
 };
 
 #endif
