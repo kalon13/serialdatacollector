@@ -59,11 +59,13 @@ int main(int argc, char* argv[]) {
 		do
 		{
 			tipo_ok = false;
+			tipo = 0;
 			cout << "Specificare il tipo di raccolta dati compiuta dal Robot" << endl << "(1 --> Raccolta dati Statica, 2 --> Raccolta dati Dinamica)" << endl;
 			cin >> tipo;
 			tipo_ok = dataset->setType(tipo);
-			if(tipo_ok == false)
+			if(tipo_ok == false) {
 				cout << "Inserisci solo 1 o 2！" << endl;
+			}
 		}
 		while(!tipo_ok);
 
@@ -114,7 +116,9 @@ void* camAcquisition(void* i){
 	ThreadedDevice dev = d.at(n);
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
-			((Camera*)dev.device)->getPhoto(dev.path);
+			//((Camera*)dev.device)->getPhoto(dev.path);
+			((Camera*)dev.device)->readData();
+			((Camera*)dev.device)->writeData(dev.path);
 			 dev = d.at(n);
 		}
 		 dev = d.at(n);
@@ -356,9 +360,9 @@ void* Shell() {
 			arg++;
 		}
 
-		/*
-		 * PARSE COMMAND
-		 * */
+		/* ----------------------------- *
+		 * PARSE COMMAND				 *
+		 * ----------------------------- */
 		if(cmd.compare("insert")==0)
 			cmdInsert(parameters);
 		else if(cmd.compare("start")==0)
@@ -377,8 +381,8 @@ void* Shell() {
 			quit = cmdQuit();
 		else if(cmd.compare("help")==0)
 			cmdHelp(parameters);
-		//else
-			//invio = true;
+		else if(cmd[0] == '\n')
+			invio = true;
 
 	}
 	while(!quit);
@@ -762,7 +766,25 @@ void cmdShow(svec arg) {
 				cout << "Nessun dispositivo inserito" << endl;
 		}
 		else if(arg[0].compare("port")==0) {
-			cout << "Comando non ancora implementato" << endl;
+			vector<string> porte_valide;
+			string seriali("/dev/ttyS");
+			string usb("/dev/ttyUSB");
+			for(int i=0; i<4; ++i) {
+				stringstream numero;
+				numero << i;
+				string porta(seriali.append(numero.str()));
+				if(SerialDevice::tryOpenCommunication((char*)porta.c_str()))
+					porte_valide.push_back(porta);
+			}
+			for(int i=0; i<32; ++i) {
+				stringstream numero;
+				numero << i;
+				string porta(usb.append(numero.str()));
+				if(SerialDevice::tryOpenCommunication((char*)porta.c_str()))
+					porte_valide.push_back(porta);
+			}
+			for(unsigned int i=0; i<porte_valide.size(); ++i)
+				cout << porte_valide[i] << endl;
 		}
 		else
 			cout << "Per info sull'uso di 'show' digitare: 'help show'" << endl;
@@ -811,10 +833,13 @@ void cmdDebug(svec arg) {
 bool cmdQuit() {
 	bool qualcuno_attivo = some_thread_active();
 	char r;
-	if(qualcuno_attivo)
+	if(qualcuno_attivo) {
 		cout << "Ci sono alcuni thread ancora attivi..." << endl;
-	cout << "Sei sicuro di voler chiudere il programma?(s/N) ";
-	cin >> r;
+		cout << "Sei sicuro di voler chiudere il programma?(s/N) ";
+		cin >> r;
+	}
+	else
+		r='s';
 	if(r=='s')
 		return true;
 	return false;

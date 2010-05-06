@@ -439,7 +439,7 @@ bool SerialDevice::setPortParameters2(int baudRate, int dataBits, PARITY parity,
 bool SerialDevice::tryOpenCommunication(char* port) {
     int portHandle;
 
-    portHandle = open(port, O_RDONLY);
+    portHandle = open(port, O_RDWR | O_NDELAY);
 
     if(portHandle<0)
         return false;
