@@ -14,17 +14,18 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <string>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include <fstream>
+
+#define RAWSEED_GPS_FILE "GPS.csv"
+#define RAWSEED_IMU_FILE "IMU_STRETCHED.csv"
+
 #define BUFFER_LENGTH 32
 #define RAWSEED_FOLDER "/RawSeedDataSet"
 
 class RawSeed {
 private:
-
 	// Variabili che servono per compiere le operazioni sulle directory
 	struct stat tp;
 	DIR* path;

@@ -28,26 +28,6 @@ SerialGps::~SerialGps() {
 
 bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits) {
 	return SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits);
-	/*unsigned char p[4096];
-	char risp='n';
-	do{
-		if(!SerialDevice::openCommunication(port,baudRate,dataBits,parity,stopBits)) {
-			cout << "cacca" << errorExplained << endl;
-		}
-		if(SerialDevice::readData(&p[0],4096)>0) {
-			//for(int i=0; i<4096; ++i)
-				//cout << p[i];
-			return true;
-		}
-		closeCommunication();
-		cout << errorExplained << endl;
-		if(risp!='a') {
-			cout << "Ritento?(s\\N\\a)";
-			cin >> risp;
-		}
-	}
-	while(risp=='s' || risp=='a');
-	return false;*/
 }
 
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa
@@ -65,105 +45,6 @@ NMEASTRING SerialGps::decode(unsigned char* sentence)
 		else
 			return SCONOSCIUTO;
 }
-/*
-void decode_GPRMC(unsigned char *sentence,this.NMEA_GPRMC *gprmc)
-{
-	sscanf((const char*)sentence+7, "%lf,%c,%lf,%c,%lf,%c,%lf,%lf,%d,%lf,%c,%c",
-	    (&gprmc->utc),(&gprmc->status),(&gprmc->latitude),(&gprmc->latitude_hemisphere),(&gprmc->longitude),(&gprmc->longitude_hemisphere),
-	    (&gprmc->speed),(&gprmc->course),(&gprmc->utc_date),(&gprmc->magnetic_variation),(&gprmc->magnetic_variation_direction),
-	    (&gprmc->mode_indicator));
-
-}
-void decode_GPGGA(unsigned char *sentence,NMEA_GPRMC *gpgga)
-{
-	sscanf((const char*)sentence+7, "%lf,%lf,%c,%lf,%c,%d,%d,%lf,%lf,%c,%lf,%c,%lf,%d",
-	&gpgga->utc,&gpgga->latitude,&gpgga->latitude_hemisphere,&gpgga->longitude,&gpgga->longitude_hemisphere,
-	&gpgga->position_fix,&gpgga->number_of_satellites,&gpgga->horizontal_dilution_precision,&gpgga->antenna_height,
-	&gpgga->units_height,&gpgga->geoidal_height,&gpgga->units_separation,&gpgga->time_last_update,&gpgga->dgps_id);
-
-}
-
-void SerialGps::store_data(unsigned char *data,int byte)
-{
-FILE *gprmc;
-FILE *gpgga;
-unsigned int byte_read,i,j,count,type_sentence,checksum;
-unsigned char sentence[2048];
-
-
-i=0;
-j=0;
-count=0;
-
-	if(byte> 0)
-	{
-	  //lunghezza
-		 for(i=0; i<byte; i++)
-		  {
-		      if(data[i] == (unsigned char)'$')
-		           {
-		              count++;
-		           }
-		           else
-		           {
-		              count = 0;
-		           }
-
-		           if(count == 1)
-		           {
-		              j = 1;
-		              sentence[0] = '$';
-
-		           }
-
-		           if(j > 0 && data[i]!=(unsigned char)'$')
-		           {
-		              sentence[j] = data[i];
-		              j++;
-		           }
-
-		           if(data[i] == '\n' && j > 0)
-		           {
-		              sentence[j] = '\0';
-		              j = -1;
-		           }
-	  }
-	  type_sentence = decode(sentence);
-
-	  switch(type_sentence)
-	  {
-	  case 1:
-		 gprmc = fopen ("gprmc.cvs", "a");
-		  //stampo sul file gprmc.csv i dati GPRMC
-		  if(CheckChecksum(sentence))
-			  printf("CHECKSUM CORRETTO");
-		  else
-			  printf("CHECKSUM SBAGLIATO");
-		 printf("%s",sentence);
-		  fprintf(gprmc,(const char*)sentence);
-		  fclose(gprmc);
-	  break;
-	  case 2:
-		  if(CheckChecksum(sentence))
-			  printf("CHECKSUM CORRETTO");
-		  else
-			  printf("CHECKSUM SBAGLIATO");
-		  gpgga = fopen ("gpgga.cvs", "a");
-		  //stampo sul file gpgga.csv i dati GPGGA
-		  printf("%s",sentence);
-		  fprintf(gpgga,(const char*)sentence);
-		  fclose(gpgga);
-		  break;
-	  default:
-		  break;
-	  }
-
-	}
-	else
-	{
-		//return error
-	}
-}*/
 
 bool SerialGps::CheckChecksum(unsigned char* packet)
 {
@@ -216,7 +97,7 @@ bool SerialGps::readData(char** str, NMEASTRING tipo){
 
 	do {
 		char* sentence = new char[128];
-		length = SerialDevice::readData(&data[0],256);
+		length = SerialDevice::readData(&data[0],255);
 
 		for(i=0; i<length; i++){
 			if(data[i] == (unsigned char)'$')

@@ -10,9 +10,6 @@
 
 #ifndef CAMERA
 #include <time.h>
-#include <iostream>
-#include <time.h>
-#include <string>
 #include <string.h>
 #include "cv.h"
 #include "highgui.h"
@@ -46,7 +43,7 @@ public:
 	void getPhoto(char* path);
 	bool isConnected();
 	bool readData();
-	bool writeData(char* path);
+	bool writeData(char* path, char* name=NULL);
 };
 
 #endif
