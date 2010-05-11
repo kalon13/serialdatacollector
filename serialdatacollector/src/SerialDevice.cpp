@@ -59,16 +59,16 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	timeout.tv_sec  = 0;        /* seconds */
 	FD_ZERO(&readfs);
 	FD_SET(portNum, &readfs);  /* set testing for portHandle */
-	if (DEBUG) cout << "Waiting for port to respond\n";
+	//if (DEBUG) cout << "Waiting for port to respond\n";
 	//portCount = select(maxPorts, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
 	int portCount = select(portNum+1, &readfs, NULL, NULL, &timeout);  /* block until input becomes available */
 	//cout << portNum << " " << portCount << endl;
 	if ((portCount==0) || (!FD_ISSET(portNum, &readfs))) {
-		if (DEBUG) cout << " - timeout expired!\n" ;
+		//if (DEBUG) cout << " - timeout expired!\n" ;
 		errorExplained = "timeout expired";
 		return -1;
 	}
-	if (DEBUG) cout << "Time remaining " << timeout.tv_usec/1000 << "ms.\n";
+	//if (DEBUG) cout << "Time remaining " << timeout.tv_usec/1000 << "ms.\n";
 
 	/* Read data into the response buffer.
 	 * until we get enough data or exceed the maximum
@@ -78,16 +78,16 @@ int SerialDevice::readData(unsigned char* data, int lengthExpected)
 	attempts = 0;
 	while (bytesRead < lengthExpected && attempts++ < MAXATTEMPTS) {
 		n=read(portNum, &inchar, 1);
-		if (DEBUG)
-			cout << n << inchar;
+		//if (DEBUG)
+			//cout << n << inchar;
 		if (n == 1)
 			data[bytesRead++] = inchar;
 		else
 			sleep(WAITCHARTIME);  /* sleep a while for next byte. */
 		//cout << "hei" << endl;
 	}
-	if (DEBUG) cout << "\nattempts" << attempts;
-	if (DEBUG) cout << "\nreceiveData: bytes read: " << bytesRead << "\texpected: " << lengthExpected << endl;
+	//if (DEBUG) cout << "\nattempts" << attempts;
+	//if (DEBUG) cout << "\nreceiveData: bytes read: " << bytesRead << "\texpected: " << lengthExpected << endl;
 
 	if (bytesRead != lengthExpected) {
 		errorExplained = "Risposta di lunghezza non aspettata\n";

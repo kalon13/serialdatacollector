@@ -4,48 +4,49 @@
  *  Created on: 18/mar/2010
  *      Author: studenti
  */
-
-#include "RawSeed.h"
-#include "SerialDevice.h"
-#include "Camera.h"
-#include <vector>
-
-#define MAX_SENSOR 8
-
 #ifndef MAIN_H_
 #define MAIN_H_
 
+#include <vector>
+#include "RawSeed.h"
+#include "SerialDevice.h"
+
+#define MAX_SENSOR 8
 #define DIM_BUFFER_GPS 1
 #define DIM_BUFFER_IMU 32
 #define DIM_BUFFER_HOKUYO 8
+
+using namespace std;
 
 typedef vector<string> svec;
 enum DevId {NOTHING=9, GPS=0, IMU=1, CAM=2, HOK=3};
 enum Stato {PRONTO, ATTIVO, PAUSA, TERMINATO};
 
-/*TODO: Miglioramento thread/vector
- * Eventualmente trasformare l'array dei thread in un vector e creare una struttura che riunisce
- * threadeddevice e il thread
- */
 struct ThreadedDevice {
 	DevId identifier;
 	void* device;
 	char* path;
 	Stato stato;
-	int pid_t;
+	pthread_t pid;
 	short debug;	//0=Nessuna scritta; //1=Poche scritte; //2=Tutto
 };
 
-vector<ThreadedDevice> d;
-int num_disp;
-pthread_t thr[MAX_SENSOR];
-int pidt[MAX_SENSOR];
 RawSeed* dataset;
+int num_disp;
+vector<ThreadedDevice> d;
+
+bool some_thread_active(bool conta_in_pausa = false);
+string devKind(DevId n);
+string thrState(Stato stato);
 
 void* camAcquisition(void* i);
 void* gpsAcquisition(void* i);
 void* imuAcquisition(void* i);
 void* hokAcquisition(void* i);
+
+void StartThread(int start, int stop);
+void PauseThread(int start, int stop);
+void StopThread(int start, int stop);
 
 void* Shell();
 void cmdStart(svec arg);
@@ -57,10 +58,6 @@ bool cmdQuit();
 void cmdHelp(svec arg);
 void cmdInsert(svec arg);
 void cmdCalibration();
-
-bool some_thread_active();
-string devKind(DevId n);
-string thrState(Stato stato);
 
 
 #endif /* MAIN_H_ */
