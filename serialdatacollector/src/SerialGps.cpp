@@ -12,7 +12,7 @@
 //#include <unistd.h>
 //#include <fcntl.h>
 //#include <sys/types.h>
-//#include <time.h>
+#include <time.h>
 //#include <termios.h>
 
 using namespace std;
@@ -92,14 +92,23 @@ bool SerialGps::CheckChecksum(unsigned char* packet)
 bool SerialGps::readData(char** str, NMEASTRING tipo){
 	bool find = false;
 	unsigned char data[256];
-	int length;
+	int length_read;
 	int i=0,j=0, count=0;
 
 	do {
+		struct timespec crono1,crono2;
 		char* sentence = new char[128];
-		length = SerialDevice::readData(&data[0],255);
+		memset(sentence, '\0', 128);
+		memset(data, '\0', 256);
 
-		for(i=0; i<length; i++){
+		length_read = read(portNum, &data[0], 255);
+/*		clock_gettime(CLOCK_REALTIME, &crono2);
+		crono2.tv_nsec -= crono1.tv_nsec;
+		crono2.tv_sec -= crono1.tv_sec;
+		cout << "Ho letto i dati in: " << crono2.tv_sec << "." << crono2.tv_nsec << endl;*/
+
+		clock_gettime(CLOCK_REALTIME, &crono1);
+		for(i=0; i<length_read && !find; i++){
 			if(data[i] == (unsigned char)'$')
 				count++;
 			else
@@ -119,15 +128,16 @@ bool SerialGps::readData(char** str, NMEASTRING tipo){
 				sentence[j-1] = '\0';
 				j = -1;
 			}
+
+			if(decode((unsigned char*)sentence)==tipo && j==-1) {
+				if(CheckChecksum((unsigned char*) sentence)) {
+					find = true;
+					*str = sentence;
+				}
+			}
+
 		}
 
-
-		if(decode((unsigned char*)sentence)==tipo) {
-			//if(CheckChecksum((unsigned char*) sentence)) {
-				find = true;
-				*str = sentence;
-			//}
-		}
 	}
 	while(!find);
 	return true;
