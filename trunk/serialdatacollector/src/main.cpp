@@ -380,7 +380,7 @@ void cmdInsert(svec arg) {
 				td.debug = 0;
 
 				string pcomp(path);
-				pcomp.append("/GPS.cvs");
+				pcomp.append("/GPS.csv");
 				char* pcomp2 = new char[200];
 				strcpy(pcomp2, pcomp.c_str());
 
@@ -416,7 +416,7 @@ void cmdInsert(svec arg) {
 				td.debug = 0;
 
 				string pcomp(path);
-				pcomp.append("/IMU_STRETCHED.cvs");
+				pcomp.append("/IMU_STRETCHED.csv");
 				char* pcomp2 = new char[200];
 				strcpy(pcomp2, pcomp.c_str());
 				td.path = pcomp2;
@@ -477,7 +477,7 @@ void cmdInsert(svec arg) {
 				td.debug = 0;
 
 				string pcomp(path);
-				pcomp.append("/HOKUYO.cvs");
+				pcomp.append("/HOKUYO.csv");
 				char* pcomp2 = new char[200];
 				strcpy(pcomp2, pcomp.c_str());
 
@@ -731,45 +731,46 @@ void* hokAcquisition(void* i){
 	long timestamp;
 	int righe_scritte;
 
-		if(dev.debug>0)
-			cout << "Il thread dell'hokuyo è partito"<< endl;
-		while(dev.stato!=TERMINATO) {
-			while(dev.stato==ATTIVO) {
-				righe_scritte = 0;
-				for(int j=0; j<DIM_BUFFER_HOKUYO; ++j) {
-					int t = ((Hokuyo*)dev.device)->readData(&vet, &timestamp);
-					if(t > 0){
-						out << timestamp;
-						for(int k=0; k<t; ++k)
-							out << "," << vet[k];
-						out << endl;
-						++righe_scritte;
-						buffer.push_back(out.str());
-						if(dev.debug>1)
-							cout << "#" << i  << ": " << vet[0] << endl;
-					}
-					else
-						if(dev.debug>1)
-							cout << "# " << i << ": Errore di lettura" << endl;
+	if(dev.debug>0)
+		cout << "Il thread dell'hokuyo è partito"<< endl;
+	while(dev.stato!=TERMINATO) {
+		while(dev.stato==ATTIVO) {
+			righe_scritte = 0;
+			for(int j=0; j<DIM_BUFFER_HOKUYO; ++j) {
+				int t = ((Hokuyo*)dev.device)->readData(&vet, &timestamp);
+				if(t > 0){
+					out << timestamp;
+					for(int k=0; k<t; ++k)
+						out << "," << vet[k];
+					out << endl;
+					++righe_scritte;
+					buffer.push_back(out.str());
+					if(dev.debug>1)
+						cout << "#" << i  << ": " << vet[0] << endl;
 				}
-
-				file.open(dev.path, ios::app);
-				if(!file.is_open()) {
-						cout << "Impossibile accedere al file" << dev.path;
-				}
-				for(int j=0; j<righe_scritte; ++j) {
-					file << buffer[j] << "\n";
-				}
-
-				if(dev.debug>0)
-					cout << "L'hokuyo ha scritto su file" << endl;
-				file.close();
-
-				dev = d.at(n);
+				else
+					if(dev.debug>1)
+						cout << "# " << i << ": Errore di lettura" << endl;
 			}
+
+			file.open(dev.path, ios::app);
+			if(!file.is_open()) {
+					cout << "Impossibile accedere al file" << dev.path;
+			}
+			for(int j=0; j<righe_scritte; ++j) {
+				file << buffer[j] << "\n";
+			}
+
+			if(dev.debug>0)
+				cout << "L'hokuyo ha scritto su file" << endl;
+			file.close();
+
+			buffer.clear();
 			dev = d.at(n);
 		}
-	buffer.clear();
+		dev = d.at(n);
+	}
+
 	if(dev.debug>0)
 		cout << "Hokuyo thread ended" << endl;
 #endif
@@ -803,7 +804,7 @@ void* gpsAcquisition(void* i) {
 				char* x;
 				struct timespec ts;
 				clock_gettime(CLOCK_REALTIME, &ts);
-				if(((SerialGps*)dev.device)->readData(&x, GPGGA)) {
+				if(((SerialGps*)dev.device)->readData(&x,NMEA_GPGGA)) {
 					stringstream ss;
 					ss << (int)ts.tv_sec << "." << (int)ts.tv_nsec << "," << x;
 					buffer.push_back(ss.str());
@@ -826,7 +827,6 @@ void* gpsAcquisition(void* i) {
 			if(dev.debug>0)
 				cout << "Il gps ha scritto su file" << endl;
 			file.close();
-			buffer.clear();
 
 			if(conta==8) {
 				file_ultimo.open(p2, ios::out);
@@ -837,6 +837,8 @@ void* gpsAcquisition(void* i) {
 				conta=-1;
 			}
 			++conta;
+
+			buffer.clear();
 		}
 		dev = d.at(n);
 	}
@@ -897,7 +899,6 @@ void* imuAcquisition(void* i) {
 			if(dev.debug>0)
 				cout << "L'imu ha scritto su file" << endl;
 			file.close();
-			buffer.clear();
 
 			if(conta==16) {
 				file_ultimo.open(p2, ios::out);
@@ -908,6 +909,8 @@ void* imuAcquisition(void* i) {
 				conta=-1;
 			}
 			++conta;
+
+			buffer.clear();
 		}
 		dev = d.at(n);
 	}
