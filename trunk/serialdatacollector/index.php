@@ -173,7 +173,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	$DS_dc = opendir($dataset);
 	while ($DS_filename = readdir($DS_dc)) {
 		if (ereg('^\.{1,2}$',$DS_filename)) continue;
-		$DS_timedat = filemtime("$dataset/$fn1");
+		$DS_timedat = filemtime("$dataset/$DS_filename");
 		if ($DS_timedat > $DS_newstamp) {
 			$DS_newstamp = $DS_timedat;
 			$lastdir = $DS_filename;
@@ -191,7 +191,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	while ($IMG_filename = readdir($IMG_dc)) {
 	  if (ereg('^\.{1,2}$',$IMG_filename)) continue;
 	  if (! ereg($IMG_pattern,$IMG_filename)) continue;
-	  $IMG_timedat = filemtime("$dir/$fn");
+	  $IMG_timedat = filemtime("$dir/$IMG_filename");
 	  if ($IMG_timedat > $IMG_newstamp) {
 		$IMG_newstamp = $IMG_timedat;
 		$IMG_newname = $IMG_filename;
@@ -219,8 +219,8 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 
 	/*OUTPUT DEI DATI*/
 	echo "<p>DataSet: $lastdir</p>";
-	echo "<p>$GPS_Data</p>";
-	echo "<p>$IMU_Data</p>";
+	echo "<p>GPS:<br />$GPS_Data</p>";
+	echo "<p>IMU:<br />$IMU_Data</p>";
 
 	if(IMG_newstamp!=0)
 		echo "<img src=\"$IMG_path\" />";

@@ -804,6 +804,10 @@ void* gpsAcquisition(void* i) {
 				char* x;
 				struct timespec ts;
 				clock_gettime(CLOCK_REALTIME, &ts);
+				/* NMEA_GPGGA, NMEA_GPRMC, NMEA_GPSV, NMEA_GSA
+				 * Si possono decidere le stringhe da estrarre passandole come parametri
+				 * ES: readData(&x,NMEA_GPGGA | NMEA_GPRMC)
+				 * per estrarre le gpgga e le gprmc */
 				if(((SerialGps*)dev.device)->readData(&x,NMEA_GPGGA)) {
 					stringstream ss;
 					ss << (int)ts.tv_sec << "." << (int)ts.tv_nsec << "," << x;
