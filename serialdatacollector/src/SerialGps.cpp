@@ -9,11 +9,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <cstring>
-//#include <unistd.h>
-//#include <fcntl.h>
-//#include <sys/types.h>
-#include <time.h>
-//#include <termios.h>
 
 using namespace std;
 
@@ -32,18 +27,25 @@ bool SerialGps::openCommunication(char* port, int baudRate, int dataBits, PARITY
 
 // questo metodo ritona numero da 0 a 4 che identifica che tipologia di stringa
 // NMEA è stata letta
-NMEASTRING SerialGps::decode(unsigned char* sentence)
+bool SerialGps::decode(unsigned char* sentence, int tipo)
 {
-		if(strncmp((const char *)sentence,"$GPRMC",6) == 0)
-			return GPRMC;
-		if(strncmp((const char *)sentence,"$GPGGA",6) == 0)
-			return GPGGA;
-		if(strncmp((const char *)sentence,"$GPGSA",6) == 0)
-			return GPGSA;
-		if(strncmp((const char *)sentence,"$GPGSV",6) == 0)
-			return GPGSV;
-		else
-			return SCONOSCIUTO;
+		if(strncmp((const char *)sentence,"$GPRMC",6) == 0) {
+			if(tipo==2 || tipo==3 || tipo==6 || tipo==10)
+				return true;
+		}
+		if(strncmp((const char *)sentence,"$GPGGA",6) == 0) {
+			if(tipo==1 || tipo==3 || tipo==5 || tipo==9)
+				return true;
+		}
+		if(strncmp((const char *)sentence,"$GPGSA",6) == 0) {
+			if(tipo==4 || tipo==5 || tipo==6 || tipo==12)
+				return true;
+		}
+		if(strncmp((const char *)sentence,"$GPGSV",6) == 0) {
+			if(tipo==8 || tipo==9 || tipo==10 || tipo==12)
+				return true;
+		}
+		return false;
 }
 
 bool SerialGps::CheckChecksum(unsigned char* packet)
@@ -89,25 +91,19 @@ bool SerialGps::CheckChecksum(unsigned char* packet)
 	  return false;
 }
 
-bool SerialGps::readData(char** str, NMEASTRING tipo){
+bool SerialGps::readData(char** str, int tipo){
 	bool find = false;
 	unsigned char data[256];
 	int length_read;
 	int i=0,j=0, count=0;
 
 	do {
-		struct timespec crono1,crono2;
 		char* sentence = new char[128];
 		memset(sentence, '\0', 128);
 		memset(data, '\0', 256);
 
 		length_read = read(portNum, &data[0], 255);
-/*		clock_gettime(CLOCK_REALTIME, &crono2);
-		crono2.tv_nsec -= crono1.tv_nsec;
-		crono2.tv_sec -= crono1.tv_sec;
-		cout << "Ho letto i dati in: " << crono2.tv_sec << "." << crono2.tv_nsec << endl;*/
 
-		clock_gettime(CLOCK_REALTIME, &crono1);
 		for(i=0; i<length_read && !find; i++){
 			if(data[i] == (unsigned char)'$')
 				count++;
@@ -129,7 +125,7 @@ bool SerialGps::readData(char** str, NMEASTRING tipo){
 				j = -1;
 			}
 
-			if(decode((unsigned char*)sentence)==tipo && j==-1) {
+			if(decode((unsigned char*)sentence,tipo) && j==-1) {
 				if(CheckChecksum((unsigned char*) sentence)) {
 					find = true;
 					*str = sentence;

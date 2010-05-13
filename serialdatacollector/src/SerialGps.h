@@ -8,9 +8,9 @@
 #ifndef SERIALGPS_H_
 #define SERIALGPS_H_
 #include "SerialDevice.h"
-#include <fstream>
+//#include <fstream>
 
-typedef struct {
+/*typedef struct {
 		 double utc;
 		 unsigned char status;
 		 double latitude;
@@ -42,14 +42,18 @@ typedef struct {
 		 double time_last_update;
 		 int dgps_id;
 		 short unsigned int CHECKSUM;
-		 } NMEA_GPGGA;
+		 } NMEA_GPGGA;*/
 
-enum NMEASTRING {GPGGA, GPRMC, GPGSA, GPGSV, SCONOSCIUTO};
+//enum NMEASTRING {GPGGA=1, GPRMC=2, GPGSA=4, GPGSV=8, SCONOSCIUTO=0};
+#define NMEA_GPGGA	1
+#define NMEA_GPRMC	2
+#define NMEA_GPGSA	4
+#define NMEA_GPGSV	8
 
 class SerialGps:public SerialDevice {
 private:
     bool CheckChecksum(unsigned char* packet);
-	NMEASTRING decode(unsigned char* sentence);
+	bool decode(unsigned char* sentence, int tipo);
 
 	char* pathtofile;
     //void decode_GPRMC(unsigned char* sentence,NMEA_GPRMC* gprmc);
@@ -59,12 +63,12 @@ public:
     void print_SatNum(unsigned char* sentence, unsigned short int byte);
     void print_Long(unsigned char* sentence, unsigned short int byte);
     void print_Lang(unsigned char* sentence, unsigned short int byte);*/
-    bool readData(char** str, NMEASTRING tipo);	//Se ci sono errori restituisce NULL altrimenti la stringa completa
+    bool readData(char** str, int tipo);	//Se ci sono errori restituisce NULL altrimenti la stringa completa
     bool openCommunication(char* port, int baudRate=38400, int dataBits=8, PARITY parity=NONE, int stopBits=1);
     bool closeCommunication();
     //bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
-    void getGPRMC(NMEA_GPRMC&);
-    void getGPGGA(NMEA_GPGGA&);
+    //void getGPRMC(NMEA_GPRMC&);
+    //void getGPGGA(NMEA_GPGGA&);
 
     SerialGps();
 	virtual ~SerialGps();
