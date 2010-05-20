@@ -4,7 +4,7 @@
 // Version		: 0.1
 // Last Modify	: 28/04/2010
 // Copyright	: GPL v3
-// Description	: A program that collects data from serial device
+// Description	: A program that collects data from serial device, like imu, gps, Hokuyo etc....
 //============================================================================
 
 #include <iostream>
@@ -43,6 +43,9 @@ int main(int argc, char* argv[]) {
 	/*TODO: Miglioramento comandi
 	 * Vedere se si possono mettere tutte queste richieste come comandi
 	 */
+
+	cout << "Sto iniziando l'inizializzazione dei dati...." << endl;
+
 	do
 	{
 		flag = false;
@@ -432,13 +435,37 @@ void cmdInsert(svec arg) {
 		}
 		case CAM: {
 #ifndef CAMERA
-			int c, wait;
-			cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
-			cin >> c;
+			int c, wait, tipo;
+			string ip_cam("http://192.168.10.100/mjpg/video.mjpg");
+			do
+			{
+				cin.ignore();
+				cout << "Specifica il tipo di telecamare che disponi nel robot" << endl << "(specifica:" << endl << "0 --> USB Camera" << endl << "1 --> Ip Camera" << endl << "2 --> Ip camera di Default(modello Axis 211)" << endl;
+				cin >> tipo;
+			}
+			while(tipo < 0 || tipo > 2);
+
+			if(tipo == 1)
+			{
+				cout << "Inserisci l'indirizzo http della telecamera, specificando tutto il percorso fino al video." << endl << "(Formato consigliato: mjpeg)" << endl;
+				cin >> ip_cam;
+			}
+			else if(tipo == 0)
+			{
+				cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
+				cin >> c;
+			}
+
 			cout << "Inserisci i millisecondi di attesa tra lo scatto di una foto e la successiva. " << endl;
 			cin >> wait;
+
 			Camera* cam = new Camera();
-			ok = cam->openCommunication(c, wait);
+
+			if(tipo)
+				ok = cam->openCommunication(ip_cam.c_str(), wait);
+			else
+				ok = cam->openCommunication(c, wait);
+
 			if(ok) {
 				ThreadedDevice td;
 				td.identifier = CAM;

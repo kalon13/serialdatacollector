@@ -40,6 +40,7 @@ public:
 	Camera();
 	virtual ~Camera();
 	bool openCommunication(int cam=0, int wait=200);
+	bool openCommunication(const char* ip, int wait);
 	void getPhoto(char* path);
 	bool isConnected();
 	bool readData();
