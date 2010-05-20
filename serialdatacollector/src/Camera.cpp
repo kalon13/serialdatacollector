@@ -58,6 +58,7 @@ bool Camera::readData() {
 		leggibile = localtime(&rawtime);
 
 		params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+		//params.push_back(CV_IMWRITE_JPEG_QUALITY);
 		params.push_back(3);
 		shot=true;
 		return true;
@@ -78,7 +79,7 @@ bool Camera::writeData(char* path, char* name) {
 			out << hour << "-" << min << "-" << second << "-" << nano_sec;
 			ora = out.str();
 			string filename;
-			filename = percorso + "/" + ora + ".png";
+			filename = percorso + "/" + ora + ".jpg";
 			imwrite(filename, frame, params);
 		}
 		else
@@ -92,7 +93,9 @@ bool Camera::writeData(char* path, char* name) {
 }
 
 bool Camera::openCommunication(int cam, int wait) {
-	cap->open(cam); // Open the selected Camera 0 for Default
+	cap->open("http://192.168.10.100/mjpg/video.mjpg");
+	//cap->open("rtsp://192.168.10.100:554/mpeg4/media.amp");
+	//cap->open(cam); // Open the selected Camera 0 for Default
 	if(!cap->isOpened())  // check if we succeeded
 		return false;
 	wait_time = wait;
