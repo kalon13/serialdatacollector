@@ -93,9 +93,14 @@ bool Camera::writeData(char* path, char* name) {
 }
 
 bool Camera::openCommunication(int cam, int wait) {
-	cap->open("http://192.168.10.100/mjpg/video.mjpg");
-	//cap->open("rtsp://192.168.10.100:554/mpeg4/media.amp");
-	//cap->open(cam); // Open the selected Camera 0 for Default
+	cap->open(cam);
+	if(!cap->isOpened())  // check if we succeeded
+		return false;
+	wait_time = wait;
+	return true;
+}
+bool Camera::openCommunication(const char* ip, int wait) {
+	cap->open(ip);
 	if(!cap->isOpened())  // check if we succeeded
 		return false;
 	wait_time = wait;
