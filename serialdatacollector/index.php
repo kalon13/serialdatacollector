@@ -199,7 +199,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	}
 	$IMG_path = $dir."/".$IMG_newname;
 	/*VERIFICA SE ESISTE IL FILE DELLA IMU E LO LEGGE*/
-	$IMU_File = $dir."/"."IMU_STRETCHED.cvs.u";
+	$IMU_File = $dir."/"."IMU_STRETCHED.csv.u";
 	if(file_exists ($IMU_File)) {
 		$fh = fopen($IMU_File, 'r');
 		$IMU_Data = fread($fh, filesize($IMU_File));
@@ -208,7 +208,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	else
 		$IMU_Data = "Il file della imu non esiste!";
 	/*VERIFICA SE ESISTE IL FILE DEL GPS E LO LEGGE*/
-	$GPS_File = $dir."/"."GPS.cvs.u";
+	$GPS_File = $dir."/"."GPS.csv.u";
 	if(file_exists($GPS_File)) {
 		$fh = fopen($GPS_File, 'r');
 		$GPS_Data = fread($fh, filesize($GPS_File));
@@ -222,7 +222,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	echo "<p>GPS:<br />$GPS_Data</p>";
 	echo "<p>IMU:<br />$IMU_Data</p>";
 
-	if(IMG_newstamp!=0)
+	if($IMG_newstamp!=0)
 		echo "<img src=\"$IMG_path\" />";
 	else
 		echo "<p>Nessuna immagine presente!</p>";
