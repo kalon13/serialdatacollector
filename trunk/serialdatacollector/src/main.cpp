@@ -435,11 +435,10 @@ void cmdInsert(svec arg) {
 		}
 		case CAM: {
 #ifndef CAMERA
-			int c, wait, tipo;
+			int c, wait, tipo=2;
 			string ip_cam("http://192.168.10.100/mjpg/video.mjpg");
 			do
 			{
-				cin.ignore();
 				cout << "Specifica il tipo di telecamare che disponi nel robot" << endl << "(specifica:" << endl << "0 --> USB Camera" << endl << "1 --> Ip Camera" << endl << "2 --> Ip camera di Default(modello Axis 211)" << endl;
 				cin >> tipo;
 			}
