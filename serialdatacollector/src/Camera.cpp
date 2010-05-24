@@ -69,25 +69,27 @@ bool Camera::readData() {
 bool Camera::writeData(char* path, char* name) {
 	if(shot) {
 		string percorso(path);
-		if(name==NULL) {
-			int nano_sec = nano.tv_nsec;
-			int second = leggibile->tm_sec;
-			int min = leggibile->tm_min;
-			int hour = leggibile->tm_hour;
-			stringstream out;
-			string ora;
-			out << hour << "-" << min << "-" << second << "-" << nano_sec;
-			ora = out.str();
-			string filename;
-			filename = percorso + "/" + ora + ".jpg";
-			imwrite(filename, frame, params);
-		}
+		bool ok;
+
+		int nano_sec = nano.tv_nsec;
+		int second = leggibile->tm_sec;
+		int min = leggibile->tm_min;
+		int hour = leggibile->tm_hour;
+		stringstream out;
+		string ora;
+		out << hour << "-" << min << "-" << second << "-" << nano_sec;
+		ora = out.str();
+		string filename;
+		if(name == NULL)
+			filename = percorso + "/" + ora + ".png";
 		else
-			imwrite(name, frame, params);
+			filename = percorso + "/" + name + ".png";
+		ok = imwrite(filename, frame, params);
+
 		shot=false;
-		//usleep(wait_time);
+
 		waitKey(wait_time);
-		return true;
+		return ok;
 	}
 	return false;
 }

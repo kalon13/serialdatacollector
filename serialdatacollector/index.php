@@ -184,7 +184,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	$dir = $dataset."/".$lastdir;
 	
 	/*TROVA L'ULTIMA IMMAGINE*/
-	$IMG_pattern = '\.(png)$';
+	$IMG_pattern = '\.(png|jpg)$';
 	$IMG_newstamp = 0;
 	$IMG_newname = "";
 	$IMG_dc = opendir($dir);
