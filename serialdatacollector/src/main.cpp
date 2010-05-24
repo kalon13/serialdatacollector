@@ -730,7 +730,10 @@ void* camAcquisition(void* i){
 		while(dev.stato==ATTIVO) {
 			//((Camera*)dev.device)->getPhoto(dev.path);
 			((Camera*)dev.device)->readData();
-			((Camera*)dev.device)->writeData(dev.path);
+			if(((Camera*)dev.device)->writeData(dev.path))
+				cout << "Immagine scritta!" << endl;
+			else
+				cout << "Errore: immagine non scritta!" << endl;
 			 dev = d.at(n);
 		}
 		 dev = d.at(n);
