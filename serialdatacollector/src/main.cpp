@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 	 * ------------------------------------------*/
 	cout << "Chiusura del programma in corso... attendere prego..." << endl;
 	if(some_thread_active(true)){
-		for(int i=0; i<num_disp; ++i) {
+		for(int i=0; i<d.size(); ++i) {
 			if(d[i].stato!=TERMINATO) {
 				d[i].stato = TERMINATO;
 				cout << "Sto stoppando il thread numero " << i << endl;
@@ -171,180 +171,43 @@ void* Shell() {
 
 
 void cmdStart(svec arg) {
-	if(!arg.empty()){
-		int start;
-		int stop;
-		bool ok;
-		if(arg[0].compare("all")==0) {
-			start = 0;
-			stop = num_disp;
-			ok=true;
-		}
-		else {
-			int number;
-			istringstream ss(arg[0]);
-			ss >> number;
-			if(number >=0 && number < num_disp) {
-				start = number;
-				stop = number+1;
-				ok = true;
-			}
-			else
-				ok = false;
-		}
-		if(ok){
-			if(num_disp>0) {
-				for(int i=start; i<stop; ++i) {
-					if(d[i].stato == PRONTO) {
-						d[i].stato = ATTIVO;
-						cout << "Sto avviando il thread " << i << "..." << endl;
-						switch(d[i].identifier) {
-							case GPS:
-								pthread_create(&d[i].pid, NULL, gpsAcquisition, (void*) i);
-								break;
-							case IMU:
-								pthread_create(&d[i].pid, NULL, imuAcquisition, (void*) i);
-								break;
-							case CAM:
-								pthread_create(&d[i].pid, NULL, camAcquisition, (void*) i);
-								break;
-							case HOK:
-								pthread_create(&d[i].pid, NULL, hokAcquisition, (void*) i);
-								break;
-							default:
-								break;
-						}
-						cout << "Ho avviato il thread " << i << " con pid " << d[i].pid << endl;
-					}
-					else if(d[i].stato == PAUSA) {
-						d[i].stato = ATTIVO;
-						cout << "Ho avviato il thread " << i <<  endl;
-					}
-				}
-			}
-			else
-				cout << "Non è stato inserito alcun dispostivo" << endl;
-			return;
-		}
-	}
-	cout << "Per info sull'uso di 'start' digitare: 'help start'" << endl;
-	return;
+	if(!arg.empty())
+		PlayThread(arg, 0);
+	else
+		cout << "Per info sull'uso di 'start' digitare: 'help start'" << endl;
 }
 
-/* TODO: Rivedere stop/pause
- * Rivedere gestione dello start/stop/pause
- */
 void cmdStop(svec arg) {
-	if(!arg.empty()){
-		int start;
-		int stop;
-		bool ok;
-		if(arg[0].compare("all")==0) {
-			start = 0;
-			stop = num_disp;
-			ok=true;
-		}
-		else {
-			int number;
-			istringstream ss(arg[0]);
-			ss >> number;
-			if(number >=0 && number < num_disp) {
-				start = number;
-				stop = number+1;
-				ok = true;
-			}
-			else
-				ok = false;
-		}
-		if(ok) {
-			if(num_disp>0) {
-				if(some_thread_active()){
-					for(int i=start; i<stop; ++i) {
-						if(d[i].stato!=TERMINATO) {
-							d[i].stato = TERMINATO;
-							cout << "Terminazione del thread " << i << " in corso..." << endl;
-							pthread_join(d[i].pid, NULL);
-							cout << "Il thread " << i << " e' stato fermato." << endl;
-						}
-					}
-				}
-				else
-					cout << "Non c'e' nessun thread attivo!" << endl;
-			}
-			else
-				cout << "Non è stato inserito alcun dispositivo!" << endl;
-			return;
-		}
-	}
-	cout << "Per info sull'uso di 'stop' digitare: 'help stop'" << endl;
-	return;
+	if(!arg.empty())
+		PlayThread(arg, 2);
+	else
+		cout << "Per info sull'uso di 'stop' digitare: 'help stop'" << endl;
 }
 void cmdPause(svec arg) {
-	if(!arg.empty()){
-		int start;
-		int stop;
-		bool ok;
-		if(arg[0].compare("all")==0) {
-			start = 0;
-			stop = num_disp;
-			ok=true;
-		}
-		else {
-			int number;
-			istringstream ss(arg[0]);
-			ss >> number;
-			if(number >=0 && number < num_disp) {
-				start = number;
-				stop = number+1;
-				ok = true;
-			}
-			else
-				ok = false;
-		}
-
-		if(ok)
-			if(num_disp>0) {
-				if(some_thread_active(true)) {
-					for(int i=start; i<stop; ++i) {
-						if(d[i].stato==ATTIVO) {
-							d[i].stato = PAUSA;
-							cout << "Il thread " << i << " e' stato messo in pausa." << endl;
-						}
-					}
-				}
-				else
-					cout << "Non c'è nessun thread!" << endl;
-			}
-			else
-				cout << "Non è stato inserito alcun dispositivo!" << endl;
-		return;
-	}
-	cout << "Per info sull'uso di 'start' digitare: 'help stop'" << endl;
-	return;
+	if(!arg.empty())
+		PlayThread(arg, 1);
+	else
+		cout << "Per info sull'uso di 'pause' digitare: 'help stop'" << endl;
 }
 
 void cmdInsert(svec arg) {
 	string porta;
 	char* percorso_porta = new char[32];
-	char* path = NULL;
+	char* path = new char[32];
 	bool ok = false;
-	char* errore;
 	int id = -1;
 
-	dataset->getDataSet(&path);
 
 	if(arg.size()>0) {
-			if(arg[0].compare("gps")==0)
-				id=0;
-			else if(arg[0].compare("imu")==0)
-				id=1;
-			else if(arg[0].compare("cam")==0)
-				id=2;
-			else if(arg[0].compare("hok")==0)
-				id=3;
-			else
-				id=-1;
-		}
+		if(arg[0].compare("gps")==0)
+			id=0;
+		else if(arg[0].compare("imu")==0)
+			id=1;
+		else if(arg[0].compare("cam")==0)
+			id=2;
+		else if(arg[0].compare("hok")==0)
+			id=3;
+	}
 
 	if(arg.empty() || id==-1) {
 		cout << "Specifica l'identificatore del dispositivo che intendi utilizzare nella raccolta dati " << endl
@@ -362,123 +225,160 @@ void cmdInsert(svec arg) {
 	 * */
 	switch (id)
 	{
-		case GPS:{
-			if(arg.size()>1)
+		case GPS: {
+			int stopbits;
+			PARITY par;
+			int databits;
+			int baudrate;
+
+			if(arg.size()>1){		//Il nome della porta è obbligatorio
 				strcpy(percorso_porta,arg[1].c_str());
+				switch(arg.size()) {
+					case 6: {
+						istringstream ss1(arg[6]);
+						ss1 >> stopbits;
+					}
+					case 5: {
+						if (arg[5].compare("none")==0)
+							par=NONE;
+						else if (arg[5].compare("even")==0)
+							par=EVEN;
+						else if (arg[5].compare("odd")==0)
+							par=ODD;
+						else if (arg[5].compare("mark")==0)
+							par=MARK;
+						else if (arg[5].compare("space")==0)
+							par=SPACE;
+						else
+							par=UNKNOW;
+					}
+					case 4: {
+						istringstream ss2(arg[4]);
+						ss2 >> databits;
+					}
+					case 3: {
+						istringstream ss3(arg[3]);
+						ss3 >> baudrate;
+					}
+					case 2: {
+						strcpy(path, arg[1].c_str());
+						break;
+					}
+					default: {
+						cout << "Errore nella definizione dei parametri" << endl;
+						break;
+					}
+				}
+				ok = InsertGPS(percorso_porta, path, baudrate, databits, par, stopbits);
+			}
 			else {
-				cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
 				cout << "Nome Porta : " << endl;
 				cin >> porta;
 				strcpy(percorso_porta,porta.c_str());
+				ok = InsertGPS(percorso_porta);
 			}
 
-			SerialGps* gps = new SerialGps();
-			ok = gps->openCommunication(percorso_porta);
-			//ok = true;
-			if(ok) {
-				ThreadedDevice td;
-				td.identifier = GPS;
-				td.device = (void*)gps;
-				td.stato = PRONTO;
-				td.debug = 0;
-
-				string pcomp(path);
-				pcomp.append("/GPS.csv");
-				char* pcomp2 = new char[200];
-				strcpy(pcomp2, pcomp.c_str());
-
-				td.path = pcomp2;
-
-				d.push_back(td);
-				cout << "Il gps alla porta " << percorso_porta << " salverà i dati in " << pcomp2 << endl;
-			}
-			else
-				gps->getError(&errore);
-
-			path = NULL;
+			porta.clear();
+			delete(percorso_porta);
+			delete(path);
 			break;
 		}
 		case IMU:{
-			if(arg.size()>1)
+			int stopbits;
+			PARITY par;
+			int databits;
+			int baudrate;
+
+			if(arg.size()>1){		//Il nome della porta è obbligatorio
 				strcpy(percorso_porta,arg[1].c_str());
+				switch(arg.size()) {
+					case 6: {
+						istringstream ss1(arg[6]);
+						ss1 >> stopbits;
+					}
+					case 5: {
+						if (arg[5].compare("none")==0)
+							par=NONE;
+						else if (arg[5].compare("even")==0)
+							par=EVEN;
+						else if (arg[5].compare("odd")==0)
+							par=ODD;
+						else if (arg[5].compare("mark")==0)
+							par=MARK;
+						else if (arg[5].compare("space")==0)
+							par=SPACE;
+						else
+							par=UNKNOW;
+					}
+					case 4: {
+						istringstream ss2(arg[4]);
+						ss2 >> databits;
+					}
+					case 3: {
+						istringstream ss3(arg[3]);
+						ss3 >> baudrate;
+					}
+					case 2: {
+						strcpy(path, arg[1].c_str());
+						break;
+					}
+					default: {
+						cout << "Errore nella definizione dei parametri" << endl;
+						break;
+					}
+				}
+				ok = InsertIMU(percorso_porta, path, baudrate, databits, par, stopbits);
+			}
 			else {
-				cout << "Inserisci i parametri della porta con la quale vuoi comunicare con il dispositivo " << endl;
 				cout << "Nome Porta : " << endl;
 				cin >> porta;
 				strcpy(percorso_porta,porta.c_str());
+				ok = InsertIMU(percorso_porta);
 			}
 
-			SerialImu* imu = new SerialImu();
-			ok = imu->openCommunication(percorso_porta);
-
-			if(ok) {
-				ThreadedDevice td;
-				td.identifier = IMU;
-				td.device = (void*)imu;
-				td.stato = PRONTO;
-				td.debug = 0;
-
-				string pcomp(path);
-				pcomp.append("/IMU_STRETCHED.csv");
-				char* pcomp2 = new char[200];
-				strcpy(pcomp2, pcomp.c_str());
-				td.path = pcomp2;
-
-				d.push_back(td);
-				cout << "La imu alla porta " << percorso_porta << " salverà i dati in " << pcomp2 << endl;
-			}
-			else
-				imu->getError(&errore);
-
-			path = NULL;
+			porta.clear();
+			delete(percorso_porta);
+			delete(path);
 			break;
 		}
 		case CAM: {
 #ifndef CAMERA
-			int c, wait, tipo=2;
-			string ip_cam("http://192.168.10.100/mjpg/video.mjpg");
-			do
-			{
-				cout << "Specifica il tipo di telecamare che disponi nel robot" << endl << "(specifica:" << endl << "0 --> USB Camera" << endl << "1 --> Ip Camera" << endl << "2 --> Ip camera di Default(modello Axis 211)" << endl;
-				cin >> tipo;
+			int c, wait, tipo;
+			char* ip_cam = new char[128];
+			if(arg.size()>1) {
+				istringstream ss1(arg[1]);
+				ss1 >> wait;
+
+				int number;
+				istringstream ss(arg[0]);
+				ss >> number;
+				if(number>0 && number<10)
+					ok = InsertCAM(number, wait);
+				else {
+					strcpy(ip_cam, arg[0].c_str());
+					ok = InsertCAM(ip_cam, wait);
+				}
+
 			}
-			while(tipo < 0 || tipo > 2);
+			else{
+				do {
+					cout << "Specifica il tipo di telecamare che disponi nel robot" << endl << "(specifica:" << endl << "0 --> USB Camera" << endl << "1 --> Ip Camera" << endl;
+					cin >> tipo;
+				}
+				while(tipo < 0 || tipo > 1);
 
-			if(tipo == 1)
-			{
-				cout << "Inserisci l'indirizzo http della telecamera, specificando tutto il percorso fino al video." << endl << "(Formato consigliato: mjpeg)" << endl;
-				cin >> ip_cam;
+				if(tipo == 1) {
+					cout << "Inserisci l'indirizzo http della telecamera, specificando tutto il percorso fino al video." << endl << "(Formato consigliato: mjpeg)" << endl;
+					cin >> ip_cam;
+					ok = InsertCAM(ip_cam);
+				}
+				else if(tipo == 0) {
+					cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
+					cin >> c;
+					ok = InsertCAM(c);
+				}
 			}
-			else if(tipo == 0)
-			{
-				cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
-				cin >> c;
-			}
 
-			cout << "Inserisci i millisecondi di attesa tra lo scatto di una foto e la successiva. " << endl;
-			cin >> wait;
-
-			Camera* cam = new Camera();
-
-			if(tipo)
-				ok = cam->openCommunication(ip_cam.c_str(), wait);
-			else
-				ok = cam->openCommunication(c, wait);
-
-			if(ok) {
-				ThreadedDevice td;
-				td.identifier = CAM;
-				td.device = (void*)cam;
-				td.path = path;
-				td.stato = PRONTO;
-				td.debug = 0;
-
-				d.push_back(td);
-			}
-			else
-				cout << "Errore nell'apertura della camera! " << endl;
-
-			path = NULL;
 #else
 			cout << "Dispositivo non abilitato" << endl;
 			ok = false;
@@ -487,7 +387,7 @@ void cmdInsert(svec arg) {
 		}
 		case HOK: {
 #ifndef HOKUYO
-			int c;
+			/*int c;
 
 			cout << "Inserisci il numero della porta /dev/ttyACM che vuoi aprire." << endl;
 			cin >> c;
@@ -512,7 +412,7 @@ void cmdInsert(svec arg) {
 				d.push_back(td);
 			}
 			else
-				hok->getError(&errore);
+				hok->getError(&errore);*/
 #else
 			cout << "Dispositivo non abilitato" << endl;
 			ok = false;
@@ -529,7 +429,7 @@ void cmdInsert(svec arg) {
 		cout << "Dispositivo inserito correttamente\n";
 	}
 	else
-		cout << errore << endl;
+		//cout << errore << endl;
 
 	delete(percorso_porta);
 
@@ -730,10 +630,14 @@ void* camAcquisition(void* i){
 		while(dev.stato==ATTIVO) {
 			//((Camera*)dev.device)->getPhoto(dev.path);
 			((Camera*)dev.device)->readData();
-			if(((Camera*)dev.device)->writeData(dev.path))
-				cout << "Immagine scritta!" << endl;
-			else
-				cout << "Errore: immagine non scritta!" << endl;
+			if(((Camera*)dev.device)->writeData(dev.path)) {
+				if(dev.debug>0)
+					cout << "Immagine scritta!" << endl;
+			}
+			else {
+				if(dev.debug>0)
+					cout << "Errore: immagine non scritta!" << endl;
+			}
 			 dev = d.at(n);
 		}
 		 dev = d.at(n);
@@ -951,6 +855,211 @@ void* imuAcquisition(void* i) {
 	if(dev.debug>0)
 		cout << "Imu thread ended" << endl;
 	return (void*) true;
+}
+
+bool InsertGPS(char* percorso_porta, char* filename, int baudRate, int dataBits, PARITY parity, int stopBits) {
+	char* path;
+	dataset->getDataSet(&path);
+
+	SerialGps* gps = new SerialGps();
+	bool ok = gps->openCommunication(percorso_porta, baudRate, dataBits, parity, stopBits);
+
+	if(ok) {
+		ThreadedDevice td;
+		td.identifier = GPS;
+		td.device = (void*)gps;
+		td.stato = PRONTO;
+		td.debug = 0;
+
+		string pcomp(path);
+		pcomp.append(filename);
+		char* pcomp2 = new char[pcomp.length()+1];
+		strcpy(pcomp2, pcomp.c_str());
+		td.path = pcomp2;
+
+		d.push_back(td);
+		cout << "Il gps alla porta " << percorso_porta << " salverà i dati in " << pcomp2 << endl;
+		return true;
+	}
+	else {
+		char* errore;
+		gps->getError(&errore);
+		cout << errore << endl;
+		return false;
+	}
+
+}
+bool InsertIMU(char* percorso_porta, char* filename, int baudRate, int dataBits, PARITY parity, int stopBits){
+	char* path;
+	dataset->getDataSet(&path);
+
+	SerialImu* imu = new SerialImu();
+	bool ok = imu->openCommunication(percorso_porta, baudRate, dataBits, parity, stopBits);
+
+	if(ok) {
+		ThreadedDevice td;
+		td.identifier = IMU;
+		td.device = (void*)imu;
+		td.stato = PRONTO;
+		td.debug = 0;
+
+		string pcomp(path);
+		pcomp.append(filename);
+		char* pcomp2 = new char[pcomp.length()+1];
+		strcpy(pcomp2, pcomp.c_str());
+		td.path = pcomp2;
+
+		d.push_back(td);
+		cout << "La imu alla porta " << percorso_porta << " salverà i dati in " << pcomp2 << endl;
+		return true;
+	}
+	else{
+		char* errore;
+		imu->getError(&errore);
+		cout << errore << endl;
+		return false;
+	}
+}
+bool InsertCAM(char* percorso_porta, int attesa) {
+	char* path;
+	dataset->getDataSet(&path);
+
+	Camera* cam = new Camera();
+	bool ok = cam->openCommunication(percorso_porta, attesa);
+	if(ok) {
+		ThreadedDevice td;
+		td.identifier = CAM;
+		td.device = (void*)cam;
+
+		td.path = path;
+
+		td.stato = PRONTO;
+		td.debug = 0;
+
+		d.push_back(td);
+		return true;
+	}
+	else
+		cout << "Errore nell'apertura della camera! " << endl;
+	return false;
+}
+
+bool InsertCAM(int numero_porta, int attesa) {
+	char* path;
+	dataset->getDataSet(&path);
+
+	Camera* cam = new Camera();
+	bool ok = cam->openCommunication(numero_porta, attesa);
+	if(ok) {
+		ThreadedDevice td;
+		td.identifier = CAM;
+		td.device = (void*)cam;
+
+		td.path = path;
+
+		td.stato = PRONTO;
+		td.debug = 0;
+
+		d.push_back(td);
+		return true;
+	}
+	else
+		cout << "Errore nell'apertura della camera! " << endl;
+	return false;
+}
+
+/*bool InsertHOK(int numero_porta=0, char* filename="/HOKUYO.csv") {
+
+}*/
+
+void PlayThread(svec arg, int command) {
+	int start;
+	int stop;
+	bool ok;
+	int num_disp = d.size();
+
+	if(arg[0].compare("all")==0) {
+		start = 0;
+		stop = num_disp;
+		ok=true;
+	}
+	else {
+		int number;
+		istringstream ss(arg[0]);
+		ss >> number;
+		if(number >=0 && number < num_disp) {
+			start = number;
+			stop = number+1;
+			ok = true;
+		}
+		else
+			ok = false;
+	}
+	if(ok) {
+		if(num_disp>0) {
+			switch(command){
+				case 0:	{		// Play
+					for(int i=start; i<stop; ++i) {
+						if(d[i].stato == PRONTO) {
+							d[i].stato = ATTIVO;
+							cout << "Sto avviando il thread " << i << "..." << endl;
+							switch(d[i].identifier) {
+								case GPS:
+									pthread_create(&d[i].pid, NULL, gpsAcquisition, (void*) i);
+									break;
+								case IMU:
+									pthread_create(&d[i].pid, NULL, imuAcquisition, (void*) i);
+									break;
+								case CAM:
+									pthread_create(&d[i].pid, NULL, camAcquisition, (void*) i);
+									break;
+								case HOK:
+									pthread_create(&d[i].pid, NULL, hokAcquisition, (void*) i);
+									break;
+								default:
+									break;
+							}
+							cout << "Ho avviato il thread " << i << " con pid " << d[i].pid << endl;
+						}
+						else if(d[i].stato == PAUSA) {
+							d[i].stato = ATTIVO;
+							cout << "Ho avviato il thread " << i <<  endl;
+						}
+					}
+					break;
+				}
+				case 1: {		// Pause
+					if(some_thread_active(true)) {
+						for(int i=start; i<stop; ++i) {
+							if(d[i].stato==ATTIVO) {
+								d[i].stato = PAUSA;
+								cout << "Il thread " << i << " e' stato messo in pausa." << endl;
+							}
+						}
+					}
+					break;
+				}
+				case 2: {		// Stop
+					if(some_thread_active()){
+						for(int i=start; i<stop; ++i) {
+							if(d[i].stato!=TERMINATO) {
+								d[i].stato = TERMINATO;
+								cout << "Terminazione del thread " << i << " in corso..." << endl;
+								pthread_join(d[i].pid, NULL);
+								cout << "Il thread " << i << " e' stato fermato." << endl;
+							}
+						}
+					}
+					else
+						cout << "Non c'e' nessun thread attivo!" << endl;
+					break;
+				}
+			}
+		}
+		else
+			cout << "Non è stato inserito alcun dispositivo!" << endl;
+		return;
+	}
 }
 
 bool some_thread_active(bool conta_in_pausa) {

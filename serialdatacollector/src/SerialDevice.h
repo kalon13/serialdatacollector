@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <termios.h>
 
-enum PARITY {NONE=0, EVEN=1, ODD=2, MARK=3, SPACE=4};
+enum PARITY {NONE=0, EVEN=1, ODD=2, MARK=3, SPACE=4, UNKNOW=-1};
 
 class SerialDevice {
 protected:
