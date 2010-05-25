@@ -217,15 +217,38 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	else
 		$GPS_Data = "Il file del gps non esiste";
 
+	// Processo le stringhe dei file gps e imu, le stampo poi in maniera strutturataù
+	$imu_tok = strtok($IMU_Data, ",");
+	$gps_tok = strtok($GPS_Data, ",");
+
+	while($imu_tok != false) {
+		$IMU_array[] = $imu_tok;
+		$imu_tok = strtok(",");
+	}
+
+	while($gps_tok != false) {
+		$GPS_array[] = $gps_tok;
+		$gps_tok = strtok(",");
+	}
+
 	/*OUTPUT DEI DATI*/
 	echo "<p>DataSet: $lastdir</p>";
-	echo "<p>GPS:<br />$GPS_Data</p>";
-	echo "<p>IMU:<br />$IMU_Data</p>";
+	echo "<p>IMU: <br /></p>";
+	
+	foreach($IMU_array as $dato) {
+		echo "$dato<br />";
+	}
+	echo "<p>GPS: <br /></p>";
+	
+	foreach($GPS_array as $dato) {
+		echo "$dato<br />";
+	}
 
 	if($IMG_newstamp!=0)
 		echo "<img src=\"$IMG_path\" />";
 	else
 		echo "<p>Nessuna immagine presente!</p>";
 ?>
+
 </body>
 </html>
