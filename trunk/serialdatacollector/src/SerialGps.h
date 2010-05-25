@@ -64,7 +64,7 @@ public:
     void print_Long(unsigned char* sentence, unsigned short int byte);
     void print_Lang(unsigned char* sentence, unsigned short int byte);*/
     bool readData(char** str, int tipo);	//Se ci sono errori restituisce NULL altrimenti la stringa completa
-    bool openCommunication(char* port, int baudRate=38400, int dataBits=8, PARITY parity=NONE, int stopBits=1);
+    bool openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits);
     bool closeCommunication();
     //bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
     //void getGPRMC(NMEA_GPRMC&);

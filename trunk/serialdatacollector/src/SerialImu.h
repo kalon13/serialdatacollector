@@ -53,7 +53,7 @@ private:
 	int getGyroScale();
 public:
    // bool openCommunication(char* port, int baudRate, int dataBits, int parity, int stopBits);
-    bool openCommunication(char* port, int baudRate=38400, int dataBits=8, PARITY parity=NONE, int stopBits=1);
+    bool openCommunication(char* port, int baudRate, int dataBits, PARITY parity, int stopBits);
 	int getEulerAngles(float *pitch, float *roll, float *yaw, bool stableOption, float* timestamp);
 	int getQuaternions(float q[], int stableOption, float* timestamp);
 	int getVectors(float mag[], float accel[], float angRate[], int stableOption, float* timestamp);
