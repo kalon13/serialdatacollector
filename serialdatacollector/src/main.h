@@ -32,7 +32,6 @@ struct ThreadedDevice {
 };
 
 RawSeed* dataset;
-int num_disp;
 vector<ThreadedDevice> d;
 
 void* camAcquisition(void* i);
@@ -41,8 +40,8 @@ void* imuAcquisition(void* i);
 void* hokAcquisition(void* i);
 
 void PlayThread(svec arg, int command);	//0=Play, 1=Pause, 2=Stop
-bool InsertGPS(char* percorso_porta="/dev/ttyACM0", char* filename="/GPS.csv", int baudRate=38400, int dataBits=8, PARITY parity=NONE, int stopBits=1);
-bool InsertIMU(char* percorso_porta="/dev/ttyUSB0", char* filename="/IMU_STRETCHED.csv", int baudRate=38400, int dataBits=8, PARITY parity=NONE, int stopBits=1);
+bool InsertGPS(char* percorso_porta="/dev/ttyACM0", char* filename="GPS.csv", int baudRate=38400, int dataBits=8, PARITY parity=NONE, int stopBits=1);
+bool InsertIMU(char* percorso_porta="/dev/ttyUSB0", char* filename="IMU_STRETCHED.csv", int baudRate=38400, int dataBits=8, PARITY parity=NONE, int stopBits=1);
 bool InsertCAM(char* percorso_porta="http://192.168.10.100/mjpg/video.mjpg", int attesa=200);
 bool InsertCAM(int numero_porta, int attesa=200);
 /*#ifndef HOKUYO
@@ -55,12 +54,14 @@ void cmdStop(svec arg);
 void cmdPause(svec arg);
 void cmdShow(svec arg);
 void cmdDebug(svec arg);
+void cmdDelete(svec arg);
+void cmdDefault();
 bool cmdQuit();
 void cmdHelp(svec arg);
 void cmdInsert(svec arg);
 void cmdCalibration();
 
-bool some_thread_active(bool conta_in_pausa = false);
+bool some_thread_active(bool non_conta_in_pausa = false);			//Se non definito conta i thread in pausa
 string devKind(DevId n);
 string thrState(Stato stato);
 

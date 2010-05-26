@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <vector>
 #include <string.h>
-#include <termios.h>
+//#include <termios.h>
 
 #include "main.h"
 #include "RawSeed.h"
@@ -26,7 +26,6 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
 	d.reserve(3);
-	num_disp = 0;
 
 	if(--argc>0)
 		dataset = new RawSeed(argv[1]);
@@ -95,15 +94,11 @@ int main(int argc, char* argv[]) {
 	 * 1)Chiudo tutti i thread vivi
 	 * 2)Pulisco le variabili in memoria
 	 * ------------------------------------------*/
-	cout << "Chiusura del programma in corso... attendere prego..." << endl;
-	if(some_thread_active(true)){
-		for(int i=0; i<d.size(); ++i) {
-			if(d[i].stato!=TERMINATO) {
-				d[i].stato = TERMINATO;
-				cout << "Sto stoppando il thread numero " << i << endl;
-				pthread_join(d[i].pid, NULL);
-			}
-		}
+	if(some_thread_active()) {
+		cout << "Chiusura del programma in corso... attendere prego..." << endl;
+		svec a;
+		a.push_back("all");
+		PlayThread(a, 2);
 	}
 	cout << "Arrivederci!" << endl;
 	d.clear();
@@ -155,6 +150,8 @@ void* Shell() {
 			cmdShow(parameters);
 		else if(cmd.compare("debug")==0)
 			cmdDebug(parameters);
+		else if(cmd.compare("default")==0)
+			cmdDefault();
 		else if(cmd.compare("calibration")==0)
 			cmdCalibration();
 		else if(cmd.compare("quit")==0)
@@ -191,7 +188,7 @@ void cmdPause(svec arg) {
 }
 
 void cmdInsert(svec arg) {
-	string porta;
+	string porta("");
 	char* percorso_porta = new char[32];
 	char* path = new char[32];
 	bool ok = false;
@@ -230,15 +227,16 @@ void cmdInsert(svec arg) {
 			PARITY par;
 			int databits;
 			int baudrate;
+			int num_arg = arg.size();
 
-			if(arg.size()>1){		//Il nome della porta è obbligatorio
+			if(num_arg>1){		//Il nome della porta è obbligatorio
 				strcpy(percorso_porta,arg[1].c_str());
-				switch(arg.size()) {
-					case 6: {
+				switch(num_arg) {
+					case 7: {
 						istringstream ss1(arg[6]);
 						ss1 >> stopbits;
 					}
-					case 5: {
+					case 6: {
 						if (arg[5].compare("none")==0)
 							par=NONE;
 						else if (arg[5].compare("even")==0)
@@ -252,16 +250,16 @@ void cmdInsert(svec arg) {
 						else
 							par=UNKNOW;
 					}
-					case 4: {
+					case 5: {
 						istringstream ss2(arg[4]);
 						ss2 >> databits;
 					}
-					case 3: {
+					case 4: {
 						istringstream ss3(arg[3]);
 						ss3 >> baudrate;
 					}
-					case 2: {
-						strcpy(path, arg[1].c_str());
+					case 3: {
+						strcpy(path, arg[2].c_str());
 						break;
 					}
 					default: {
@@ -269,7 +267,30 @@ void cmdInsert(svec arg) {
 						break;
 					}
 				}
-				ok = InsertGPS(percorso_porta, path, baudrate, databits, par, stopbits);
+				switch(num_arg) {
+					case 2:
+						ok = InsertGPS(percorso_porta);
+						break;
+					case 3:
+						ok = InsertGPS(percorso_porta, path);
+						break;
+					case 4:
+						ok = InsertGPS(percorso_porta, path, baudrate);
+						break;
+					case 5:
+						ok = InsertGPS(percorso_porta, path, baudrate, databits);
+						break;
+					case 6:
+						ok = InsertGPS(percorso_porta, path, baudrate, databits, par);
+						break;
+					case 7:
+						ok = InsertGPS(percorso_porta, path, baudrate, databits, par, stopbits);
+						break;
+					default:
+						ok = InsertGPS();
+						break;
+				}
+
 			}
 			else {
 				cout << "Nome Porta : " << endl;
@@ -278,9 +299,6 @@ void cmdInsert(svec arg) {
 				ok = InsertGPS(percorso_porta);
 			}
 
-			porta.clear();
-			delete(percorso_porta);
-			delete(path);
 			break;
 		}
 		case IMU:{
@@ -289,14 +307,15 @@ void cmdInsert(svec arg) {
 			int databits;
 			int baudrate;
 
-			if(arg.size()>1){		//Il nome della porta è obbligatorio
+			int num_arg = arg.size();
+			if(num_arg>1){		//Il nome della porta è obbligatorio
 				strcpy(percorso_porta,arg[1].c_str());
-				switch(arg.size()) {
-					case 6: {
+				switch(num_arg) {
+					case 7: {
 						istringstream ss1(arg[6]);
 						ss1 >> stopbits;
 					}
-					case 5: {
+					case 6: {
 						if (arg[5].compare("none")==0)
 							par=NONE;
 						else if (arg[5].compare("even")==0)
@@ -310,16 +329,16 @@ void cmdInsert(svec arg) {
 						else
 							par=UNKNOW;
 					}
-					case 4: {
+					case 5: {
 						istringstream ss2(arg[4]);
 						ss2 >> databits;
 					}
-					case 3: {
+					case 4: {
 						istringstream ss3(arg[3]);
 						ss3 >> baudrate;
 					}
-					case 2: {
-						strcpy(path, arg[1].c_str());
+					case 3: {
+						strcpy(path, arg[2].c_str());
 						break;
 					}
 					default: {
@@ -327,7 +346,29 @@ void cmdInsert(svec arg) {
 						break;
 					}
 				}
-				ok = InsertIMU(percorso_porta, path, baudrate, databits, par, stopbits);
+				switch(num_arg) {
+					case 2:
+						ok = InsertIMU(percorso_porta);
+						break;
+					case 3:
+						ok = InsertIMU(percorso_porta, path);
+						break;
+					case 4:
+						ok = InsertIMU(percorso_porta, path, baudrate);
+						break;
+					case 5:
+						ok = InsertIMU(percorso_porta, path, baudrate, databits);
+						break;
+					case 6:
+						ok = InsertIMU(percorso_porta, path, baudrate, databits, par);
+						break;
+					case 7:
+						ok = InsertIMU(percorso_porta, path, baudrate, databits, par, stopbits);
+						break;
+					default:
+						ok = InsertIMU();
+						break;
+				}
 			}
 			else {
 				cout << "Nome Porta : " << endl;
@@ -336,47 +377,64 @@ void cmdInsert(svec arg) {
 				ok = InsertIMU(percorso_porta);
 			}
 
-			porta.clear();
-			delete(percorso_porta);
-			delete(path);
 			break;
 		}
 		case CAM: {
 #ifndef CAMERA
 			int c, wait, tipo;
 			char* ip_cam = new char[128];
-			if(arg.size()>1) {
-				istringstream ss1(arg[1]);
-				ss1 >> wait;
+			int num_arg = arg.size();
 
-				int number;
-				istringstream ss(arg[0]);
-				ss >> number;
-				if(number>0 && number<10)
-					ok = InsertCAM(number, wait);
-				else {
-					strcpy(ip_cam, arg[0].c_str());
-					ok = InsertCAM(ip_cam, wait);
+			switch(num_arg) {
+				case 3:{
+					istringstream ss1(arg[2]);
+					ss1 >> wait;
 				}
+				case 2: {
+					int number;
+					istringstream ss(arg[1]);
+					ss >> number;
+					if(number>=0 && number<10) {
+						if(num_arg==3)
+							ok = InsertCAM(number, wait);
+						else
+							ok = InsertCAM(number);
+					}
+					else {
+						strcpy(ip_cam, arg[1].c_str());
+						if(num_arg==3)
+							ok = InsertCAM(ip_cam, wait);
+						else
+							ok = InsertCAM(ip_cam);
+					}
+					break;
+				}
+				case 1: {
+					do {
+						cout << "Specifica il tipo di telecamare che disponi nel robot" << endl << "(specifica:" << endl << "0 --> USB Camera" << endl << "1 --> Ip Camera" << endl;
+						cin >> tipo;
+					}
+					while(tipo < 0 || tipo > 1);
 
-			}
-			else{
-				do {
-					cout << "Specifica il tipo di telecamare che disponi nel robot" << endl << "(specifica:" << endl << "0 --> USB Camera" << endl << "1 --> Ip Camera" << endl;
-					cin >> tipo;
+					if(tipo == 1) {
+						cout << "Inserisci l'indirizzo http della telecamera, specificando tutto il percorso fino al video." << endl << "(Formato consigliato: mjpeg)" << endl;
+						cin >> ip_cam;
+						cout << "Inserisci i millesecondi di attesa tra una foto ed un altra" << endl;
+						cin >> wait;
+						ok = InsertCAM(ip_cam, wait);
+					}
+					else if(tipo == 0) {
+						cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
+						cin >> c;
+						cout << "Inserisci i millesecondi di attesa tra una foto ed un altra" << endl;
+						cin >> wait;
+						ok = InsertCAM(c, wait);
+					}
+					break;
 				}
-				while(tipo < 0 || tipo > 1);
-
-				if(tipo == 1) {
-					cout << "Inserisci l'indirizzo http della telecamera, specificando tutto il percorso fino al video." << endl << "(Formato consigliato: mjpeg)" << endl;
-					cin >> ip_cam;
-					ok = InsertCAM(ip_cam);
-				}
-				else if(tipo == 0) {
-					cout << "Inserisci il valore della camera che vuoi aprire." << endl << "(Un intero che corrisponde ad un identificativo del dispositivo, 0 --> Camera di Default, 1,2,3 per le successive...)" << endl;
-					cin >> c;
-					ok = InsertCAM(c);
-				}
+				default:
+					InsertCAM();
+					break;
 			}
 
 #else
@@ -425,25 +483,19 @@ void cmdInsert(svec arg) {
 	}
 
 	if(ok) {
-		++num_disp;
 		cout << "Dispositivo inserito correttamente\n";
 	}
-	else
-		//cout << errore << endl;
 
 	delete(percorso_porta);
+	delete(path);
 
+	int num_disp = d.size();
 	cout << "Fino ad ora, in totale, hai inserito " << num_disp << " dispositiv" << (num_disp==1?"o":"i") << endl << endl;
 }
 
-/* TODO: Inserimento Comando
- * Comando show port: Fa vedere una lista di porte valide per
- * l'inserimento dei dispositivi
- * Fare un tryOpenCommunication(metodo di serialdevice)
- * su tutte le /dev/ttySX e /dev/ttyUSBX)
- */
 void cmdShow(svec arg) {
 	if(!arg.empty()){
+		int num_disp = d.size();
 		if(arg[0].compare("device")==0) {
 			if(num_disp>0) {
 				cout << "Numero di dispositivi inseriti: " << num_disp << "\n\n";
@@ -523,6 +575,7 @@ void cmdDebug(svec arg) {
 	if(!arg.empty())
 	{
 		int disp;
+		int num_disp = d.size();
 		istringstream ss(arg[0]);
 		ss >> disp;
 		if (disp>=0 && disp<num_disp){
@@ -541,6 +594,26 @@ void cmdDebug(svec arg) {
 		cout << "Per info sull'uso di 'debug' digitare: 'help debug'" << endl;
 }
 
+void cmdDefault() {
+	bool ok;
+
+	cout << "Inizio procedura inserimento di default" << endl;
+
+	cout << "Provo ad inserire l'imu di default" << endl;
+	ok = InsertIMU();
+	if(ok)
+		cout << "IMU OK" << endl;
+	cout << "Provo ad inserire il gps di default" << endl;
+	ok = InsertGPS();
+	if(ok)
+		cout << "GPS OK" << endl;
+	cout << "Provo ad inserire la cam di default" << endl;
+	ok = InsertCAM();
+	if(ok)
+		cout << "CAM OK" << endl;
+
+}
+
 bool cmdQuit() {
 	bool qualcuno_attivo = some_thread_active();
 	char r;
@@ -551,8 +624,12 @@ bool cmdQuit() {
 	}
 	else
 		r='s';
-	if(r=='s')
+	if(r=='s') {
+		svec a;
+		a.push_back("all");
+		PlayThread(a, 2);
 		return true;
+	}
 	return false;
 }
 
@@ -563,9 +640,11 @@ void cmdHelp(svec arg) {
 		cout << "\tquit\t\tChiude il programma\n";
 		cout << "\tcalibration\t\tInserisce una nuova calibrazione\n";
 		cout << "\tinsert\t\tInserisce un dispositivo\n";
+		cout << "\tdelete\t\tElimina un dispositivo\n";
 		cout << "\tstart\t\tAvvia tutti od un thread specifico\n";
 		cout << "\tstop\t\tFerma tutti od un thread specifico\n";
 		cout << "\tpause\t\tMette in pausa tutti od un thread specifico\n";
+		cout << "\tdefault\t\tInserisce la configurazione di default\n";
 		cout << "\tdebug\t\tImposta le stringhe di debug da visualizzare\n";
 		cout << "\tshow\t\tMostra lo stato di thread e dispositivi\n";
 		cout << "\nPer guide specifiche sui comandi digitare: help <comando>\n\n";
@@ -576,7 +655,12 @@ void cmdHelp(svec arg) {
 		cout << "ARGOMENTI:\n";
 		cout << "\[dispositivo]\t\tInserisce uno specifico dispositivo. Valori ammessi:\n";
 		cout << "\t\t\t\tgps=Inserimento di un gps\n\t\t\t\timu=Inserimento di una imu"
-				"\n\t\t\t\tcam=Inserimento di una camera\n\t\t\t\thok=Inserimento dell'hokuyo\n";
+				"\n\t\t\t\tcam=Inserimento di una camera\n\t\t\t\thok=Inserimento dell'hokuyo\n\n";
+		cout << "Per la imu e il gps e' possibile specificare altri parametri in questo modo:\n"
+				"\timu/gps <porta> [nome del file dove salvare] [baud rate] [data bits] [parita'] [stop bit]\n"
+				"Non c'è l'obbligo di specificarli tutti ma l'ordine deve essere rispettato\n\n";
+		cout << "Per la cam e' possibile specificare altri parametri in questo modo:\n"
+				"\tcam <indirizzo ip / numero della camera> [millisecondi di attesa]\n\n";
 	}
 	else if(arg[0].compare("start")==0) {
 		cout << "USO DI start\n\n";
@@ -614,6 +698,18 @@ void cmdHelp(svec arg) {
 	else if(arg[0].compare("calibration")==0) {
 		cout << "USO DI calibration:\n";
 		cout << "calibration\n\n";
+	}
+	else if(arg[0].compare("quit")==0) {
+		cout << "USO DI quit:\n";
+		cout << "Chiude il programma rilasciando tutti i dispositivi inseriti.\n"
+				"In caso di thread avviati li fermera' in automatico.\n\n";
+	}
+	else if(arg[0].compare("default")==0) {
+		cout << "USO DI default:\n";
+		cout << "Avvia la configurazione di default:\n"
+				"\tIMU /dev/ttyUSB0 IMU_STRETCHED.csv 38400 8 none 1\n"
+				"\tGPS /dev/ttyACM0 GPS.csv 38400 8 none 1\n"
+				"\tCAM http://192.168.10.100/mjpg/video.mjpg 200\n\n";
 	}
 	else
 		cout << "comando " << arg[0] << " non esistente o ancora non inserito nella guida\n";
@@ -872,6 +968,7 @@ bool InsertGPS(char* percorso_porta, char* filename, int baudRate, int dataBits,
 		td.debug = 0;
 
 		string pcomp(path);
+		pcomp.append("/");
 		pcomp.append(filename);
 		char* pcomp2 = new char[pcomp.length()+1];
 		strcpy(pcomp2, pcomp.c_str());
@@ -904,6 +1001,7 @@ bool InsertIMU(char* percorso_porta, char* filename, int baudRate, int dataBits,
 		td.debug = 0;
 
 		string pcomp(path);
+		pcomp.append("/");
 		pcomp.append(filename);
 		char* pcomp2 = new char[pcomp.length()+1];
 		strcpy(pcomp2, pcomp.c_str());
@@ -1062,10 +1160,10 @@ void PlayThread(svec arg, int command) {
 	}
 }
 
-bool some_thread_active(bool conta_in_pausa) {
+bool some_thread_active(bool non_conta_in_pausa) {
 	int n = d.size();
 	for(int i=0; i<n; ++i) {
-		if(conta_in_pausa) {
+		if(non_conta_in_pausa) {
 			if(d[i].stato == ATTIVO)
 				return true;
 		}
