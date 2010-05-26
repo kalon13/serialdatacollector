@@ -164,6 +164,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	</script>
 </head>
 <body>
+<div id = "contenitore">
 <?php
 	$dataset = "DataSet/Outdoor";
 	$lastdir = "";
@@ -204,51 +205,122 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 		$fh = fopen($IMU_File, 'r');
 		$IMU_Data = fread($fh, filesize($IMU_File));
 		fclose($fh);
+		$IMU_is_init = true;
 	}
 	else
+	{
 		$IMU_Data = "Il file della imu non esiste!";
+		$IMU_is_init = false;
+	}
 	/*VERIFICA SE ESISTE IL FILE DEL GPS E LO LEGGE*/
 	$GPS_File = $dir."/"."GPS.csv.u";
 	if(file_exists($GPS_File)) {
 		$fh = fopen($GPS_File, 'r');
 		$GPS_Data = fread($fh, filesize($GPS_File));
 		fclose($fh);
+		$GPS_is_init = true;
 	}
 	else
+	{
 		$GPS_Data = "Il file del gps non esiste";
-
-	// Processo le stringhe dei file gps e imu, le stampo poi in maniera strutturataù
-	$imu_tok = strtok($IMU_Data, ",");
-	$gps_tok = strtok($GPS_Data, ",");
-
-	while($imu_tok != false) {
-		$IMU_array[] = $imu_tok;
-		$imu_tok = strtok(",");
+		$GPS_is_init = false;
 	}
-
-	while($gps_tok != false) {
-		$GPS_array[] = $gps_tok;
-		$gps_tok = strtok(",");
-	}
-
-	/*OUTPUT DEI DATI*/
-	echo "<p>DataSet: $lastdir</p>";
-	echo "<p>IMU: <br /></p>";
 	
-	foreach($IMU_array as $dato) {
-		echo "$dato<br />";
+	// Processo le stringhe dei file gps e imu, le stampo poi in maniera strutturata
+
+	$IMU_string = array("Timestamp","Contatore", "Accellerazione lungo l'asse X", "Accellerazione lungo l'asse Y", "Accellerazione lungo l'asse Z", "Velocità Angolare asse X", "Velocità Angolare asse Y", "Velocità Angolare asse Z", "Campo Magnetico asse X", "Campo Magnetico asse Y", "Campo Magnetico asse Z", "Matrice di Orientazione Riga 1 Colonna 1", "Matrice di Orientazione Riga 1 Colonna 2", "Matrice di Orientazione Riga 1 Colonna 3", "Matrice di Orientazione Riga 2 Colonna 1", "Matrice di Orientazione Riga 2 Colonna 2", "Matrice di Orientazione Riga 2 Colonna 3", "Matrice di Orientazione Riga 3 Colonna 1", "Matrice di Orientazione Riga 3 Colonna 2", "Matrice di Orientazione Riga 3 Colonna 3");
+	
+	if($IMU_is_init)
+	{	
+		$imu_tok = strtok($IMU_Data, ",");
+		while($imu_tok != false) {
+			$IMU_array[] = $imu_tok;
+			$imu_tok = strtok(",");
+		}
 	}
+	
+	$GPS_string = array("Timestamp", "Tipo Stringa NMEA", "Ora GMT", "Latitudine", "Longitudine", "Validità Dato", "Numero di Satelliti", "HDOP", "Altitudine", "Altezza del Geoide", "Checksum");
+	
+	if($GPS_is_init)
+	{
+		$gps_tok = strtok($GPS_Data, ",");
+		while($gps_tok != false) {
+			$GPS_array[] = $gps_tok;
+			$gps_tok = strtok(",");
+		}
+	}
+	/*OUTPUT DEI DATI*/
+	
+	// controllo se è settato il POST delle vecchie stringhe
+	if(isset($_POST['gps_data']))
+	{
+		
+	}
+
+	if(isset($_POST['imu_data']))
+	{
+		
+	}
+	
+	// divido il nome del dataset.
+	$data_tok = strtok($lastdir, "_");
+	$luogo = $data_tok;
+	$data_tok = strtok("_");
+	$data = $data_tok;
+	$data_tok = strtok("_");
+	$tipo = $data_tok;
+?>
+	<div id = "dataset">
+		<table id = "dati_dataset">
+			<tr>
+				<td> Luogo del Dataset: </td>
+				<td> <?=$luogo?></td>
+			</tr>
+			<tr>
+				<td> Tipo di raccolta dati: </td>
+				<td> <?=$tipo?></td>
+			</tr>
+			<tr>
+				<td> Data: </td>
+				<td> <?=$data?></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><form name="form_ricarica" method="post" action=""><input name="Ricarica" type="submit" value="Invia" /><input name="gps_data" type="hidden" value="<?=$GPS_Data?>"/><input name="imu_data" type="hidden" value="<?=$IMU_Data?>"/></form></td>
+			</tr>
+		</table>
+	</div>
+	<div id = "lastimage">
+<?php
+		if($IMG_newstamp!=0)
+			echo "<img src=\"$IMG_path\" />";
+		else
+			echo "<p>Nessuna immagine presente!</p>";
+?>
+	</div>
+	<div id="imu">
+<?php
+	echo "<p>IMU: <br /></p>";
+	$i = 0;
+	foreach($IMU_array as $dato) {
+		echo "$IMU_string[$i]:";
+		echo "$dato<br />";
+		$i++;
+	}
+?>
+	</div>
+	<div id="gps">
+<?php
 	echo "<p>GPS: <br /></p>";
 	
+	$i = 0;
 	foreach($GPS_array as $dato) {
+		echo "$GPS_string[$i]";		
 		echo "$dato<br />";
+		$i++;
 	}
-
-	if($IMG_newstamp!=0)
-		echo "<img src=\"$IMG_path\" />";
-	else
-		echo "<p>Nessuna immagine presente!</p>";
 ?>
-
+	</div>
+</div>
 </body>
 </html>
