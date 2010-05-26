@@ -3,7 +3,60 @@
 <head>
 	<title>SerialDataCollector - PHP Monitor</title>
 	<style type="text/css">
-	
+		html, body {
+			margin: 0;
+			padding:0;
+			height: 100%;
+		}
+
+		body {
+			font-family: Arial,sans-serif;
+			font-size: 12px;
+		}
+
+		div#contenitore {
+			margin: 0 0;
+			text-align: left;
+		}
+		
+		div#dataset {
+			clear: left;
+			float: left;
+			margin-top: 15px;
+			text-align: left;
+			width: 50%;
+		}
+		div#lastimage {
+			float: right;
+			margin-top: 15px;
+			text-align: left;
+			width: 50%;
+		}
+		
+		table#dati_dataset {
+			border: 0;
+		}
+		
+		td.spacing {
+			padding-top: 5px;
+		}
+
+		td.spacing2 {
+			padding-top: 5px;
+			padding-bottom: 5px;
+		}
+
+		div#imu_attuale {
+			float: left;
+		}
+
+		div#gps_attuale {
+			float: right;
+		}
+		
+		div.spaziatore {
+			clear: both;
+		}
 	</style>
 	
 	<script language="JavaScript">
@@ -168,7 +221,11 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 <?php
 	$dataset = "DataSet/Outdoor";
 	$lastdir = "";
-	
+	$GPS_Data_precedenti = 0;
+	$IMU_Data_precedenti = 0;
+	$imu_stampa_precedenti = false;
+	$gps_stampa_precedenti = false;
+
 	/*TROVA L'ULTIMA CARTELLA CREATA*/
 	$DS_newstamp = 0;
 	$DS_dc = opendir($dataset);
@@ -254,12 +311,42 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	// controllo se è settato il POST delle vecchie stringhe
 	if(isset($_POST['gps_data']))
 	{
-		
+		// controlla se il gps_data è uguale al precedente.
+		$GPS_Data_precedenti = $_POST['gps_data'];
+		if(strcmp($GPS_Data_precedenti, $GPS_Data) != 0)
+		{
+			//entra qui solo se le stringhe sono diverse, nel caso elaboro pure la stringa dati precedenti
+			if($GPS_is_init)
+			{
+				$gps_tok = NULL;
+				$gps_tok = strtok($GPS_Data_precedenti, ",");
+				while($gps_tok != false) {
+					$GPS_array_precedente[] = $gps_tok;
+					$gps_tok = strtok(",");
+				}
+				$gps_stampa_precedenti = true;
+			}
+		}
 	}
 
 	if(isset($_POST['imu_data']))
 	{
-		
+		// controlla se la imu_data è uguale al precedente.
+		$GPS_Data_precedenti = $_POST['gps_data'];
+		if(strcmp($IMU_Data_precedenti, $IMU_Data) != 0)
+		{
+			//entra qui solo se le stringhe sono diverse, nel caso elaboro pure la stringa dati precedenti
+			if($IMU_is_init)
+			{
+				$imu_tok = NULL;
+				$imu_tok = strtok($GPS_Data_precedenti, ",");
+				while($imu_tok != false) {
+					$IMU_array_precedente[] = $imu_tok;
+					$imu_tok = strtok(",");
+				}
+				$imu_stampa_precedenti = true;
+			}
+		}
 	}
 	
 	// divido il nome del dataset.
@@ -274,19 +361,19 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 		<table id = "dati_dataset">
 			<tr>
 				<td> Luogo del Dataset: </td>
-				<td> <?=$luogo?></td>
+				<td class="spacing2"> <?=$luogo?></td>
 			</tr>
 			<tr>
-				<td> Tipo di raccolta dati: </td>
+				<td class="spacing2"> Tipo di raccolta dati: </td>
 				<td> <?=$tipo?></td>
 			</tr>
 			<tr>
-				<td> Data: </td>
+				<td class="spacing2"> Data: </td>
 				<td> <?=$data?></td>
 			</tr>
 			<tr>
 				<td></td>
-				<td><form name="form_ricarica" method="post" action=""><input name="Ricarica" type="submit" value="Invia" /><input name="gps_data" type="hidden" value="<?=$GPS_Data?>"/><input name="imu_data" type="hidden" value="<?=$IMU_Data?>"/></form></td>
+				<td><form name="form_ricarica" method="post" action=""><input name="Ricarica" type="submit" value="Aggiorna" /><input name="gps_data" type="hidden" value="<?=$GPS_Data?>"/><input name="imu_data" type="hidden" value="<?=$IMU_Data?>"/></form></td>
 			</tr>
 		</table>
 	</div>
@@ -298,7 +385,8 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 			echo "<p>Nessuna immagine presente!</p>";
 ?>
 	</div>
-	<div id="imu">
+	<div class="spaziatore"></div>
+	<div id="imu_attuale">
 <?php
 	echo "<p>IMU: <br /></p>";
 	$i = 0;
@@ -309,7 +397,21 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	}
 ?>
 	</div>
-	<div id="gps">
+<?php
+	if($imu_stampa_precedenti)
+	{
+		echo "<div id=\"imu_precedente\">";
+		echo "<p>IMU: <br /></p>";
+		$i = 0;
+		foreach($IMU_array_precedente as $dato) {
+			echo "$IMU_string[$i]:";
+			echo "$dato<br />";
+			$i++;
+		}
+		echo "</div>";
+	}
+?>
+	<div id="gps_attuale">
 <?php
 	echo "<p>GPS: <br /></p>";
 	
@@ -321,6 +423,21 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	}
 ?>
 	</div>
+<?php
+	if($imu_stampa_precedenti)
+	{
+		echo "<div id=\"gps_precedente\">";
+		echo "<p>GPS: <br /></p>";
+		$i = 0;
+		foreach($GPS_array_precedente as $dato) {
+			echo "$GPS_string[$i]:";
+			echo "$dato<br />";
+			$i++;
+		}
+		echo "</div>";
+	}
+?>
+	<div class="spaziatore"></div>
 </div>
 </body>
 </html>
