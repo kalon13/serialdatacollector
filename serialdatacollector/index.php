@@ -48,10 +48,12 @@
 
 		div#imu_attuale {
 			float: left;
+			margin-left: 30px;
 		}
 
 		div#gps_attuale {
 			float: right;
+			margin-right: 30px;
 		}
 		
 		div.spaziatore {
@@ -285,7 +287,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	
 	// Processo le stringhe dei file gps e imu, le stampo poi in maniera strutturata
 
-	$IMU_string = array("Timestamp","Contatore", "Accellerazione lungo l'asse X", "Accellerazione lungo l'asse Y", "Accellerazione lungo l'asse Z", "Velocità Angolare asse X", "Velocità Angolare asse Y", "Velocità Angolare asse Z", "Campo Magnetico asse X", "Campo Magnetico asse Y", "Campo Magnetico asse Z", "Matrice di Orientazione Riga 1 Colonna 1", "Matrice di Orientazione Riga 1 Colonna 2", "Matrice di Orientazione Riga 1 Colonna 3", "Matrice di Orientazione Riga 2 Colonna 1", "Matrice di Orientazione Riga 2 Colonna 2", "Matrice di Orientazione Riga 2 Colonna 3", "Matrice di Orientazione Riga 3 Colonna 1", "Matrice di Orientazione Riga 3 Colonna 2", "Matrice di Orientazione Riga 3 Colonna 3");
+	$IMU_string = array("Timestamp","Contatore", "Timestamp interno IMU","Accellerazione lungo l'asse X", "Accellerazione lungo l'asse Y", "Accellerazione lungo l'asse Z", "Velocità Angolare asse X", "Velocità Angolare asse Y", "Velocità Angolare asse Z", "Campo Magnetico asse X", "Campo Magnetico asse Y", "Campo Magnetico asse Z", "Matrice di Orientazione Riga 1 Colonna 1", "Matrice di Orientazione Riga 1 Colonna 2", "Matrice di Orientazione Riga 1 Colonna 3", "Matrice di Orientazione Riga 2 Colonna 1", "Matrice di Orientazione Riga 2 Colonna 2", "Matrice di Orientazione Riga 2 Colonna 3", "Matrice di Orientazione Riga 3 Colonna 1", "Matrice di Orientazione Riga 3 Colonna 2", "Matrice di Orientazione Riga 3 Colonna 3");
 	
 	if($IMU_is_init)
 	{	
@@ -391,8 +393,8 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	echo "<p>IMU: <br /></p>";
 	$i = 0;
 	foreach($IMU_array as $dato) {
-		echo "$IMU_string[$i]:";
-		echo "$dato<br />";
+		echo "<p>$IMU_string[$i]: ";
+		echo "$dato<br /></p>";
 		$i++;
 	}
 ?>
@@ -404,8 +406,8 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 		echo "<p>IMU: <br /></p>";
 		$i = 0;
 		foreach($IMU_array_precedente as $dato) {
-			echo "$IMU_string[$i]:";
-			echo "$dato<br />";
+			echo "<p>$IMU_string[$i]: ";
+			echo "$dato<br /></p>";
 			$i++;
 		}
 		echo "</div>";
@@ -417,8 +419,8 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	
 	$i = 0;
 	foreach($GPS_array as $dato) {
-		echo "$GPS_string[$i]";		
-		echo "$dato<br />";
+		echo "<p>$GPS_string[$i]: ";		
+		echo "$dato<br /></p>";
 		$i++;
 	}
 ?>
@@ -430,8 +432,8 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 		echo "<p>GPS: <br /></p>";
 		$i = 0;
 		foreach($GPS_array_precedente as $dato) {
-			echo "$GPS_string[$i]:";
-			echo "$dato<br />";
+			echo "<p>$GPS_string[$i]: ";
+			echo "$dato<br /></p>";
 			$i++;
 		}
 		echo "</div>";
