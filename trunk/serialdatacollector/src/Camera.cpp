@@ -84,8 +84,15 @@ bool Camera::writeData(char* path, char* name) {
 			filename = percorso + "/" + ora + ".png";
 		else
 			filename = percorso + "/" + name + ".png";
-		ok = imwrite(filename, frame, params);
-
+		try
+		{
+			ok = imwrite(filename, frame, params);
+		}
+		catch(...)
+		{
+			ok = false;
+			cout << "Le OpenCv hanno dato errore con il pacchetto ffmpeg, la Camera ha smesso di funzionare!" << endl;
+		}
 		shot=false;
 
 		waitKey(wait_time);

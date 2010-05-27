@@ -49,13 +49,26 @@
 		div#imu_attuale {
 			float: left;
 			margin-left: 30px;
+			margin-right: 50px;
 		}
 
 		div#gps_attuale {
-			float: right;
+			/*float: right;*/
+			float: left;
 			margin-right: 30px;
 		}
 		
+		div#imu_precedente {
+			float: left;
+			margin-right: 50px;
+			color: #ff0000;
+		}
+
+		div#gps_precedente {
+			float: left;
+			margin-right: 50px;
+			color: #ff0000;
+		}
 		div.spaziatore {
 			clear: both;
 		}
