@@ -126,8 +126,12 @@ bool Camera::writeData(char* path, char* name) {
 			filename = percorso + "/" + ora + ".jpg";
 			//ok = imwrite(filename, fr, params);
 
-		string bb("lwp-download http://192.168.10.100/jpg/image.jpg ");
+	/*	string bb("lwp-download http://192.168.10.100/jpg/image.jpg ");
 		bb.append(filename);
+		system(bb.c_str());*/
+		string bb("wget -q --output-document=");
+		bb.append(filename);
+		bb.append(" http://192.168.10.100/jpg/image.jpg");
 		system(bb.c_str());
 		waitKey(wait_time);
 		return ok;
