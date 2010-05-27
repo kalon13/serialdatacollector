@@ -4,9 +4,7 @@
  *  Created on: 23/mar/2010
  *      Author: kain
  */
-
-
-
+#include <iostream>
 #include "Camera.h"
 
 #ifndef CAMERA
@@ -66,7 +64,7 @@ bool Camera::readData() {
 	return false;
 }
 
-bool Camera::writeData(char* path, char* name) {
+/*bool Camera::writeData(char* path, char* name) {
 	if(shot) {
 		string percorso(path);
 		bool ok;
@@ -99,6 +97,40 @@ bool Camera::writeData(char* path, char* name) {
 		return ok;
 	}
 	return false;
+}*/
+
+bool Camera::writeData(char* path, char* name) {
+
+		//Mat fr = imread("image.jpg");
+			clock_gettime(CLOCK_REALTIME, &nano);
+			time(&rawtime);
+			leggibile = localtime(&rawtime);
+
+			//params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+			//params.push_back(CV_IMWRITE_JPEG_QUALITY);
+			//params.push_back(50);
+
+
+		string percorso(path);
+		bool ok;
+
+		int nano_sec = nano.tv_nsec;
+		int second = leggibile->tm_sec;
+		int min = leggibile->tm_min;
+		int hour = leggibile->tm_hour;
+		stringstream out;
+		string ora;
+		out << hour << "-" << min << "-" << second << "-" << nano_sec;
+		ora = out.str();
+		string filename;
+			filename = percorso + "/" + ora + ".jpg";
+			//ok = imwrite(filename, fr, params);
+
+		string bb("lwp-download http://192.168.10.100/jpg/image.jpg ");
+		bb.append(filename);
+		system(bb.c_str());
+		waitKey(wait_time);
+		return ok;
 }
 
 bool Camera::openCommunication(int cam, int wait) {
