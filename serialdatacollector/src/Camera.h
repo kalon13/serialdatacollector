@@ -45,6 +45,7 @@ public:
 	bool isConnected();
 	bool readData();
 	bool writeData(char* path, char* name=NULL);
+	bool wgetData(char* path, char* name=NULL);
 };
 
 #endif
