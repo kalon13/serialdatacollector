@@ -725,7 +725,7 @@ void* camAcquisition(void* i){
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
 			//((Camera*)dev.device)->getPhoto(dev.path);
-			((Camera*)dev.device)->readData();
+			//((Camera*)dev.device)->readData();
 			if(((Camera*)dev.device)->writeData(dev.path)) {
 				if(dev.debug>0)
 					cout << "Immagine scritta!" << endl;
