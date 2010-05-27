@@ -168,23 +168,23 @@ void* Shell() {
 
 
 void cmdStart(svec arg) {
-	if(!arg.empty())
-		PlayThread(arg, 0);
-	else
-		cout << "Per info sull'uso di 'start' digitare: 'help start'" << endl;
+	if(arg.empty())
+		arg.push_back("all");
+	PlayThread(arg, 0);
+		//cout << "Per info sull'uso di 'start' digitare: 'help start'" << endl;
 }
 
 void cmdStop(svec arg) {
-	if(!arg.empty())
-		PlayThread(arg, 2);
-	else
-		cout << "Per info sull'uso di 'stop' digitare: 'help stop'" << endl;
+	if(arg.empty())
+		arg.push_back("all");
+	PlayThread(arg, 2);
+		//cout << "Per info sull'uso di 'stop' digitare: 'help stop'" << endl;
 }
 void cmdPause(svec arg) {
-	if(!arg.empty())
-		PlayThread(arg, 1);
-	else
-		cout << "Per info sull'uso di 'pause' digitare: 'help stop'" << endl;
+	if(arg.empty())
+		arg.push_back("all");
+	PlayThread(arg, 1);
+		//cout << "Per info sull'uso di 'pause' digitare: 'help stop'" << endl;
 }
 
 void cmdInsert(svec arg) {
@@ -193,7 +193,6 @@ void cmdInsert(svec arg) {
 	char* path = new char[32];
 	bool ok = false;
 	int id = -1;
-
 
 	if(arg.size()>0) {
 		if(arg[0].compare("gps")==0)
@@ -665,19 +664,19 @@ void cmdHelp(svec arg) {
 	else if(arg[0].compare("start")==0) {
 		cout << "USO DI start\n\n";
 		cout << "ARGOMENTI:\n";
-		cout << "\tall\t\tAvvia tutti i thread dei dispositivi inseriti\n";
+		cout << "\tall\t\tAvvia tutti i thread dei dispositivi inseriti(scelta di default)\n";
 		cout << "\t[num]\t\tValore numerico del dispositivo di cui avviare il thread\n";
 	}
 	else if(arg[0].compare("stop")==0) {
 		cout << "USO DI stop\n\n";
 		cout << "ARGOMENTI:\n";
-		cout << "\tall\t\tFerma tutti i thread dei dispositivi inseriti\n";
+		cout << "\tall\t\tFerma tutti i thread dei dispositivi inseriti(scelta di default)\n";
 		cout << "\t<num>\t\tValore numerico del dispositivo di cui fermare il thread\n";
 	}
 	else if(arg[0].compare("pause")==0) {
 		cout << "USO DI pause\n\n";
 		cout << "ARGOMENTI:\n";
-		cout << "\tall\t\tMette in pausa tutti i thread dei dispositivi inseriti\n";
+		cout << "\tall\t\tMette in pausa tutti i thread dei dispositivi inseriti(scelta di default)\n";
 		cout << "\t<num>\t\tValore numerico del dispositivo di cui mettere in pausa il thread\n";
 	}
 	else if(arg[0].compare("debug")==0) {
@@ -725,8 +724,9 @@ void* camAcquisition(void* i){
 	while(dev.stato!=TERMINATO) {
 		while(dev.stato==ATTIVO) {
 			//((Camera*)dev.device)->getPhoto(dev.path);
-			//((Camera*)dev.device)->readData();
-			if(((Camera*)dev.device)->writeData(dev.path)) {
+//			((Camera*)dev.device)->readData();
+//			if(((Camera*)dev.device)->writeData(dev.path)) {
+			if(((Camera*)dev.device)->wgetData(dev.path)) {
 				if(dev.debug>0)
 					cout << "Immagine scritta!" << endl;
 			}

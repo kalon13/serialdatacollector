@@ -64,7 +64,7 @@ bool Camera::readData() {
 	return false;
 }
 
-/*bool Camera::writeData(char* path, char* name) {
+bool Camera::writeData(char* path, char* name) {
 	if(shot) {
 		string percorso(path);
 		bool ok;
@@ -97,19 +97,12 @@ bool Camera::readData() {
 		return ok;
 	}
 	return false;
-}*/
+}
 
-bool Camera::writeData(char* path, char* name) {
-
-		//Mat fr = imread("image.jpg");
-			clock_gettime(CLOCK_REALTIME, &nano);
-			time(&rawtime);
-			leggibile = localtime(&rawtime);
-
-			//params.push_back(CV_IMWRITE_PNG_COMPRESSION);
-			//params.push_back(CV_IMWRITE_JPEG_QUALITY);
-			//params.push_back(50);
-
+bool Camera::wgetData(char* path, char* name) {
+		clock_gettime(CLOCK_REALTIME, &nano);
+		time(&rawtime);
+		leggibile = localtime(&rawtime);
 
 		string percorso(path);
 		bool ok;
@@ -123,16 +116,15 @@ bool Camera::writeData(char* path, char* name) {
 		out << hour << "-" << min << "-" << second << "-" << nano_sec;
 		ora = out.str();
 		string filename;
+		if(name == NULL)
 			filename = percorso + "/" + ora + ".jpg";
-			//ok = imwrite(filename, fr, params);
+		else
+			filename = percorso + "/" + name + ".jpg";
 
-	/*	string bb("lwp-download http://192.168.10.100/jpg/image.jpg ");
-		bb.append(filename);
-		system(bb.c_str());*/
 		string bb("wget -q --output-document=");
 		bb.append(filename);
 		bb.append(" http://192.168.10.100/jpg/image.jpg");
-		system(bb.c_str());
+		ok = system(bb.c_str());
 		waitKey(wait_time);
 		return ok;
 }
