@@ -18,59 +18,82 @@
 			margin: 0 0;
 			text-align: left;
 		}
+		div#device {
+			clear: both;
+		}
 		
 		div#dataset {
-			clear: left;
 			float: left;
-			margin-top: 15px;
-			text-align: left;
-			width: 50%;
+			clear: both;
+			padding: 20px;
+			font-size: 16px;
 		}
 		div#lastimage {
-			float: right;
-			margin-top: 15px;
-			text-align: left;
-			width: 50%;
+			float: left;
+			padding: 20px;
 		}
 		
 		table#dati_dataset {
 			border: 0;
+			width: 400px;
 		}
 		
-		td.spacing {
-			padding-top: 5px;
+		.int {
+			font-weight: bold;
+			padding-right: 20px;
+			font-size: 16px;
+			width: 200px;
 		}
-
-		td.spacing2 {
-			padding-top: 5px;
-			padding-bottom: 5px;
+		
+		.form {
+			text-align: center;
+			padding: 20px;
 		}
-
+		
 		div#imu_attuale {
 			float: left;
 			margin-left: 30px;
 			margin-right: 50px;
 		}
 
-		div#gps_attuale {
-			/*float: right;*/
+		div#gps {
 			float: left;
 			margin-right: 30px;
 		}
 		
-		div#imu_precedente {
+		div#imu, div#gps {
 			float: left;
-			margin-right: 50px;
-			color: #ff0000;
+			margin: 20px;
+			padding: 5px;
+			border: 1px solid black;
+			-moz-border-radius: 5px;
 		}
-
-		div#gps_precedente {
-			float: left;
-			margin-right: 50px;
-			color: #ff0000;
+		
+		table.dev {
+			cell-spacing: 5px;
+			text-align: right;
 		}
-		div.spaziatore {
-			clear: both;
+		
+		table.dev td {
+			padding: 3px;
+		}
+		table.dev th {
+			text-align: center;
+			color: blue;
+		}
+		
+		td.int2 {
+			font-weight: bold;
+			width: 200px;
+			text-align: left;
+		}
+		
+		.int3 {
+			font-weight: bold;
+			font-size: 16px;
+			text-shadow: 1px 1px #c4c4c4;
+			text-align: center;
+			width: 100%;
 		}
 	</style>
 	
@@ -238,8 +261,8 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	$lastdir = "";
 	$GPS_Data_precedenti = 0;
 	$IMU_Data_precedenti = 0;
-	$imu_stampa_precedenti = false;
-	$gps_stampa_precedenti = false;
+	$IMU_stampa_precedenti = false;
+	$GPS_stampa_precedenti = false;
 
 	/*TROVA L'ULTIMA CARTELLA CREATA*/
 	$DS_newstamp = 0;
@@ -299,8 +322,20 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	}
 	
 	// Processo le stringhe dei file gps e imu, le stampo poi in maniera strutturata
+	$IMU_Data = trim($IMU_Data);
+	$GPS_Data = trim($GPS_Data);
 
-	$IMU_string = array("Timestamp","Contatore", "Timestamp interno IMU","Accellerazione lungo l'asse X", "Accellerazione lungo l'asse Y", "Accellerazione lungo l'asse Z", "Velocità Angolare asse X", "Velocità Angolare asse Y", "Velocità Angolare asse Z", "Campo Magnetico asse X", "Campo Magnetico asse Y", "Campo Magnetico asse Z", "Matrice di Orientazione Riga 1 Colonna 1", "Matrice di Orientazione Riga 1 Colonna 2", "Matrice di Orientazione Riga 1 Colonna 3", "Matrice di Orientazione Riga 2 Colonna 1", "Matrice di Orientazione Riga 2 Colonna 2", "Matrice di Orientazione Riga 2 Colonna 3", "Matrice di Orientazione Riga 3 Colonna 1", "Matrice di Orientazione Riga 3 Colonna 2", "Matrice di Orientazione Riga 3 Colonna 3");
+	$IMU_string = array("Timestamp", "Contatore", "Timestamp interno IMU", 
+						"Accelerazione lungo X", "Accelerazione lungo Y", "Accelerazione lungo Z", 
+						"Velocit&agrave; Angolare asse X", "Velocit&agrave; Angolare asse Y", "Velocit&agrave; Angolare asse Z",
+						"Campo Magnetico asse X", "Campo Magnetico asse Y", "Campo Magnetico asse Z",
+						"Matrice di Orientazione R 1 C 1", "Matrice di Orientazione R 1 C 2", "Matrice di Orientazione R 1 C 3",
+						"Matrice di Orientazione R 2 C 1", "Matrice di Orientazione R 2 C 2", "Matrice di Orientazione R 2 C 3",
+						"Matrice di Orientazione R 3 C 1", "Matrice di Orientazione R 3 C 2", "Matrice di Orientazione R 3 C 3");
+	
+	$GPS_string = array("Timestamp", "Tipo Stringa NMEA", "Ora GMT", "Latitudine", "Longitudine",
+						"Validit&agrave; Dato", "Numero di Satelliti", "HDOP", "Altitudine",
+						"Altezza del Geoide", "Checksum");
 	
 	if($IMU_is_init)
 	{	
@@ -310,9 +345,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 			$imu_tok = strtok(",");
 		}
 	}
-	
-	$GPS_string = array("Timestamp", "Tipo Stringa NMEA", "Ora GMT", "Latitudine", "Longitudine", "Validità Dato", "Numero di Satelliti", "HDOP", "Altitudine", "Altezza del Geoide", "Checksum");
-	
+
 	if($GPS_is_init)
 	{
 		$gps_tok = strtok($GPS_Data, ",");
@@ -331,36 +364,30 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 		if(strcmp($GPS_Data_precedenti, $GPS_Data) != 0)
 		{
 			//entra qui solo se le stringhe sono diverse, nel caso elaboro pure la stringa dati precedenti
-			if($GPS_is_init)
-			{
-				$gps_tok = NULL;
-				$gps_tok = strtok($GPS_Data_precedenti, ",");
-				while($gps_tok != false) {
-					$GPS_array_precedente[] = $gps_tok;
-					$gps_tok = strtok(",");
-				}
-				$gps_stampa_precedenti = true;
+			$gps_tok = NULL;
+			$gps_tok = strtok($GPS_Data_precedenti, ",");
+			while($gps_tok != false) {
+				$GPS_array_precedente[] = $gps_tok;
+				$gps_tok = strtok(",");
 			}
+			$GPS_stampa_precedenti = true;
 		}
 	}
 
 	if(isset($_POST['imu_data']))
 	{
 		// controlla se la imu_data è uguale al precedente.
-		$GPS_Data_precedenti = $_POST['gps_data'];
+		$IMU_Data_precedenti = $_POST['imu_data'];
 		if(strcmp($IMU_Data_precedenti, $IMU_Data) != 0)
 		{
 			//entra qui solo se le stringhe sono diverse, nel caso elaboro pure la stringa dati precedenti
-			if($IMU_is_init)
-			{
-				$imu_tok = NULL;
-				$imu_tok = strtok($GPS_Data_precedenti, ",");
-				while($imu_tok != false) {
-					$IMU_array_precedente[] = $imu_tok;
-					$imu_tok = strtok(",");
-				}
-				$imu_stampa_precedenti = true;
+			$imu_tok = NULL;
+			$imu_tok = strtok($IMU_Data_precedenti, ",");
+			while($imu_tok != false) {
+				$IMU_array_precedente[] = $imu_tok;
+				$imu_tok = strtok(",");
 			}
+			$IMU_stampa_precedenti = true;
 		}
 	}
 	
@@ -371,88 +398,161 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	$data = $data_tok;
 	$data_tok = strtok("_");
 	$tipo = $data_tok;
+	
+	echo "$IMU_array_precedente[$i]";
 ?>
-	<div id = "dataset">
-		<table id = "dati_dataset">
+<div id="header">
+	<div id="dataset">
+		<table id="dati_dataset">
 			<tr>
-				<td> Luogo del Dataset: </td>
-				<td class="spacing2"> <?=$luogo?></td>
+				<td class="int">Luogo del Dataset:</td>
+				<td><?=$luogo?></td>
 			</tr>
 			<tr>
-				<td class="spacing2"> Tipo di raccolta dati: </td>
-				<td> <?=$tipo?></td>
+				<td class="int">Tipo di Raccolta Dati:</td>
+				<td><?=$tipo?></td>
 			</tr>
 			<tr>
-				<td class="spacing2"> Data: </td>
-				<td> <?=$data?></td>
+				<td class="int">Data Prova:</td>
+				<td><?=$data?></td>
 			</tr>
 			<tr>
-				<td></td>
-				<td><form name="form_ricarica" method="post" action=""><input name="Ricarica" type="submit" value="Aggiorna" /><input name="gps_data" type="hidden" value="<?=$GPS_Data?>"/><input name="imu_data" type="hidden" value="<?=$IMU_Data?>"/></form></td>
+				<td class="int">Ora Server:</td>
+				<td><?=date("H:i:s")?></td>
 			</tr>
 		</table>
+		<div class="form">
+			<form name="form_ricarica" method="post" action="">
+				<input name="Ricarica" type="submit" value="Aggiorna" />
+				<input name="gps_data" type="hidden" value="<?=$GPS_Data?>" /><input name="imu_data" type="hidden" value="<?=$IMU_Data?>" />
+			</form>
+		</div>	
 	</div>
-	<div id = "lastimage">
+	
+	<div id="lastimage">
 <?php
 		if($IMG_newstamp!=0)
-			echo "<img src=\"$IMG_path\" />";
+			echo "<img src=\"$IMG_path\" style=\"width: 320px; heigth: 240px;\" />";
 		else
 			echo "<p>Nessuna immagine presente!</p>";
 ?>
 	</div>
-	<div class="spaziatore"></div>
-	<div id="imu_attuale">
+</div>
+
+<div id="device">
+	<div id="imu">
 <?php
-	echo "<p>IMU: <br /></p>";
-	$i = 0;
-	foreach($IMU_array as $dato) {
-		echo "<p>$IMU_string[$i]: ";
-		echo "$dato<br /></p>";
-		$i++;
-	}
-?>
-	</div>
-<?php
-	if($imu_stampa_precedenti)
-	{
-		echo "<div id=\"imu_precedente\">";
-		echo "<p>IMU: <br /></p>";
-		$i = 0;
-		foreach($IMU_array_precedente as $dato) {
-			echo "<p>$IMU_string[$i]: ";
-			echo "$dato<br /></p>";
-			$i++;
-		}
-		echo "</div>";
-	}
-?>
-	<div id="gps_attuale">
-<?php
-	echo "<p>GPS: <br /></p>";
 	
-	$i = 0;
-	foreach($GPS_array as $dato) {
-		echo "<p>$GPS_string[$i]: ";		
-		echo "$dato<br /></p>";
-		$i++;
+	echo "<div class=\"int3\">IMU</div>";
+	if($IMU_is_init) {
+		echo "<table class=\"dev\">";
+		$i = 0;
+		
+		echo "<tr><th style=\"text-align: left;\">Campi</th>";
+		if($IMU_stampa_precedenti)
+			echo "<th>Vecchi</th>";
+		echo "<th>Attuali</th></tr>";
+		
+		foreach($IMU_array as $dato) {
+				
+			if($i==0) {	
+				echo "<tr><td class=\"int2\">$IMU_string[$i] secondi:</td>";
+				$dato1 = substr($dato,0,10);
+				$dato2 = substr($dato,11);
+				$coN = date("H:i:s", $dato1);
+				if($IMU_stampa_precedenti){
+					$p1 = substr($IMU_array_precedente[$i],0,10);
+					$p2 = substr($IMU_array_precedente[$i],11);
+					$coV = date("H:i:s", $p1);
+					echo "<td>$p1</td><td ".($p1!=$dato1?"style=\"color: red;\"":"").">$dato1</td></tr>";
+					echo "<tr><td class=\"int2\">$IMU_string[$i] nanosecondi:</td>";
+					echo "<td>$p2</td><td ".($p2!=$dato2?"style=\"color: red;\"":"").">$dato2</td></tr>";
+					echo "<tr><td class=\"int2\">$IMU_string[$i] convertito:</td>";
+					echo "<td>$coV</td><td ".($coV!=$coN?"style=\"color: red;\"":"").">$coN</td></tr>";
+				}
+				else {
+					echo "<td>$dato1</td></tr>";
+					echo "<tr><td class=\"int2\">$IMU_string[$i] nanosecondi:</td>";
+					echo "<td>$dato2</td></tr>";
+					echo "<tr><td class=\"int2\">$IMU_string[$i] convertito:</td>";
+					echo "<td>$coN</td></tr>";
+				}
+				$i++;
+			}
+			else {
+				echo "<tr><td class=\"int2\">$IMU_string[$i]:</td>";
+				
+				if($IMU_stampa_precedenti){
+					$p = $IMU_array_precedente[$i];
+					echo "<td>$p</td><td ".($p!=$dato?"style=\"color: red;\"":"").">$dato</td>";
+				}
+				else
+					echo "<td>$dato</td>";
+							
+				$i++;
+				echo "</tr>";
+			}
+		}
+		echo "</table>";
 	}
 ?>
 	</div>
+
+	<div id="gps">
 <?php
-	if($imu_stampa_precedenti)
-	{
-		echo "<div id=\"gps_precedente\">";
-		echo "<p>GPS: <br /></p>";
+	echo "<div class=\"int3\">GPS</div>";
+	if($GPS_is_init) {
+		echo "<table class=\"dev\">";
+		
+		echo "<tr><th style=\"text-align: left;\">Campi</th>";
+		if($GPS_stampa_precedenti)
+			echo "<th>Vecchi</th>";
+		echo "<th>Attuali</th></tr>";
+		
 		$i = 0;
-		foreach($GPS_array_precedente as $dato) {
-			echo "<p>$GPS_string[$i]: ";
-			echo "$dato<br /></p>";
+		foreach($GPS_array as $dato) {
+			if($i==0) {
+				echo "<tr><td class=\"int2\">$GPS_string[$i] secondi:</td>";
+				$dato1 = substr($dato,0,10);
+				$dato2 = substr($dato,11);
+				$coN = date("H:i:s", $dato1);
+				if($GPS_stampa_precedenti){
+					$p1 = substr($GPS_array_precedente[$i],0,10);
+					$p2 = substr($GPS_array_precedente[$i],11);
+					$coV = date("H:i:s", $p1);
+					echo "<td>$p1</td><td ".($p1!=$dato1?"style=\"color: red;\"":"").">$dato1</td></tr>";
+					echo "<tr><td class=\"int2\">$GPS_string[$i] nanosecondi:</td>";
+					echo "<td>$p2</td><td ".($p2!=$dato2?"style=\"color: red;\"":"").">$dato2</td></tr>";
+					echo "<tr><td class=\"int2\">$GPS_string[$i] convertito:</td>";
+					echo "<td>$coV</td><td ".($coV!=$coN?"style=\"color: red;\"":"").">$coN</td></tr>";
+				}
+				else {
+					echo "<td>$dato1</td></tr>";
+					echo "<tr><td class=\"int2\">$GPS_string[$i] nanosecondi:</td>";
+					echo "<td>$dato2</td></tr>";
+					echo "<tr><td class=\"int2\">$GPS_string[$i] convertito:</td>";
+					echo "<td>$coN</td></tr>";
+				}
+				$i++;
+			}
+			else {
+				echo "<tr><td class=\"int2\">$GPS_string[$i]:</td>";
+				
+				if($GPS_stampa_precedenti){
+					$p = $GPS_array_precedente[$i];
+					echo "<td>$p</td><td ".($p!=$dato?"style=\"color: red;\"":"").">$dato</td>";
+				}
+				else
+					echo "<td>$dato</td>";
 			$i++;
+			echo "</tr>";
+			}
 		}
-		echo "</div>";
+		echo "</table>";
 	}
 ?>
-	<div class="spaziatore"></div>
+	</div>
+</div>
 </div>
 </body>
 </html>
