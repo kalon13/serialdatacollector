@@ -302,8 +302,7 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 		fclose($fh);
 		$IMU_is_init = true;
 	}
-	else
-	{
+	else {
 		$IMU_Data = "Il file della imu non esiste!";
 		$IMU_is_init = false;
 	}
@@ -324,6 +323,14 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 	// Processo le stringhe dei file gps e imu, le stampo poi in maniera strutturata
 	$IMU_Data = trim($IMU_Data);
 	$GPS_Data = trim($GPS_Data);
+	if($IMU_Data=="") {
+		$IMU_Data = "Il file della imu non esiste!";
+		$IMU_is_init = false;
+	}
+	if($GPS_Data=="") {
+		$GPS_Data = "Il file della imu non esiste!";
+		$GPS_is_init = false;
+	}
 
 	$IMU_string = array("Timestamp", "Contatore", "Timestamp interno IMU", 
 						"Accelerazione lungo X", "Accelerazione lungo Y", "Accelerazione lungo Z", 
@@ -333,9 +340,9 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 						"Matrice di Orientazione R 2 C 1", "Matrice di Orientazione R 2 C 2", "Matrice di Orientazione R 2 C 3",
 						"Matrice di Orientazione R 3 C 1", "Matrice di Orientazione R 3 C 2", "Matrice di Orientazione R 3 C 3");
 	
-	$GPS_string = array("Timestamp", "Tipo Stringa NMEA", "Ora GMT", "Latitudine", "Longitudine",
-						"Validit&agrave; Dato", "Numero di Satelliti", "HDOP", "Altitudine",
-						"Altezza del Geoide", "Checksum");
+	$GPS_string = array("Timestamp", "Tipo Stringa NMEA", "Ora GMT", "Latitudine", "Area Latitudine", "Longitudine", " Area Longitudine",
+						"Validit&agrave; Dato", "Numero di Satelliti", "HDOP", "Altitudine", "UM Altitudine",
+						"Altezza del Geoide","UM Altitudine Geoide", "Checksum");
 	
 	if($IMU_is_init)
 	{	
@@ -495,6 +502,9 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 		}
 		echo "</table>";
 	}
+	else {
+		echo "<p>$IMU_Data</p>";
+	}
 ?>
 	</div>
 
@@ -549,6 +559,9 @@ e&&e.document?e.document.compatMode==="CSS1Compat"&&e.document.documentElement["
 			}
 		}
 		echo "</table>";
+	}
+	else {
+		echo "<p>$GPS_Data</p>";
 	}
 ?>
 	</div>
